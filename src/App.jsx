@@ -33,8 +33,11 @@ import QueryToCMOPage from "./pages/SDM/QueryToCMOPage";
 import ValidationPage from "./pages/SDM/ValidationPage";
 import SearchPage from "./pages/SDM/SearchPage";
 
+
+
+
 import DmPanel from "./dashboard/DMPanel/DmPanel";
-import DMDashboard from "./pages/DM/DmDashboard";
+import DMDashboard from "./pages/DM/DMDashboard";
 import ApprovalANDRejectionPage from "./pages/DM/ApprovalANDRejectionPage";
 import CaseFileViewPage from "./pages/DM/CaseFileViewPage";
 import EscalationPage from "./pages/DM/EscalationPage";
