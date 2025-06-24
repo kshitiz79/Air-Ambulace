@@ -10,6 +10,7 @@ import {
   FiCheckCircle,
   FiArrowRightCircle,
 } from 'react-icons/fi';
+import baseUrl from '../../baseUrl/baseUrl';
 
 // Define badge styles for different statuses
 const statusStyles = {
@@ -31,7 +32,7 @@ export const EnquiryListPage = () => {
     const fetchEnquiries = async () => {
       try {
         setLoading(true);
-        const res = await fetch('http://localhost:4000/api/enquiries');
+        const res = await fetch(`${baseUrl}/api/enquiries`);
         const payload = await res.json();
         if (!res.ok) throw new Error(payload.message || 'Error fetching');
         setEnquiries(payload.data || []);
