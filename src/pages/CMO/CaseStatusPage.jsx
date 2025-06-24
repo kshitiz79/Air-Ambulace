@@ -13,7 +13,7 @@ const EnquiryStatusPage = () => {
     const fetchAllEnquiries = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:4000/api/enquiries', {
+        const response = await fetch('https://api.ambulance.jetserveaviation.com/api/enquiries', {
           method: 'GET',
         });
         const data = await response.json();

@@ -72,8 +72,8 @@ const EnquiryCreationPage = () => {
     const loadLookups = async () => {
       try {
         const [hRes, dRes] = await Promise.all([
-          fetch('http://localhost:4000/api/hospitals'),
-          fetch('http://localhost:4000/api/districts'),
+          fetch('https://api.ambulance.jetserveaviation.com/api/hospitals'),
+          fetch('https://api.ambulance.jetserveaviation.com/api/districts'),
         ]);
         if (!hRes.ok || !dRes.ok) throw new Error('Failed to fetch lookups');
         const hData = await hRes.json();
@@ -171,7 +171,7 @@ const EnquiryCreationPage = () => {
     });
 
     try {
-      const res = await fetch('http://localhost:4000/api/enquiries', {
+      const res = await fetch('https://api.ambulance.jetserveaviation.com/api/enquiries', {
         method: 'POST',
         body: payload,
       });
