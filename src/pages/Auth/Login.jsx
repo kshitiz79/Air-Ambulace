@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUser, FaLock, FaArrowRight, FaUserCircle } from 'react-icons/fa';
+import baseUrl from '../../baseUrl/baseUrl';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -16,11 +17,11 @@ const Login = () => {
 
     try {
       console.log('Sending login request:', { username });
-      const response = await fetch('https://api.ambulance.jetserveaviation.com/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
+      const response = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
 
       if (!response.ok) {
         const data = await response.json();

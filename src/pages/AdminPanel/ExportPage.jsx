@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
+import baseUrl from '../../baseUrl/baseUrl';
 
 const ExportPage = () => {
   const [enquiries, setEnquiries] = useState([]);
@@ -16,9 +17,9 @@ const ExportPage = () => {
       setError('');
       try {
         const [enquiryRes, hospitalRes, districtRes] = await Promise.all([
-          axios.get('https://api.ambulance.jetserveaviation.com/api/enquiries'),
-          axios.get('https://api.ambulance.jetserveaviation.com/api/hospitals'),
-          axios.get('https://api.ambulance.jetserveaviation.com/api/districts'),
+          axios.get(`${baseUrl}/api/enquiries`),
+          axios.get(`${baseUrl}/api/hospitals`),
+          axios.get(`${baseUrl}/api/districts`),
         ]);
         setEnquiries(enquiryRes.data.data);
         setHospitals(hospitalRes.data.data);

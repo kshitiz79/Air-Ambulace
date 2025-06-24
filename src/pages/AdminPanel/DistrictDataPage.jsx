@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import baseUrl from '../../baseUrl/baseUrl';
 
 const CreateDistrict = () => {
   const [formData, setFormData] = useState({
@@ -18,7 +19,7 @@ const CreateDistrict = () => {
     const fetchDistricts = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('https://api.ambulance.jetserveaviation.com/api/districts');
+        const response = await axios.get(`${baseUrl}/api/districts`);
         setDistricts(response.data);
       } catch (err) {
         setError('Failed to fetch districts');
@@ -39,7 +40,7 @@ const CreateDistrict = () => {
     setSuccess('');
 
     try {
-      const response = await axios.post('https://api.ambulance.jetserveaviation.com/api/districts', formData);
+      const response = await axios.post(`${baseUrl}/api/districts`, formData);
       setSuccess('District created successfully!');
       setFormData({
         district_name: '',
@@ -48,7 +49,7 @@ const CreateDistrict = () => {
         state: 'Madhya Pradesh',
       });
       // Refresh district list
-      const updatedDistricts = await axios.get('https://api.ambulance.jetserveaviation.com/api/districts');
+      const updatedDistricts = await axios.get(`${baseUrl}/api/districts`);
       setDistricts(updatedDistricts.data);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to create district');

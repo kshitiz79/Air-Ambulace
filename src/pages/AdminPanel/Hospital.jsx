@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import baseUrl from '../../baseUrl/baseUrl';
 
 const CreateHospital = () => {
   const [formData, setFormData] = useState({
@@ -26,11 +27,11 @@ const CreateHospital = () => {
       setLoading(true);
       try {
         // Fetch districts for the dropdown
-        const districtResponse = await axios.get('https://api.ambulance.jetserveaviation.com/api/districts');
+        const districtResponse = await axios.get(`${baseUrl}/api/districts`);
         setDistricts(districtResponse.data);
 
         // Fetch hospitals for the list
-        const hospitalResponse = await axios.get('https://api.ambulance.jetserveaviation.com/api/hospitals');
+        const hospitalResponse = await axios.get(`${baseUrl}/api/hospitals`);
         setHospitals(hospitalResponse.data.data);
       } catch (err) {
         setError('Failed to fetch data');
@@ -51,7 +52,7 @@ const CreateHospital = () => {
     setSuccess('');
 
     try {
-      const response = await axios.post('https://api.ambulance.jetserveaviation.com/api/hospitals', formData);
+      const response = await axios.post(`${baseUrl}/api/hospitals`, formData);
       setSuccess('Hospital created successfully!');
       setFormData({
         hospital_name: '',
@@ -66,7 +67,7 @@ const CreateHospital = () => {
         registration_number: '',
       });
       // Refresh hospital list
-      const updatedHospitals = await axios.get('https://api.ambulance.jetserveaviation.com/api/hospitals');
+      const updatedHospitals = await axios.get(`${baseUrl}/api/hospitals`);
       setHospitals(updatedHospitals.data.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create hospital');
@@ -128,7 +129,7 @@ const CreateHospital = () => {
           </div>
           <div>
             <label htmlFor="contact_phone" className="block text-sm font-medium text-gray-700">
-              Contact Phone
+              Hospital Phone
             </label>
             <input
               type="text"
@@ -141,7 +142,7 @@ const CreateHospital = () => {
           </div>
           <div>
             <label htmlFor="contact_email" className="block text-sm font-medium text-gray-700">
-              Contact Email
+              Hospital Email
             </label>
             <input
               type="email"

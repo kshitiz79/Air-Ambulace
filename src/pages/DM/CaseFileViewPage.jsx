@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import baseUrl from '../../baseUrl/baseUrl';
 
 const CaseFileViewPage = () => {
   const { enquiryId } = useParams();
@@ -12,7 +13,7 @@ const CaseFileViewPage = () => {
     const fetchEnquiry = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:4000/api/enquiries/${enquiryId}`);
+        const response = await fetch(`${baseUrl}/api/enquiries/${enquiryId}`);
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data.message || 'Enquiry not found');
@@ -31,7 +32,7 @@ const CaseFileViewPage = () => {
   const handleApproveReject = async (action) => {
     try {
       setActionStatus(`Processing ${action.toLowerCase()}...`);
-      const response = await fetch(`http://localhost:4000/api/enquiries/${enquiryId}/approve-reject`, {
+      const response = await fetch(`${baseUrl}/api/enquiries/${enquiryId}/approve-reject`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action }),

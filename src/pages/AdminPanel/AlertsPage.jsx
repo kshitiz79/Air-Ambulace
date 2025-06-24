@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import baseUrl from '../../baseUrl/baseUrl';
 
 const AlertsPage = () => {
   const [enquiries, setEnquiries] = useState([]);
@@ -12,7 +13,7 @@ const AlertsPage = () => {
       setLoading(true);
       setError('');
       try {
-        const response = await axios.get('https://api.ambulance.jetserveaviation.com/api/enquiries');
+     const response = await axios.get(`${baseUrl}/api/enquiries`);
         setEnquiries(response.data.data);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to fetch enquiries');

@@ -35,7 +35,7 @@ const AirRequirementTeam = () => {
       {/* Sidebar */}
       <aside className="w-72 bg-white shadow-lg p-6 overflow-y-auto border-r border-gray-200">
         <div className="mb-8">
-          <h1 className="text-xl font-bold text-blue-700">Air Requirement Team  </h1>
+          <h1 className="text-xl font-bold text-blue-700">Admin Dashboard </h1>
         </div>
         <nav>
        

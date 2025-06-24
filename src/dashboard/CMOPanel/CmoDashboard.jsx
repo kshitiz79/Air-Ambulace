@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { FiHome, FiSend, FiUser, FiUpload, FiEdit3, FiCheckSquare, FiClipboard, FiLogOut, FiBell, FiSettings } from "react-icons/fi";
 import {   FiHelpCircle } from 'react-icons/fi';
@@ -12,6 +13,20 @@ const links = [
 
 const CmoDashboard = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+
+
+
+  const handleLogout = () => {
+  // Remove auth data from localStorage/sessionStorage
+  localStorage.removeItem("token");
+  localStorage.removeItem("role");
+  localStorage.removeItem("userId");
+  localStorage.removeItem("district_id");
+
+  // Redirect to login page
+  navigate("/");
+}
 
   return (
     <div className="flex h-screen font-sans bg-gray-100">
@@ -60,13 +75,13 @@ const CmoDashboard = () => {
               <p className="text-xs text-blue-200">Chief Medical Officer</p>
             </div>
           </div>
-          <button
-            className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition duration-200"
-            onClick={() => alert("Logout clicked")} // Replace with actual logout logic
-          >
-            <FiLogOut />
-            <span>Logout</span>
-          </button>
+         <button
+  className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition duration-200"
+  onClick={handleLogout}
+>
+  <FiLogOut />
+  <span>Logout</span>
+</button>
         </div>
       </aside>
 

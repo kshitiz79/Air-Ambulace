@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import baseUrl from '../../baseUrl/baseUrl';
 
 const CaseFileListPage = () => {
   const [enquiries, setEnquiries] = useState([]);
@@ -10,7 +11,7 @@ const CaseFileListPage = () => {
     const fetchEnquiries = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:4000/api/enquiries');
+        const response = await fetch(`${baseUrl}/api/enquiries`);
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data.message || 'Failed to fetch case files');

@@ -26,7 +26,7 @@ import DocumentVerificationPage from "./pages/CMO/DocumentVerificationPage";
 import CaseStatusPage from "./pages/CMO/CaseStatusPage";
 import Dashboard from "./pages/CMO/Dashboard";
 import CaseForwardingPage from "./pages/CMO/CaseForwardingPage";
-import BeneficiaryDetailsEditPage from "./pages/CMO/BeneficiaryDetailsEditPage";
+
 
 import SDMPanel from "./dashboard/SDMPanel/SDMPanel";
 import SDMDashboard from "./pages/SDM/SDMDashboard";
@@ -78,6 +78,8 @@ import Login from "./pages/Auth/Login";
 // import HomePage from "./pages/HomePage";
 import Signup from "./pages/Auth/Signup";
 import CreateHospital from "./pages/AdminPanel/Hospital";
+import BeneficiaryEditPageList from "./pages/CMO/BeneficiaryEditPageList";
+import BeneficiaryDetailsEditPage from "./pages/CMO/BeneficiaryDetailsEditPage";
 
 function App() {
   const PrivateRoute = ({ children, roleRequired }) => {
@@ -119,15 +121,22 @@ function App() {
           <Route path="faq-page" element={<FAQPage />} />
         </Route>
 
-        <Route path="/cmo-dashboard" element={<PrivateRoute roleRequired="CMO"><CmoDashboard /></PrivateRoute>}>
-          <Route index element={<Dashboard />} />
-          <Route path="forwarding-form" element={<CaseForwardingPage />} />
-          <Route path="beneficiary-detail-page" element={<BeneficiaryDetailsEditPage />} />
-          <Route path="cmo-dox-upload" element={<DoxUpload />} />
-          <Route path="enquiry-creation-page" element={<EnquiryCreationPage />} />
-          <Route path="document-verification" element={<DocumentVerificationPage />} />
-          <Route path="case-status-page" element={<CaseStatusPage />} />
-        </Route>
+
+
+<Route path="/cmo-dashboard" element={<PrivateRoute roleRequired="CMO"><CmoDashboard /></PrivateRoute>}>
+  <Route index element={<Dashboard />} />
+  <Route path="forwarding-form" element={<CaseForwardingPage />} />
+  <Route path="beneficiary-detail-page" element={<BeneficiaryEditPageList />} />
+  <Route path="beneficiary-detail-page/:id" element={<BeneficiaryDetailsEditPage />} /> {/* Relative path */}
+  <Route path="cmo-dox-upload" element={<DoxUpload />} />
+  <Route path="enquiry-creation-page" element={<EnquiryCreationPage />} />
+  <Route path="document-verification" element={<DocumentVerificationPage />} />
+  <Route path="case-status-page" element={<CaseStatusPage />} />
+</Route>
+
+
+
+
 
         <Route path="/sdm-dashboard" element={<PrivateRoute roleRequired="SDM"><SDMPanel /></PrivateRoute>}>
           <Route index element={<SDMDashboard />} />

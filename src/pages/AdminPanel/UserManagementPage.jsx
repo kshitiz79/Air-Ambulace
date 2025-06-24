@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import baseUrl from '../../baseUrl/baseUrl';
 
 const UserManagementPage = () => {
   const [users, setUsers] = useState([]);
@@ -20,7 +21,7 @@ const UserManagementPage = () => {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('https://api.ambulance.jetserveaviation.com/api/users', {
+      const response = await axios.get(`${baseUrl}/api/users`, {
         headers: { Authorization: token },
       });
       setUsers(response.data.users);
@@ -32,7 +33,7 @@ const UserManagementPage = () => {
   // Fetch all districts
   const fetchDistricts = async () => {
     try {
-      const response = await axios.get('https://api.ambulance.jetserveaviation.com/api/districts');
+      const response = await axios.get(`${baseUrl}/api/districts`);
       setDistricts(response.data || []); // Adjusted to handle direct array response
     } catch (err) {
       setError('Failed to fetch districts: ' + (err.response?.data?.error || err.message));
@@ -60,7 +61,7 @@ const UserManagementPage = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('https://api.ambulance.jetserveaviation.com/api/auth/create-user', formData, {
+      const response = await axios.post(`${baseUrl}/api/auth/create-user`, formData, {
         headers: { Authorization: token },
       });
       setSuccess(response.data.message);
