@@ -75,7 +75,7 @@ import EnquiryListPage from "./pages/SDM/EnquiryListPage";
 import CaseFileListPage from "./pages/DM/CaseFileListPage";
 import CaseListPage from "./pages/AirRequirement/CaseListPage";
 import Login from "./pages/Auth/Login";
-import HomePage from "./pages/HomePage";
+// import HomePage from "./pages/HomePage";
 import Signup from "./pages/Auth/Signup";
 
 function App() {
@@ -104,8 +104,8 @@ function App() {
   return (
 <Router>
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<Login />} />
+        {/* <Route path="/" element={<HomePage />} /> */}
+        <Route path="/" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
         <Route path="/user" element={<PrivateRoute roleRequired="BENEFICIARY"><CitizenDashboard /></PrivateRoute>}>

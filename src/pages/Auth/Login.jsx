@@ -124,12 +124,12 @@ const Login = () => {
               </button>
 
               <div className="text-center justify-center mt-3">
-                <span className="text-gray-100">Don't have an account? </span>
+                <span className="text-gray-100">Forgot Password </span>
                 <button
-                  onClick={() => navigate('/signup')}
+  
                   className="text-blue-100 font-semibold px-1 bg-blue-900 rounded-3xl"
                 >
-                  Sign up
+                  Click me
                 </button>
               </div>
             </div>
