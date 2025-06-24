@@ -12,6 +12,7 @@ import {
   FiUsers,
   FiBarChart2,
 } from "react-icons/fi";
+import { FaHospital } from "react-icons/fa";
 
 const links = [
   { to: "/admin", label: "Dashboard", icon: <FiHome /> },
@@ -22,6 +23,7 @@ const links = [
   { to: "/admin/system-performance-page", label: "System Performance", icon: <FiActivity /> },
   { to: "/admin/user-management", label: "User Management", icon: <FiUsers /> },
   { to: "/admin/district-data-page", label: "District Data", icon: <FiBarChart2 /> },
+  { to: "/admin/hospital-management", label: "Hospital Data", icon: <FaHospital /> },
 ];
 
 

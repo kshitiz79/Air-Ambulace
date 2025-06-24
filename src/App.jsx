@@ -77,6 +77,7 @@ import CaseListPage from "./pages/AirRequirement/CaseListPage";
 import Login from "./pages/Auth/Login";
 // import HomePage from "./pages/HomePage";
 import Signup from "./pages/Auth/Signup";
+import CreateHospital from "./pages/AdminPanel/Hospital";
 
 function App() {
   const PrivateRoute = ({ children, roleRequired }) => {
@@ -159,6 +160,7 @@ function App() {
           <Route path="permission-page" element={<PermissionsManagementPage />} />
           <Route path="system-performance-page" element={<SystemPerformancePage />} />
           <Route path="user-management" element={<UserManagementPage />} />
+                  <Route path="hospital-management" element={<CreateHospital />} />
         </Route>
 
         <Route path="/air-team" element={<PrivateRoute roleRequired="SERVICE_PROVIDER"><AirRequirementTeam /></PrivateRoute>}>
