@@ -1,40 +1,56 @@
-
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-
-// Mock case data
-const cases = {
-  ENQ001: {
-    id: 'ENQ001',
-    patientName: 'Ramesh Patel',
-    ayushmanCard: 'AY1234567890',
-    medicalCondition: 'Severe cardiac arrest',
-    hospital: 'AIIMS Bhopal',
-    contactName: 'Suresh Patel',
-    contactPhone: '9876543210',
-    cmoRemarks: 'Urgent transfer required',
-    documents: ['ayushman_card.pdf', 'medical_report.pdf'],
-  },
-  ENQ002: {
-    id: 'ENQ002',
-    patientName: 'Sita Devi',
-    ayushmanCard: 'AY0987654321',
-    medicalCondition: 'Trauma from accident',
-    hospital: 'CHL Indore',
-    contactName: 'Ram Kumar',
-    contactPhone: '9876543220',
-    cmoRemarks: 'Stable but needs specialized care',
-    documents: ['ayushman_card.pdf'],
-  },
-};
 
 const EnquiryDetailsPage = () => {
   const { enquiryId } = useParams();
-  const caseData = cases[enquiryId] || {};
+  const [enquiry, setEnquiry] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [forwardStatus, setForwardStatus] = useState('');
 
-  if (!caseData.id) {
-    return <div className="max-w-4xl mx-auto p-6">Enquiry not found</div>;
+  useEffect(() => {
+    const fetchEnquiry = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`http://localhost:4000/api/enquiries/${enquiryId}`);
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Enquiry not found');
+        }
+        setEnquiry(data.data);
+        setError('');
+      } catch (err) {
+        setError('Failed to load enquiry: ' + err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEnquiry();
+  }, [enquiryId]);
+
+  const handleForwardToDM = async () => {
+    try {
+      setForwardStatus('Forwarding...');
+      const response = await fetch(`http://localhost:4000/api/enquiries/${enquiryId}/forward`, {
+        method: 'PATCH',
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to forward enquiry');
+      }
+      setEnquiry({ ...enquiry, status: 'FORWARDED' });
+      setForwardStatus('Enquiry forwarded to DM successfully!');
+    } catch (err) {
+      setForwardStatus('Failed to forward: ' + err.message);
+    }
+  };
+
+  if (loading) {
+    return <div className="max-w-4xl mx-auto p-6">Loading...</div>;
+  }
+
+  if (error || !enquiry) {
+    return <div className="max-w-4xl mx-auto p-6">{error || 'Enquiry not found'}</div>;
   }
 
   return (
@@ -42,23 +58,27 @@ const EnquiryDetailsPage = () => {
       <h2 className="text-xl font-semibold mb-4">Enquiry Details - {enquiryId}</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div>
-          <p><strong>Patient Name:</strong> {caseData.patientName}</p>
-          <p><strong>Ayushman Card:</strong> {caseData.ayushmanCard}</p>
-          <p><strong>Medical Condition:</strong> {caseData.medicalCondition}</p>
-          <p><strong>Hospital:</strong> {caseData.hospital}</p>
+          <p><strong>Patient Name:</strong> {enquiry.patient_name}</p>
+          <p><strong>Ayushman Card:</strong> {enquiry.ayushman_card_number || 'N/A'}</p>
+          <p><strong>Medical Condition:</strong> {enquiry.medical_condition}</p>
+          <p><strong>Hospital:</strong> {enquiry.hospital?.name || 'N/A'}</p>
         </div>
         <div>
-          <p><strong>Contact Name:</strong> {caseData.contactName}</p>
-          <p><strong>Contact Phone:</strong> {caseData.contactPhone}</p>
-          <p><strong>CMO Remarks:</strong> {caseData.cmoRemarks}</p>
+          <p><strong>Contact Name:</strong> {enquiry.contact_name}</p>
+          <p><strong>Contact Phone:</strong> {enquiry.contact_phone}</p>
+          <p><strong>Status:</strong> {enquiry.status}</p>
         </div>
       </div>
       <div className="mb-6">
         <h3 className="text-lg font-medium mb-2">Documents</h3>
         <ul className="list-disc pl-5">
-          {caseData.documents.map((doc, index) => (
-            <li key={index}>{doc}</li>
-          ))}
+          {enquiry.documents && enquiry.documents.length > 0 ? (
+            enquiry.documents.map((doc) => (
+              <li key={doc.document_id}>{doc.document_type}: {doc.file_path.split('/').pop()}</li>
+            ))
+          ) : (
+            <li>No documents uploaded</li>
+          )}
         </ul>
       </div>
       <div className="flex flex-wrap gap-4">
@@ -80,13 +100,27 @@ const EnquiryDetailsPage = () => {
         >
           Query CMO
         </Link>
-        <Link
-          to={`/sdm/forward-to-dm/${enquiryId}`}
-          className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+        <button
+          onClick={handleForwardToDM}
+          disabled={enquiry.status === 'FORWARDED' || forwardStatus === 'Forwarding...'}
+          className={`px-4 py-2 rounded text-white ${
+            enquiry.status === 'FORWARDED' || forwardStatus === 'Forwarding...'
+              ? 'bg-gray-400'
+              : 'bg-purple-600 hover:bg-purple-700'
+          }`}
         >
-          Forward to DM
-        </Link>
+          {forwardStatus === 'Forwarding...' ? 'Forwarding...' : 'Forward to DM'}
+        </button>
       </div>
+      {forwardStatus && (
+        <p
+          className={`mt-4 ${
+            forwardStatus.includes('Failed') ? 'text-red-600' : 'text-green-600'
+          }`}
+        >
+          {forwardStatus}
+        </p>
+      )}
     </div>
   );
 };

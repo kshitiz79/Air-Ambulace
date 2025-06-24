@@ -7,6 +7,10 @@ import {
 } from "react-router-dom";
 
 
+
+
+
+
 import CitizenDashboard from "./dashboard/Citizens/CitizenDashboard";
 import Home from "./pages/Citizen/Home";
 import EnquiryForm from "./pages/Citizen/EnquiryForm";
@@ -75,18 +79,19 @@ import HomePage from "./pages/HomePage";
 import Signup from "./pages/Auth/Signup";
 
 function App() {
-
-
-  const role = localStorage.getItem('role');  // Get role from localStorage
-
-  // Private Route logic to protect dashboard pages
   const PrivateRoute = ({ children, roleRequired }) => {
-    if (!localStorage.getItem('token')) {
-      return <Navigate to="/login" />; // Redirect to login if not authenticated
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+    console.log('PrivateRoute check:', { token: !!token, role, roleRequired, pathname: window.location.pathname });
+
+    if (!token) {
+      console.log('Redirecting to /login: No token');
+      return <Navigate to="/login" />;
     }
 
-    if (role && role !== roleRequired) {
-      return <Navigate to="/" />;  // Redirect to home if role mismatch
+    if (roleRequired && role !== roleRequired) {
+      console.log(`Redirecting to /: Role mismatch (stored: ${role}, required: ${roleRequired})`);
+      return <Navigate to="/" />;
     }
 
     return children;
@@ -96,27 +101,14 @@ function App() {
 
 
 
-
-
-
-
   return (
-    <Router>
+<Router>
       <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
 
-
-
-                <Route path="/" element={<HomePage />} />
-
-                <Route path="/login" element={<Login />} />
-                    <Route path="/signup" element={<Signup />} />
-
-
-        <Route path="/user" element={ <PrivateRoute roleRequired="BENEFICIARY">
-            <CitizenDashboard />
-          </PrivateRoute>}>
-
-        
+        <Route path="/user" element={<PrivateRoute roleRequired="BENEFICIARY"><CitizenDashboard /></PrivateRoute>}>
           <Route index element={<Home />} />
           <Route path="enquiry-form" element={<EnquiryForm />} />
           <Route path="status-check" element={<StatusCheck />} />
@@ -126,79 +118,39 @@ function App() {
           <Route path="faq-page" element={<FAQPage />} />
         </Route>
 
-
-
-
-
-
-
-
-
-        <Route path="/cmo-dashboard" element={ <PrivateRoute roleRequired="CMO">
-            <CmoDashboard />
-          </PrivateRoute>}>
+        <Route path="/cmo-dashboard" element={<PrivateRoute roleRequired="CMO"><CmoDashboard /></PrivateRoute>}>
           <Route index element={<Dashboard />} />
           <Route path="forwarding-form" element={<CaseForwardingPage />} />
-          <Route
-            path="beneficiary-detail-page"
-            element={<BeneficiaryDetailsEditPage />}
-          />
+          <Route path="beneficiary-detail-page" element={<BeneficiaryDetailsEditPage />} />
           <Route path="cmo-dox-upload" element={<DoxUpload />} />
-          <Route
-            path="enquiry-creation-page"
-            element={<EnquiryCreationPage />}
-          />
-          <Route
-            path="document-verification"
-            element={<DocumentVerificationPage />}
-          />
+          <Route path="enquiry-creation-page" element={<EnquiryCreationPage />} />
+          <Route path="document-verification" element={<DocumentVerificationPage />} />
           <Route path="case-status-page" element={<CaseStatusPage />} />
         </Route>
 
-
-
-
-
-
-
-        <Route path="/sdm-dashboard" element={<PrivateRoute roleRequired="SDM">
-            <SDMPanel />
-          </PrivateRoute>}>
+        <Route path="/sdm-dashboard" element={<PrivateRoute roleRequired="SDM"><SDMPanel /></PrivateRoute>}>
           <Route index element={<SDMDashboard />} />
           <Route path="forwarding-to-dm" element={<ForwardToDMPage />} />
           <Route path="approval-reject" element={<ApproveRejectPage />} />
           <Route path="query-to-cmo" element={<QueryToCMOPage />} />
-           <Route path="enquiry-detail-page" element={<EnquiryListPage />} />
-        <Route path="enquiry-detail-page/:enquiryId" element={<EnquiryDetailsPage />} />
-
+          <Route path="enquiry-detail-page" element={<EnquiryListPage />} />
+          <Route path="enquiry-detail-page/:enquiryId" element={<EnquiryDetailsPage />} />
           <Route path="search-page" element={<SearchPage />} />
           <Route path="validation-page" element={<ValidationPage />} />
         </Route>
 
-
-
-
-
-
-        <Route path="/dm-dashboard" element={   <PrivateRoute roleRequired="DM" > <DmPanel /></PrivateRoute>  }>
-          <Route index element={  <DMDashboard />} />
-          <Route
-            path="approval-reject"
-            element={<ApprovalANDRejectionPage />}
-          />
+        <Route path="/dm-dashboard" element={<PrivateRoute roleRequired="DM"><DmPanel /></PrivateRoute>}>
+          <Route index element={<DMDashboard />} />
+          <Route path="approval-reject" element={<ApprovalANDRejectionPage />} />
           <Route path="case-file/:enquiryId" element={<CaseFileViewPage />} />
-           <Route path="case-files" element={<CaseFileListPage />} />
+          <Route path="case-files" element={<CaseFileListPage />} />
           <Route path="escalation-page" element={<EscalationPage />} />
           <Route path="financial-page" element={<FinancialSanctionPage />} />
           <Route path="order-release-page" element={<OrderReleasePage />} />
           <Route path="search-page" element={<DMSearchPage />} />
         </Route>
 
-
-
-
-
-      <Route path="/admin" element={<PrivateRoute roleRequired="ADMIN"><AdminPanel /></PrivateRoute>}>
+        <Route path="/admin" element={<PrivateRoute roleRequired="ADMIN"><AdminPanel /></PrivateRoute>}>
           <Route index element={<AdminDashboard />} />
           <Route path="admin-report-page" element={<AdminReportsPage />} />
           <Route path="alert-page" element={<AlertsPage />} />
@@ -209,7 +161,7 @@ function App() {
           <Route path="user-management" element={<UserManagementPage />} />
         </Route>
 
-      <Route path="/air-team" element={<PrivateRoute roleRequired="SERVICE_PROVIDER"><AirRequirementTeam /></PrivateRoute>}>
+        <Route path="/air-team" element={<PrivateRoute roleRequired="SERVICE_PROVIDER"><AirRequirementTeam /></PrivateRoute>}>
           <Route index element={<AirDashboard />} />
           <Route path="ambulance-assignment-page" element={<AmbulanceAssignmentPage />} />
           <Route path="case-close-file" element={<CaseClosurePage />} />
@@ -219,36 +171,6 @@ function App() {
           <Route path="post-operation-page" element={<PostOperationReportPage />} />
           <Route path="tracker-page" element={<TrackerPage />} />
         </Route>
-
- {/* <Route path="/it-team" element={<AirRequirementTeam />}>
-          <Route index element={<AirDashboard />} />
-          <Route
-            path="ambulance-assignment-page"
-            element={<AmbulanceAssignmentPage />}
-          />
-          <Route path="case-close-file" element={<CaseClosurePage />} />
-
-
-
-
-
-   
-
-
-          <Route
-            path="invoice-generation-page"
-            element={<InvoiceGenerationPage />}
-          />
-          <Route
-            path="post-operation-page"
-            element={<PostOperationReportPage />}
-          />
-          <Route path="tracker-page" element={<TrackerPage />} />
-        </Route> */}
-
-
-
-
       </Routes>
     </Router>
   );
