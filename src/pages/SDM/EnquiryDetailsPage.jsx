@@ -35,7 +35,7 @@ export const EnquiryDetailsPage = () => {
     const fetchEnquiry = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`http://localhost:4000/api/enquiries/${enquiryId}`);
+        const res = await fetch(`${baseUrl}/api/enquiries/${enquiryId}`);
         const payload = await res.json();
         if (!res.ok) throw new Error(payload.message || 'Not found');
         setEnquiry(payload.data);
