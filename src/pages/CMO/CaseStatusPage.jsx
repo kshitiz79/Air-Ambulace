@@ -16,6 +16,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 const EnquiryStatusPage = () => {
   const [enquiryId, setEnquiryId] = useState('');
+  const [enquiryCode, setEnquiryCode] = useState(''); // Added for filtering by enquiry_code
   const [status, setStatus] = useState(null);
   const [allEnquiries, setAllEnquiries] = useState([]);
   const [filteredEnquiries, setFilteredEnquiries] = useState([]);
@@ -48,21 +49,24 @@ const EnquiryStatusPage = () => {
     fetchAllEnquiries();
   }, []);
 
-  // Handle status filter change
+  // Handle status and enquiry_code filter change
   useEffect(() => {
-    if (statusFilter === 'ALL') {
-      setFilteredEnquiries(allEnquiries);
-    } else {
-      setFilteredEnquiries(
-        allEnquiries.filter((enquiry) => enquiry.status === statusFilter)
+    let filtered = allEnquiries;
+    if (statusFilter !== 'ALL') {
+      filtered = filtered.filter((enquiry) => enquiry.status === statusFilter);
+    }
+    if (enquiryCode) {
+      filtered = filtered.filter((enquiry) =>
+        enquiry.enquiry_code.toLowerCase().includes(enquiryCode.toLowerCase())
       );
     }
-  }, [statusFilter, allEnquiries]);
+    setFilteredEnquiries(filtered);
+  }, [statusFilter, enquiryCode, allEnquiries]);
 
   // Download document
   const handleDownload = (filePath, fileName) => {
     const link = document.createElement('a');
-    link.href = `${baseUrl}${filePath}`; // Adjust based on your API's file serving
+    link.href = `${baseUrl}${filePath}`;
     link.download = fileName || 'document';
     document.body.appendChild(link);
     link.click();
@@ -126,24 +130,35 @@ const EnquiryStatusPage = () => {
     return acc;
   }, {});
 
-  const chartData = {
-    labels: Object.keys(statusCounts),
-    datasets: [
-      {
-        label: 'Enquiry Status Distribution',
-        data: Object.values(statusCounts),
-        backgroundColor: 'rgba(59, 130, 246, 0.5)',
-        borderColor: 'rgba(59, 130, 246, 1)',
-        borderWidth: 1,
+  const chart = {
+    type: 'bar',
+    data: {
+      labels: Object.keys(statusCounts),
+      datasets: [
+        {
+          label: 'Enquiry Status Distribution',
+          data: Object.values(statusCounts),
+          backgroundColor: 'rgba(59, 130, 246, 0.5)',
+          borderColor: 'rgba(59, 130, 246, 1)',
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' },
+        title: { display: true, text: 'Enquiry Status Distribution' },
       },
-    ],
-  };
-
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: { position: 'top' },
-      title: { display: true, text: 'Enquiry Status Distribution' },
+      scales: {
+        x: {
+          title: { display: true, text: 'Status' },
+        },
+        y: {
+          title: { display: true, text: 'Number of Enquiries' },
+          beginAtZero: true,
+        },
+      },
     },
   };
 
@@ -171,27 +186,46 @@ const EnquiryStatusPage = () => {
         </div>
       )}
 
-      {/* Status Filter */}
-      <div className="mb-6">
-        <label htmlFor="statusFilter" className="block text-sm font-medium text-gray-700">
-          Filter by Status
-        </label>
-        <select
-          id="statusFilter"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="mt-1 block w-full max-w-xs p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-        >
-          {statusOptions.map((status) => (
-            <option key={status} value={status}>
-              {status}
-            </option>
-          ))}
-        </select>
+      {/* Filters */}
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="statusFilter" className="block text-sm font-medium text-gray-700">
+            Filter by Status
+          </label>
+          <select
+            id="statusFilter"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="mt-1 block w-full max-w-xs p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          >
+            {statusOptions.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="enquiryCodeFilter" className="block text-sm font-medium text-gray-700">
+            Filter by Enquiry Code
+          </label>
+          <input
+            id="enquiryCodeFilter"
+            type="text"
+            value={enquiryCode}
+            onChange={(e) => setEnquiryCode(e.target.value)}
+            placeholder="Enter Enquiry Code (e.g., ENQ1234567897)"
+            className="mt-1 block w-full max-w-xs p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
       </div>
 
       {/* Status Chart */}
- 
+      <div className="mb-8">
+        <h3 className="text-lg font-semibold mb-4">Enquiry Status Distribution</h3>
+        <Bar data={chart.data} options={chart.options} />
+      </div>
+
       {/* All Enquiries List */}
       <div>
         <h3 className="text-lg font-semibold mb-4">All Enquiries</h3>
@@ -204,18 +238,19 @@ const EnquiryStatusPage = () => {
               <thead>
                 <tr className="bg-gray-100">
                   <th className="p-3 text-left text-sm font-medium">Enquiry ID</th>
+                  <th className="p-3 text-left text-sm font-medium">Enquiry Code</th>
                   <th className="p-3 text-left text-sm font-medium">Patient Name</th>
                   <th className="p-3 text-left text-sm font-medium">Status</th>
                   <th className="p-3 text-left text-sm font-medium">Hospital</th>
                   <th className="p-3 text-left text-sm font-medium">Location</th>
                   <th className="p-3 text-left text-sm font-medium">Documents</th>
-         
                 </tr>
               </thead>
               <tbody>
                 {filteredEnquiries.map((enquiry) => (
                   <tr key={enquiry.enquiry_id} className="border-t hover:bg-gray-50">
                     <td className="p-3">{enquiry.enquiry_id}</td>
+                    <td className="p-3">{enquiry.enquiry_code}</td>
                     <td className="p-3">{enquiry.patient_name}</td>
                     <td className="p-3">
                       <span
@@ -259,7 +294,6 @@ const EnquiryStatusPage = () => {
                         'No documents'
                       )}
                     </td>
-                    
                   </tr>
                 ))}
               </tbody>

@@ -172,13 +172,14 @@ const EnquiryDetailsPage = () => {
         </Card>
 
         <div className="mt-8 flex flex-wrap justify-between gap-4">
-          <Link to={`/sdm/validation/${enquiryId}`} className="flex items-center gap-2 px-5 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-md">
-            <FiCheckCircle className="h-5 w-5" /> Validate
+          
+          <Link to={`/sdm/approve-reject/${enquiryId}`} className="flex items-center gap-2 px-7 py-3 bg-red-600 text-white rounded-lg hover:bg-green-700 transition shadow-md">
+            <FiCheckCircle className="h 5 w-5" /> Reject
           </Link>
-          <Link to={`/sdm/approve-reject/${enquiryId}`} className="flex items-center gap-2 px-5 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition shadow-md">
-            <FiCheckCircle className="h 5 w-5" /> Approve/Reject
-          </Link>
-          <Link to={`/sdm/query-to-cmo/${enquiryId}`} className="flex items-center gap-2 px-5 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition shadow-md">
+          <Link
+            to={`/sdm-dashboard/enquiry-detail-page/query-to-cmo/${enquiryId}`}
+            className="flex items-center gap-2 px-5 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition shadow-md"
+          >
             <FiClipboard className="h-5 w-5" /> Query CMO
           </Link>
           <button

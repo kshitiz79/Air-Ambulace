@@ -22,10 +22,10 @@ import FAQPage from "./pages/Citizen/FAQPage";
 
 import CmoDashboard from "./dashboard/CMOPanel/CmoDashboard";
 import EnquiryCreationPage from "./pages/CMO/EnquiryCreationPage";
-import DocumentVerificationPage from "./pages/CMO/DocumentVerificationPage";
+
 import CaseStatusPage from "./pages/CMO/CaseStatusPage";
 import Dashboard from "./pages/CMO/Dashboard";
-import CaseForwardingPage from "./pages/CMO/CaseForwardingPage";
+
 
 
 import SDMPanel from "./dashboard/SDMPanel/SDMPanel";
@@ -80,6 +80,8 @@ import Signup from "./pages/Auth/Signup";
 import CreateHospital from "./pages/AdminPanel/Hospital";
 import BeneficiaryEditPageList from "./pages/CMO/BeneficiaryEditPageList";
 import BeneficiaryDetailsEditPage from "./pages/CMO/BeneficiaryDetailsEditPage";
+import EscalateCase from "./pages/CMO/EscalateCase";
+import Notification from "./pages/CMO/Notification";
 
 function App() {
   const PrivateRoute = ({ children, roleRequired }) => {
@@ -105,7 +107,7 @@ function App() {
 
 
   return (
-<Router>
+
       <Routes>
         {/* <Route path="/" element={<HomePage />} /> */}
         <Route path="/" element={<Login />} />
@@ -125,13 +127,13 @@ function App() {
 
 <Route path="/cmo-dashboard" element={<PrivateRoute roleRequired="CMO"><CmoDashboard /></PrivateRoute>}>
   <Route index element={<Dashboard />} />
-  <Route path="forwarding-form" element={<CaseForwardingPage />} />
+
   <Route path="beneficiary-detail-page" element={<BeneficiaryEditPageList />} />
   <Route path="beneficiary-detail-page/:id" element={<BeneficiaryDetailsEditPage />} /> {/* Relative path */}
-  <Route path="cmo-dox-upload" element={<DoxUpload />} />
   <Route path="enquiry-creation-page" element={<EnquiryCreationPage />} />
-  <Route path="document-verification" element={<DocumentVerificationPage />} />
   <Route path="case-status-page" element={<CaseStatusPage />} />
+  <Route path="escalate-case" element={<EscalateCase />} />
+  <Route path="notification" element={<Notification />} />
 </Route>
 
 
@@ -142,12 +144,16 @@ function App() {
           <Route index element={<SDMDashboard />} />
           <Route path="forwarding-to-dm" element={<ForwardToDMPage />} />
           <Route path="approval-reject" element={<ApproveRejectPage />} />
-          <Route path="query-to-cmo" element={<QueryToCMOPage />} />
+          <Route path="enquiry-detail-page/query-to-cmo/:enquiryId" element={<QueryToCMOPage />} />
           <Route path="enquiry-detail-page" element={<EnquiryListPage />} />
           <Route path="enquiry-detail-page/:enquiryId" element={<EnquiryDetailsPage />} />
           <Route path="search-page" element={<SearchPage />} />
           <Route path="validation-page" element={<ValidationPage />} />
         </Route>
+
+
+
+
 
         <Route path="/dm-dashboard" element={<PrivateRoute roleRequired="DM"><DmPanel /></PrivateRoute>}>
           <Route index element={<DMDashboard />} />
@@ -182,8 +188,9 @@ function App() {
           <Route path="post-operation-page" element={<PostOperationReportPage />} />
           <Route path="tracker-page" element={<TrackerPage />} />
         </Route>
+
       </Routes>
-    </Router>
+
   );
 }
 

@@ -1,69 +1,83 @@
-import React from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
-import { FiHome, FiSend, FiUser, FiUpload, FiEdit3, FiCheckSquare, FiClipboard } from "react-icons/fi";
-import {
 
+
+
+
+import React from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
+import SideBar from './../../components/Global/SideBar';
+
+import {
+  FiHome,
+  FiSend,
   FiUserX,
   FiCornerUpLeft,
   FiFileText,
   FiSearch,
   FiCheckCircle,
-} from "react-icons/fi";
-
-
+  FiBell,
+  FiSettings,
+  FiUser,
+} from 'react-icons/fi';
+import Header from '../../components/Global/Header';
 
 const links = [
-  { to: "/sdm-dashboard", label: "Dashboard", icon: <FiHome /> },
-  { to: "/sdm-dashboard/forwarding-to-dm", label: "Forwarding to DM", icon: <FiSend /> },
-  { to: "/sdm-dashboard/approval-reject", label: "Approval / Reject", icon: <FiUserX /> },
-  { to: "/sdm-dashboard/query-to-cmo", label: "Query to CMO", icon: <FiCornerUpLeft /> },
-  { to: "/sdm-dashboard/enquiry-detail-page", label: "Enquiry Details", icon: <FiFileText /> },
-  { to: "/sdm-dashboard/search-page", label: "Search Page", icon: <FiSearch /> },
-  { to: "/sdm-dashboard/validation-page", label: "Validation Page", icon: <FiCheckCircle /> },
+  { to: '/sdm-dashboard', label: 'Dashboard', icon: <FiHome /> },
+  { to: '/sdm-dashboard/forwarding-to-dm', label: 'Forwarding to DM', icon: <FiSend /> },
+  { to: '/sdm-dashboard/approval-reject', label: 'Approval / Reject', icon: <FiUserX /> },
+  { to: '/sdm-dashboard/query-to-cmo', label: 'Query to CMO', icon: <FiCornerUpLeft /> },
+  { to: '/sdm-dashboard/enquiry-detail-page', label: 'Enquiry Details', icon: <FiFileText /> },
+  { to: '/sdm-dashboard/search-page', label: 'Search Page', icon: <FiSearch /> },
+  { to: '/sdm-dashboard/validation-page', label: 'Validation Page', icon: <FiCheckCircle /> },
+
 ];
 
 const SDMPanel = () => {
-  const location = useLocation();
+  const navigate = useNavigate();
+  const userName = 'Jane Smith';
+  const userRole = 'SDM Officer';
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate('/');
+  };
 
   return (
     <div className="flex h-screen font-sans">
-      {/* Sidebar */}
-      <aside className="max-w-72 bg-white shadow-lg p-6 overflow-y-auto border-r border-gray-200">
-        <div className="mb-8">
-          <h1 className="text-xl font-bold text-blue-700">SDM Dashboard</h1>
-        </div>
-        <nav>
-       
-          <ul className="space-y-3">
-            {links.map((link) => {
-              const isActive = location.pathname === link.to;
-              return (
-                <li key={link.to}>
-                  <Link
-                    to={link.to}
-                    className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition duration-200 
-                      ${isActive
-                        ? "bg-blue-100 text-blue-700 font-medium"
-                        : "text-gray-700 hover:bg-gray-100"}`}
-                  >
-                    <span className="text-lg">{link.icon}</span>
-                    <span>{link.label}</span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-      </aside>
+      <SideBar
+        title="SDM Dashboard"
+        navigationLinks={links}
+        userName={userName}
+        userRole={userRole}
+        onLogout={handleLogout}
+      />
 
-      {/* Content */}
-      <main className="flex-grow p-6 bg-gray-50 overflow-y-auto">
-        <Outlet />
-      </main>
+
+
+
+<div className="flex-grow flex flex-col">
+
+
+        <Header greeting={`Welcome, ${userName}`}>  
+          <button title="Notifications" className="p-2 rounded-full hover:bg-blue-700/50 transition">
+            <FiBell className="text-xl" />
+          </button>
+          <button title="Settings" className="p-2 rounded-full hover:bg-blue-700/50 transition">
+            <FiSettings className="text-xl" />
+          </button>
+          <button title="Profile" className="p-2 rounded-full hover:bg-blue-700/50 transition">
+            <FiUser className="text-xl" />
+          </button>
+        </Header>
+
+
+
+
+        <main className="flex-grow p-6 bg-gray-50 overflow-y-auto">
+          <Outlet />
+        </main>
+    </div>
     </div>
   );
 };
 
-
-
-export default SDMPanel
+export default SDMPanel;

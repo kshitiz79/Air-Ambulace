@@ -202,87 +202,90 @@ export default function EnquiryCreationPage() {
   // Validate all fields
   const validateForm = () => {
     const errs = {};
-    if (step === 0 || step === steps.length - 1) {
-      if (!formData.patient_name.trim()) errs.patient_name = `${labels[language].patientName} is required`;
-      if (!formData.ayushman_card_number && (!formData.aadhar_card_number || !formData.pan_card_number)) {
-        errs.ayushman_card_number = 'Either Ayushman or both Aadhar & PAN required';
-      }
-      if (formData.ayushman_card_number && !/^\d{14}$/.test(formData.ayushman_card_number)) {
-        errs.ayushman_card_number = 'Ayushman must be 14 digits';
-      }
-      if (formData.aadhar_card_number && !/^\d{12}$/.test(formData.aadhar_card_number)) {
-        errs.aadhar_card_number = 'Aadhar must be 12 digits';
-      }
-      if (formData.pan_card_number && !/^[A-Z]{5}\d{4}[A-Z]$/.test(formData.pan_card_number)) {
-        errs.pan_card_number = 'PAN format ABCDE1234F';
-      }
-      if (!formData.father_spouse_name.trim()) errs.father_spouse_name = `${labels[language].fatherSpouseName} is required`;
-      if (!formData.age || formData.age <= 0) errs.age = `${labels[language].age} is required and must be positive`;
-      if (!formData.gender) errs.gender = `${labels[language].gender} is required`;
-      if (!formData.address.trim()) errs.address = `${labels[language].address} is required`;
+    // Step 0: Patient Details
+    if (!formData.patient_name.trim()) errs.patient_name = `${labels[language].patientName} is required`;
+    if (!formData.father_spouse_name.trim()) errs.father_spouse_name = `${labels[language].fatherSpouseName} is required`;
+    if (!formData.age || formData.age <= 0) errs.age = `${labels[language].age} is required and must be positive`;
+    if (!formData.gender) errs.gender = `${labels[language].gender} is required`;
+    if (!formData.address.trim()) errs.address = `${labels[language].address} is required`;
+    if (!formData.ayushman_card_number && (!formData.aadhar_card_number || !formData.pan_card_number)) {
+      errs.ayushman_card_number = 'Either Ayushman card or both Aadhar and PAN card numbers are required';
     }
-    if (step === 1 || step === steps.length - 1) {
-      if (!formData.contact_name.trim()) errs.contact_name = `${labels[language].contactName} is required`;
-      if (!/^\d{10}$/.test(formData.contact_phone)) errs.contact_phone = 'Phone must be 10 digits';
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contact_email)) {
-        errs.contact_email = 'Valid email required';
-      }
+    if (formData.ayushman_card_number && !/^\d{14}$/.test(formData.ayushman_card_number)) {
+      errs.ayushman_card_number = 'Ayushman card must be 14 digits';
     }
-    if (step === 2 || step === steps.length - 1) {
-      if (!formData.medical_condition.trim()) errs.medical_condition = `${labels[language].medicalCondition} is required`;
-      if (!formData.chief_complaint.trim()) errs.chief_complaint = `${labels[language].chiefComplaint} is required`;
-      if (!formData.general_condition.trim()) errs.general_condition = `${labels[language].generalCondition} is required`;
-      if (!formData.vitals) errs.vitals = `${labels[language].vitals} is required`;
+    if (formData.aadhar_card_number && !/^\d{12}$/.test(formData.aadhar_card_number)) {
+      errs.aadhar_card_number = 'Aadhar card must be 12 digits';
     }
-    if (step === 3 || step === steps.length - 1) {
-      if (!formData.referring_physician_name.trim()) {
-        errs.referring_physician_name = `${labels[language].referringPhysicianName} is required`;
-      }
-      if (!formData.referring_physician_designation.trim()) {
-        errs.referring_physician_designation = `${labels[language].referringPhysicianDesignation} is required`;
-      }
-      if (!formData.recommending_authority_name.trim()) {
-        errs.recommending_authority_name = `${labels[language].recommendingAuthorityName} is required`;
-      }
-      if (!formData.recommending_authority_designation.trim()) {
-        errs.recommending_authority_designation = `${labels[language].recommendingAuthorityDesignation} is required`;
-      }
-      if (!formData.approval_authority_name.trim()) {
-        errs.approval_authority_name = `${labels[language].approvalAuthorityName} is required`;
-      }
-      if (!formData.approval_authority_designation.trim()) {
-        errs.approval_authority_designation = `${labels[language].approvalAuthorityDesignation} is required`;
-      }
+    if (formData.pan_card_number && !/^[A-Z]{5}\d{4}[A-Z]$/.test(formData.pan_card_number)) {
+      errs.pan_card_number = 'PAN card must follow format ABCDE1234F';
     }
-    if (step === 4 || step === steps.length - 1) {
-      if (!formData.transportation_category) {
-        errs.transportation_category = `${labels[language].transportationCategory} is required`;
-      }
-      if (!formData.air_transport_type) errs.air_transport_type = `${labels[language].airTransportType} is required`;
-      if (formData.ambulance_contact && !/^\d{10,15}$/.test(formData.ambulance_contact)) {
-        errs.ambulance_contact = 'Ambulance contact must be 10-15 digits';
-      }
+  
+    // Step 1: Contact Information
+    if (!formData.contact_name.trim()) errs.contact_name = `${labels[language].contactName} is required`;
+    if (!/^\d{10}$/.test(formData.contact_phone)) errs.contact_phone = `${labels[language].contactPhone} must be 10 digits`;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contact_email)) {
+      errs.contact_email = `${labels[language].contactEmail} must be a valid email`;
     }
-    if (step === 5 || step === steps.length - 1) {
-      if (formData.documents.every(doc => !doc.file)) errs.documents = `${labels[language].documents} is required`;
-      else if (formData.documents.some(doc => doc.file && !doc.type)) {
-        errs.documents = 'Document type is required for each uploaded file';
-      } else {
-        formData.documents.forEach((doc, idx) => {
-          if (doc.file && !['image/jpeg', 'image/png', 'application/pdf'].includes(doc.file.type)) {
-            errs[`document_${idx}`] = 'Only JPEG, PNG, or PDF files are allowed';
-          }
-        });
-      }
+  
+    // Step 2: Medical Details
+    if (!formData.medical_condition.trim()) errs.medical_condition = `${labels[language].medicalCondition} is required`;
+    if (!formData.chief_complaint.trim()) errs.chief_complaint = `${labels[language].chiefComplaint} is required`;
+    if (!formData.general_condition.trim()) errs.general_condition = `${labels[language].generalCondition} is required`;
+    if (!formData.vitals) errs.vitals = `${labels[language].vitals} is required`;
+  
+    // Step 3: Referral Details
+    if (!formData.referring_physician_name.trim()) {
+      errs.referring_physician_name = `${labels[language].referringPhysicianName} is required`;
     }
-    if (step === 6 || step === steps.length - 1) {
-      if (!formData.hospital_id) errs.hospital_id = `${labels[language].hospitalId} is required`;
-      if (!formData.source_hospital_id) errs.source_hospital_id = `${labels[language].sourceHospitalId} is required`;
-      if (!formData.district_id) errs.district_id = `${labels[language].district} is required`;
+    if (!formData.referring_physician_designation.trim()) {
+      errs.referring_physician_designation = `${labels[language].referringPhysicianDesignation} is required`;
     }
+    if (!formData.recommending_authority_name.trim()) {
+      errs.recommending_authority_name = `${labels[language].recommendingAuthorityName} is required`;
+    }
+    if (!formData.recommending_authority_designation.trim()) {
+      errs.recommending_authority_designation = `${labels[language].recommendingAuthorityDesignation} is required`;
+    }
+    if (!formData.approval_authority_name.trim()) {
+      errs.approval_authority_name = `${labels[language].approvalAuthorityName} is required`;
+    }
+    if (!formData.approval_authority_designation.trim()) {
+      errs.approval_authority_designation = `${labels[language].approvalAuthorityDesignation} is required`;
+    }
+  
+    // Step 4: Transportation Details
+    if (!formData.transportation_category) {
+      errs.transportation_category = `${labels[language].transportationCategory} is required`;
+    }
+    if (!formData.air_transport_type) {
+      errs.air_transport_type = `${labels[language].airTransportType} is required`;
+    }
+    if (formData.ambulance_contact && !/^\d{10,15}$/.test(formData.ambulance_contact)) {
+      errs.ambulance_contact = `${labels[language].ambulanceContact} must be 10-15 digits`;
+    }
+  
+    // Step 5: Documentation
+    if (formData.documents.every(doc => !doc.file)) {
+      errs.documents = `${labels[language].documents} is required`;
+    } else {
+      formData.documents.forEach((doc, idx) => {
+        if (doc.file && !doc.type) {
+          errs[`document_${idx}_type`] = 'Document type is required for each uploaded file';
+        }
+        if (doc.file && !['image/jpeg', 'image/png', 'application/pdf'].includes(doc.file.type)) {
+          errs[`document_${idx}`] = 'Only JPEG, PNG, or PDF files are allowed';
+        }
+      });
+    }
+  
+    // Step 6: Hospital & District
+    if (!formData.hospital_id) errs.hospital_id = `${labels[language].hospitalId} is required`;
+    if (!formData.source_hospital_id) errs.source_hospital_id = `${labels[language].sourceHospitalId} is required`;
+    if (!formData.district_id) errs.district_id = `${labels[language].district} is required`;
+  
     return errs;
   };
-
   // Handle input changes
   const handleChange = (e) => {
     const { name, value, files, type, checked } = e.target;
@@ -305,91 +308,89 @@ export default function EnquiryCreationPage() {
     setFormError('');
   };
 
-  // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const errs = validateForm();
-    if (Object.keys(errs).length) {
-      setErrors(errs);
-      return;
-    }
-    setIsSubmitting(true);
-    setFormError('');
 
-    const payload = new FormData();
-    Object.keys(formData).forEach((key) => {
-      if (key === 'documents') {
-        formData.documents.forEach((doc) => {
-          if (doc.file && doc.type) payload.append(doc.type, doc.file);
-        });
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  const errs = validateForm();
+  if (Object.keys(errs).length) {
+    setErrors(errs);
+    return;
+  }
+  setIsSubmitting(true);
+  setFormError('');
+
+  const payload = new FormData();
+  Object.keys(formData).forEach((key) => {
+    if (key === 'documents') {
+      formData.documents.forEach((doc) => {
+        if (doc.file && doc.type) payload.append(doc.type, doc.file);
+      });
+    } else {
+      if (key === 'bed_availability_confirmed' || key === 'als_ambulance_arranged') {
+        payload.append(key, formData[key] ? '1' : '0');
       } else {
-        // Convert booleans to 1/0 for backend compatibility
-        if (key === 'bed_availability_confirmed' || key === 'als_ambulance_arranged') {
-          payload.append(key, formData[key] ? '1' : '0');
-        } else {
-          payload.append(key, formData[key]);
-        }
+        payload.append(key, formData[key]);
       }
-    });
-    // Retrieve user ID from authentication (fallback to '10' for demo)
-    const userId = localStorage.getItem('user_id') || '10';
-    payload.append('submitted_by_user_id', userId);
-
-    try {
-      const res = await fetch(`${baseUrl}/api/enquiries`, {
-        method: 'POST',
-        body: payload,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to submit enquiry');
-      alert(`Enquiry #${data.data.enquiry_id} created! Documents: ${data.data.documents?.length || 0}`);
-      setFormData({
-        patient_name: '',
-        ayushman_card_number: '',
-        aadhar_card_number: '',
-        pan_card_number: '',
-        medical_condition: '',
-        contact_name: '',
-        contact_phone: '',
-        contact_email: '',
-        documents: [{ file: null, type: '' }],
-        hospital_id: '',
-        source_hospital_id: '',
-        district_id: localStorage.getItem('district_id') || '',
-        father_spouse_name: '',
-        age: '',
-        gender: '',
-        address: '',
-        chief_complaint: '',
-        general_condition: '',
-        vitals: '',
-        referring_physician_name: '',
-        referring_physician_designation: '',
-        referral_note: '',
-        transportation_category: '',
-        air_transport_type: '',
-        recommending_authority_name: '',
-        recommending_authority_designation: '',
-        approval_authority_name: '',
-        approval_authority_designation: '',
-        bed_availability_confirmed: false,
-        als_ambulance_arranged: false,
-        ambulance_registration_number: '',
-        ambulance_contact: '',
-        medical_team_note: '',
-        remarks: '',
-      });
-      setStep(0);
-    } catch (err) {
-      console.error('Submit error:', err);
-      setFormError(`${labels[language].error}: ${err.message}`);
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+  });
+  const userId = localStorage.getItem('user_id') || '10';
+  payload.append('submitted_by_user_id', userId);
+
+  try {
+    const res = await fetch(`${baseUrl}/api/enquiries`, {
+      method: 'POST',
+      body: payload,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to submit enquiry');
+    alert(`Enquiry #${data.data.enquiry_id} (${data.data.enquiry_code}) created! Documents: ${data.data.documents?.length || 0}`);
+    setFormData({
+      patient_name: '',
+      ayushman_card_number: '',
+      aadhar_card_number: '',
+      pan_card_number: '',
+      medical_condition: '',
+      contact_name: '',
+      contact_phone: '',
+      contact_email: '',
+      documents: [{ file: null, type: '' }],
+      hospital_id: '',
+      source_hospital_id: '',
+      district_id: localStorage.getItem('district_id') || '',
+      father_spouse_name: '',
+      age: '',
+      gender: '',
+      address: '',
+      chief_complaint: '',
+      general_condition: '',
+      vitals: '',
+      referring_physician_name: '',
+      referring_physician_designation: '',
+      referral_note: '',
+      transportation_category: '',
+      air_transport_type: '',
+      recommending_authority_name: '',
+      recommending_authority_designation: '',
+      approval_authority_name: '',
+      approval_authority_designation: '',
+      bed_availability_confirmed: false,
+      als_ambulance_arranged: false,
+      ambulance_registration_number: '',
+      ambulance_contact: '',
+      medical_team_note: '',
+      remarks: '',
+    });
+    setStep(0);
+  } catch (err) {
+    console.error('Submit error:', err);
+    setFormError(`${labels[language].error}: ${err.message}`);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   // Render fields for current step
   const renderStepFields = () => {

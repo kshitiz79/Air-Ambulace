@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUser, FaLock, FaArrowRight, FaUserCircle } from 'react-icons/fa';
 import baseUrl from '../../baseUrl/baseUrl';
+import { AuthContext } from '../../Context/AuthContext.jsx';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Add loading state
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -18,10 +20,10 @@ const Login = () => {
     try {
       console.log('Sending login request:', { username });
       const response = await fetch(`${baseUrl}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
 
       if (!response.ok) {
         const data = await response.json();
@@ -30,23 +32,28 @@ const Login = () => {
       }
 
       const data = await response.json();
-      console.log('Response data:', data);
+      console.log('Login response:', data);
 
       if (!data.token || !data.role || !data.userId) {
         setErrorMessage('Invalid server response. Missing required fields.');
         return;
       }
 
-      const normalizedRole = data.role.toUpperCase();
+      const userData = {
+        userId: data.userId,
+        role: data.role.toUpperCase(),
+        full_name: data.full_name || 'Unknown',
+      };
+      console.log('Storing user data:', userData);
+      login(userData, data.token);
 
       localStorage.setItem('token', data.token);
-      localStorage.setItem('role', normalizedRole);
+      localStorage.setItem('role', data.role.toUpperCase());
       localStorage.setItem('district_id', data.district_id ?? '');
       localStorage.setItem('userId', data.userId);
 
-      console.log('Navigating to role:', normalizedRole);
-
-      switch (normalizedRole) {
+      console.log('Navigating to role:', data.role.toUpperCase());
+      switch (data.role.toUpperCase()) {
         case 'BENEFICIARY':
           navigate('/user', { replace: true });
           break;
@@ -78,10 +85,7 @@ const Login = () => {
   };
 
   return (
-    <div
-      className="relative min-h-screen bg-center bg-cover"
-      style={{ backgroundImage: `url('/bg-image.png')` }}
-    >
+    <div className="relative min-h-screen bg-center bg-cover" style={{ backgroundImage: `url('/bg-image.png')` }}>
       <div className="absolute inset-0"></div>
       <div className="relative z-10 flex items-center justify-center h-full p-4">
         <div className="w-full max-w-md rounded-2xl p-8 items-center justify-center mt-40">
@@ -110,11 +114,7 @@ const Login = () => {
                 className="w-full pl-12 pr-4 py-3 bg-white/40 bg-opacity-60 placeholder-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
             </div>
-
-            {errorMessage && (
-              <p className="text-red-600 text-sm text-center animate-shake">{errorMessage}</p>
-            )}
-
+            {errorMessage && <p className="text-red-600 text-sm text-center animate-shake">{errorMessage}</p>}
             <div className="flex gap-2">
               <button
                 type="submit"
@@ -123,13 +123,9 @@ const Login = () => {
               >
                 {isLoading ? 'Logging in...' : 'Login'} <FaArrowRight />
               </button>
-
               <div className="text-center justify-center mt-3">
                 <span className="text-gray-100">Forgot Password </span>
-                <button
-  
-                  className="text-blue-100 font-semibold px-1 bg-blue-900 rounded-3xl"
-                >
+                <button className="text-blue-100 font-semibold px-1 bg-blue-900 rounded-3xl">
                   Click me
                 </button>
               </div>
