@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+import ExcelJS from 'exceljs';
 import baseUrl from '../../baseUrl/baseUrl';
 
 const ExportPage = () => {
@@ -34,7 +35,7 @@ const ExportPage = () => {
   }, []);
 
   // Export Enquiries to Excel
-  const exportEnquiriesToExcel = () => {
+  const exportEnquiriesToExcel = async () => {
     const data = enquiries.map((enquiry) => ({
       'Enquiry ID': enquiry.enquiry_id,
       'Patient Name': enquiry.patient_name,
@@ -56,14 +57,18 @@ const ExportPage = () => {
         ?.map((doc) => `${doc.document_type}: ${doc.file_path}`)
         .join(', ') || '-',
     }));
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Enquiries');
-    XLSX.writeFile(workbook, 'Enquiries.xlsx');
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Enquiries');
+    if (data.length > 0) {
+      worksheet.columns = Object.keys(data[0]).map((key) => ({ header: key, key }));
+      worksheet.addRows(data);
+    }
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), 'Enquiries.xlsx');
   };
 
   // Export Hospitals to Excel
-  const exportHospitalsToExcel = () => {
+  const exportHospitalsToExcel = async () => {
     const data = hospitals.map((hospital) => ({
       'Hospital ID': hospital.hospital_id,
       'Name': hospital.name,
@@ -77,14 +82,18 @@ const ExportPage = () => {
       'Contact Person Email': hospital.contact_person_email || '-',
       'Registration Number': hospital.registration_number || '-',
     }));
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Hospitals');
-    XLSX.writeFile(workbook, 'Hospitals.xlsx');
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Hospitals');
+    if (data.length > 0) {
+      worksheet.columns = Object.keys(data[0]).map((key) => ({ header: key, key }));
+      worksheet.addRows(data);
+    }
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), 'Hospitals.xlsx');
   };
 
   // Export Districts to Excel
-  const exportDistrictsToExcel = () => {
+  const exportDistrictsToExcel = async () => {
     const data = districts.map((district) => ({
       'District ID': district.district_id,
       'District Name': district.district_name,
@@ -92,10 +101,14 @@ const ExportPage = () => {
       'Pincode': district.pincode || '-',
       'State': district.state || '-',
     }));
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Districts');
-    XLSX.writeFile(workbook, 'Districts.xlsx');
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Districts');
+    if (data.length > 0) {
+      worksheet.columns = Object.keys(data[0]).map((key) => ({ header: key, key }));
+      worksheet.addRows(data);
+    }
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), 'Districts.xlsx');
   };
 
   return (
