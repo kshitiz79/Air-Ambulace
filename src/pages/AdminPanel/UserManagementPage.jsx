@@ -414,14 +414,7 @@ const UserManagementPage = () => {
                 Manage system users, roles, and permissions
               </p>
             </div>
-            <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className={`flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50`}
-            >
-              <FaSyncAlt className={`mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              {refreshing ? 'Refreshing...' : 'Refresh'}
-            </button>
+           
           </div>
         </div>
 
@@ -465,9 +458,6 @@ const UserManagementPage = () => {
         </div>
       </div>
 
-
-      );
-};
 
       export default UserManagementPage;
       {/* Error/Success Messages */}
