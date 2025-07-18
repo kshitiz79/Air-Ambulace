@@ -70,7 +70,7 @@ const UserManagementPage = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(`${baseUrl}/api/auth/create-user`, formData, {
-        headers: { Authorization: token },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setSuccess(response.data.message);
       setFormData({
@@ -180,9 +180,8 @@ const UserManagementPage = () => {
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className={`mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 ${
-              loading ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
+            className={`mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 ${loading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
           >
             {loading ? 'Creating...' : 'Create User'}
           </button>
