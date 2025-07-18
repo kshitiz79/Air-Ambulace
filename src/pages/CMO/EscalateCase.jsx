@@ -275,6 +275,13 @@ const EscalateCase = () => {
             Case Escalation Management
           </h1>
           <p className="text-gray-600 mt-1">Manage case escalations and track their status</p>
+          {localStorage.getItem('role') === 'CMO' && (
+            <p className="text-sm text-blue-600 mt-2">
+              <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                Showing only your enquiries
+              </span>
+            </p>
+          )}
         </div>
 
         {/* Tabs */}

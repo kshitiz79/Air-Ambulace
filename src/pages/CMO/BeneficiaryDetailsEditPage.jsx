@@ -208,7 +208,7 @@ const BeneficiaryDetailsEditPage = () => {
           // Hospital Info
           hospital_id: enquiry.hospital_id?.toString() || '',
           source_hospital_id: enquiry.source_hospital_id?.toString() || '',
-          district_id: enquiry.district_id?.toString() || localStorage.getItem('district_id') || '',
+          district_id: enquiry.district_id?.toString() || '',
 
           // Referral Info
           referring_physician_name: enquiry.referring_physician_name || '',
@@ -269,6 +269,12 @@ const BeneficiaryDetailsEditPage = () => {
     } else if (type === 'checkbox') {
       setFormData({ ...formData, [name]: checked });
     } else {
+      // Debug logging for district changes
+      if (name === 'district_id') {
+        console.log('District changed from', formData.district_id, 'to', value);
+        const selectedDistrict = districts.find(d => d.district_id.toString() === value);
+        console.log('Selected district:', selectedDistrict);
+      }
       setFormData({ ...formData, [name]: value });
     }
     setErrors({});
@@ -391,6 +397,9 @@ const BeneficiaryDetailsEditPage = () => {
     });
 
     try {
+      console.log('Submitting update with district_id:', formData.district_id);
+      console.log('Full form data:', formData);
+
       const res = await fetch(`${baseUrl}/api/enquiries/${formData.enquiry_id}`, {
         method: 'PATCH',
         body: payload,
@@ -399,6 +408,9 @@ const BeneficiaryDetailsEditPage = () => {
         },
       });
       const data = await res.json();
+
+      console.log('Update response:', data);
+
       if (!res.ok) throw new Error(data.message || 'Failed to update enquiry');
 
       setSuccess(labels[language].updateSuccess);
@@ -436,13 +448,7 @@ const BeneficiaryDetailsEditPage = () => {
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate('/cmo-dashboard')}
-                className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition"
-              >
-                <FaArrowLeft className="mr-2" />
-                {labels[language].backToList}
-              </button>
+
               <div>
                 <h1 className="text-2xl font-bold text-gray-800">{labels[language].title}</h1>
                 <p className="text-sm text-gray-600">

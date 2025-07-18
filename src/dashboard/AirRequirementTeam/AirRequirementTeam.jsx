@@ -1,15 +1,17 @@
 
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import React from "react";
 import {
   FiHome,
   FiTruck,
   FiFileText,
- FiInfo,
+  FiInfo,
   FiDollarSign,
   FiActivity,
   FiMapPin,
 } from "react-icons/fi";
+import SideBar from '../../components/Global/SideBar';
+import Header from '../../components/Global/Header';
 
 const links = [
   { to: "/air-team", label: "Dashboard", icon: <FiHome /> },
@@ -21,43 +23,45 @@ const links = [
   { to: "/air-team/tracker-page", label: "Tracker", icon: <FiMapPin /> },
 ];
 const AirRequirementTeam = () => {
-  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Get real user information from localStorage
+  const userName = localStorage.getItem('full_name') || localStorage.getItem('username') || 'Air Team User';
+  const userRole = 'Service Provider';
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate('/');
+  };
 
   return (
     <div className="flex h-screen font-sans">
       {/* Sidebar */}
-      <aside className="w-72 bg-white shadow-lg p-6 overflow-y-auto border-r border-gray-200">
-        <div className="mb-8">
-          <h1 className="text-xl font-bold text-blue-700">Air Requirement Team  </h1>
-        </div>
-        <nav>
-       
-          <ul className="space-y-3">
-            {links.map((link) => {
-              const isActive = location.pathname === link.to;
-              return (
-                <li key={link.to}>
-                  <Link
-                    to={link.to}
-                    className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition duration-200 
-                      ${isActive
-                        ? "bg-blue-100 text-blue-700 font-medium"
-                        : "text-gray-700 hover:bg-gray-100"}`}
-                  >
-                    <span className="text-lg">{link.icon}</span>
-                    <span>{link.label}</span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-      </aside>
+      <SideBar
+        title="Air Requirement Team"
+        navigationLinks={links}
+        userName={userName}
+        userRole={userRole}
+        onLogout={handleLogout}
+      />
 
-      {/* Content */}
-      <main className="flex-grow p-6 bg-gray-50 overflow-y-auto">
-        <Outlet />
-      </main>
+      {/* Main Content Area */}
+      <div className="flex-grow flex flex-col">
+        {/* Header */}
+        <Header
+          greeting={`Welcome, ${userName}`}
+          userName={userName}
+          showSearch={true}
+          showNotifications={true}
+          showSettings={true}
+          notificationCount={4}
+        />
+
+        {/* Content */}
+        <main className="flex-grow p-6 bg-gray-50 overflow-y-auto">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 };

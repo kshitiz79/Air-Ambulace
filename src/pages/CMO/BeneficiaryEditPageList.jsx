@@ -57,10 +57,18 @@ const BeneficiaryEditPageList = () => {
       setIsLoading(true);
       setError('');
       try {
-        const res = await fetch(`${baseUrl}/api/enquiries`);
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${baseUrl}/api/enquiries`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const json = await res.json();
         if (!res.ok) throw new Error(json.message || 'Error');
         setEnquiries(json.data || []);
+        
+        // Show info if data is filtered for CMO users
+        if (json.filtered && localStorage.getItem('role') === 'CMO') {
+          console.log(`Beneficiary Details: Showing ${json.data?.length || 0} enquiries created by current CMO user`);
+        }
       } catch (e) {
         setError(labels[language].error + e.message);
       } finally {
@@ -74,7 +82,11 @@ const BeneficiaryEditPageList = () => {
     if (!window.confirm('Are you sure you want to delete this enquiry?')) return;
     setIsDeleting(id);
     try {
-      const res = await fetch(`${baseUrl}/api/enquiries/${id}`, { method: 'DELETE' });
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${baseUrl}/api/enquiries/${id}`, { 
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || 'Error');
       setEnquiries(prev => prev.filter(e => e.enquiry_id !== id));
@@ -91,7 +103,16 @@ const BeneficiaryEditPageList = () => {
   return (
     <section className="max-w-7xl mx-auto p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-lg">
       <header className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">{labels[language].title}</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">{labels[language].title}</h1>
+          {localStorage.getItem('role') === 'CMO' && (
+            <p className="text-sm text-blue-600 mt-1">
+              <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                Showing only your enquiries
+              </span>
+            </p>
+          )}
+        </div>
         <div className="flex space-x-4 items-center">
           <button
             onClick={() => setLanguage(lang => (lang === 'en' ? 'hi' : 'en'))}
@@ -99,13 +120,7 @@ const BeneficiaryEditPageList = () => {
           >
             {labels[language].toggleLang}
           </button>
-          <button
-            onClick={() => window.location.reload()}
-            className="p-2 bg-white border border-gray-300 rounded hover:bg-gray-100 transition"
-            title="Refresh"
-          >
-            <FaSyncAlt />
-          </button>
+
         </div>
       </header>
 

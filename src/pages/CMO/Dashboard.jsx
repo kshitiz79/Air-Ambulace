@@ -4,6 +4,7 @@ import {
   FaExclamationTriangle, FaCheckCircle, FaTimesCircle, FaClock,
   FaArrowUp, FaArrowDown, FaEye, FaDownload, FaFilter, FaSyncAlt
 } from 'react-icons/fa';
+import { useThemeStyles } from '../../hooks/useThemeStyles';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -33,6 +34,7 @@ ChartJS.register(
 );
 
 const Dashboard = () => {
+  const styles = useThemeStyles();
   const [dashboardData, setDashboardData] = useState({
     totalEnquiries: 0,
     pendingEnquiries: 0,
@@ -60,22 +62,30 @@ const Dashboard = () => {
   const [hospitals, setHospitals] = useState([]);
   const [districts, setDistricts] = useState([]);
 
-  // Fetch dashboard data
+  // Fetch dashboard data (CMO-specific)
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
+      const token = localStorage.getItem('token');
+      const role = localStorage.getItem('role');
+      
+      // Show message if user is CMO to indicate filtering
+      if (role === 'CMO') {
+        console.log('Fetching CMO-specific data (filtered by user)');
+      }
+
       const [enquiriesRes, hospitalsRes, districtsRes, escalationsRes] = await Promise.all([
         fetch(`${baseUrl}/api/enquiries`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          headers: { Authorization: `Bearer ${token}` },
         }),
         fetch(`${baseUrl}/api/hospitals`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          headers: { Authorization: `Bearer ${token}` },
         }),
         fetch(`${baseUrl}/api/districts`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          headers: { Authorization: `Bearer ${token}` },
         }),
         fetch(`${baseUrl}/api/case-escalations`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          headers: { Authorization: `Bearer ${token}` },
         }).catch(() => ({ ok: false })) // Handle if escalations endpoint doesn't exist
       ]);
 
@@ -92,6 +102,11 @@ const Dashboard = () => {
       const hospitalsList = hospitalsData.data || [];
       const districtsList = districtsData.data || [];
       const escalations = escalationsData.data || [];
+
+      // Show info about data filtering for CMO users
+      if (enquiriesData.filtered && role === 'CMO') {
+        console.log(`CMO Dashboard: Showing ${enquiries.length} enquiries created by current user`);
+      }
 
       // Calculate statistics
       const stats = {
@@ -346,34 +361,41 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto p-6">
-        <div className="bg-white rounded-lg shadow-lg p-8">
+        <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-8`}>
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded mb-6"></div>
+            <div className={`h-8 ${styles.loadingShimmer} rounded mb-6`}></div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-24 bg-gray-200 rounded"></div>
+                <div key={i} className={`h-24 ${styles.loadingShimmer} rounded`}></div>
               ))}
             </div>
-            <div className="h-64 bg-gray-200 rounded"></div>
+            <div className={`h-64 ${styles.loadingShimmer} rounded`}></div>
           </div>
-          <p className="text-center text-gray-600 mt-4">Loading dashboard...</p>
+          <p className={`text-center ${styles.secondaryText} mt-4`}>Loading dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6 bg-gray-50 min-h-screen">
+    <div className={`max-w-7xl mx-auto p-6 ${styles.pageBackground}`}>
       {/* Header */}
-      <div className="bg-white rounded-lg shadow-lg mb-6">
-        <div className="px-6 py-4 border-b border-gray-200">
+      <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} mb-6`}>
+        <div className={`px-6 py-4 border-b ${styles.borderColor}`}>
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800 flex items-center">
+              <h1 className={`text-3xl font-bold ${styles.primaryText} flex items-center`}>
                 <FaAmbulance className="mr-3 text-blue-600" />
                 CMO Dashboard
               </h1>
-              <p className="text-gray-600 mt-1">Air Ambulance Service Management</p>
+              <p className={`${styles.secondaryText} mt-1`}>
+                Air Ambulance Service Management
+                {localStorage.getItem('role') === 'CMO' && (
+                  <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                    Showing only your enquiries
+                  </span>
+                )}
+              </p>
             </div>
 
           </div>
@@ -457,10 +479,10 @@ const Dashboard = () => {
 
       {/* Additional Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-6`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Escalated Cases</p>
+              <p className={`${styles.secondaryText} text-sm font-medium`}>Escalated Cases</p>
               <p className="text-2xl font-bold text-purple-600">{dashboardData.escalatedEnquiries}</p>
             </div>
             <div className="bg-purple-100 rounded-full p-3">
@@ -469,10 +491,10 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-6`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Forwarded Cases</p>
+              <p className={`${styles.secondaryText} text-sm font-medium`}>Forwarded Cases</p>
               <p className="text-2xl font-bold text-blue-600">{dashboardData.forwardedEnquiries}</p>
             </div>
             <div className="bg-blue-100 rounded-full p-3">
@@ -481,10 +503,10 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-6`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium">Completed Cases</p>
+              <p className={`${styles.secondaryText} text-sm font-medium`}>Completed Cases</p>
               <p className="text-2xl font-bold text-gray-600">{dashboardData.completedEnquiries}</p>
             </div>
             <div className="bg-gray-100 rounded-full p-3">
@@ -497,9 +519,9 @@ const Dashboard = () => {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Status Distribution Chart */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-6`}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+            <h2 className={`text-xl font-semibold ${styles.primaryText} flex items-center`}>
               <FaChartLine className="mr-2 text-blue-600" />
               Status Distribution
             </h2>
@@ -521,9 +543,9 @@ const Dashboard = () => {
         </div>
 
         {/* Monthly Trends Chart */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-6`}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+            <h2 className={`text-xl font-semibold ${styles.primaryText} flex items-center`}>
               <FaCalendarAlt className="mr-2 text-green-600" />
               Monthly Trends
             </h2>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
 import {
   FiHome,
   FiSend,
@@ -7,7 +7,6 @@ import {
   FiEdit3,
   FiClipboard,
   FiBell,
-  FiSettings,
 } from 'react-icons/fi';
 import SideBar from './../../components/Global/SideBar';
 import Header from './../../components/Global/Header';
@@ -18,14 +17,15 @@ const navigationLinks = [
   { to: '/cmo-dashboard/beneficiary-detail-page', label: 'Beneficiary Details', icon: <FiUser /> },
   { to: '/cmo-dashboard/enquiry-creation-page', label: 'Enquiry Creation', icon: <FiEdit3 /> },
   { to: '/cmo-dashboard/case-status-page', label: 'Case Status', icon: <FiClipboard /> },
+  { to: '/cmo-dashboard/query-from-sdm', label: 'Queries from SDM', icon: <FiBell /> },
   { to: '/cmo-dashboard/profile', label: 'My Profile', icon: <FiUser /> },
 ];
 
 const CmoDashboard = () => {
-  const location = useLocation();
   const navigate = useNavigate();
 
-  const userName = 'John Doe';
+  // Get real user information from localStorage
+  const userName = localStorage.getItem('full_name') || localStorage.getItem('username') || 'CMO User';
   const userRole = 'Chief Medical Officer';
 
   const handleLogout = () => {
@@ -44,16 +44,18 @@ const CmoDashboard = () => {
       />
 
       <div className="flex-grow flex flex-col">
-        <Header greeting={`Welcome, ${userName}`}>  
-        <Link to="/cmo-dashboard/notification" title="Notifications">
-  <button className="p-2 rounded-full hover:bg-blue-700/50 transition">
-    <FiBell className="text-xl" />
-  </button>
-</Link>
-          <button title="Settings" className="p-2 rounded-full hover:bg-blue-700/50 transition">
-            <FiSettings className="text-xl" />
-          </button>
-          <Link to="/cmo-dashboard/profile" title="Profile">
+        <Header
+          greeting={`Welcome, ${userName}`}
+          userName={userName}
+          showSearch={true}
+          showNotifications={true}
+          showSettings={true}
+          notificationCount={2}
+        >
+          <Link to="/cmo-dashboard/notification" title="Quick Notifications">
+
+          </Link>
+          <Link to="/cmo-dashboard/profile" title="Quick Profile">
             <button className="p-2 rounded-full hover:bg-blue-700/50 transition">
               <FiUser className="text-xl" />
             </button>

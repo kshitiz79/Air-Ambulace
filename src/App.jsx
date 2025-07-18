@@ -1,10 +1,10 @@
 import React from "react";
 import {
-  BrowserRouter as Router,
   Routes,
   Route,
   Navigate // <-- ADD THIS LINE
 } from "react-router-dom";
+import { ThemeProvider } from "./contexts/ThemeContext";
 
 
 
@@ -30,12 +30,12 @@ import Dashboard from "./pages/CMO/Dashboard";
 
 import SDMPanel from "./dashboard/SDMPanel/SDMPanel";
 import SDMDashboard from "./pages/SDM/SDMDashboard";
-import ForwardToDMPage from "./pages/SDM/ForwardToDMPage";
-import ApproveRejectPage from "./pages/SDM/ApproveRejectPage";
+
 import EnquiryDetailsPage from "./pages/SDM/EnquiryDetailsPage";
 import QueryToCMOPage from "./pages/SDM/QueryToCMOPage";
 import ValidationPage from "./pages/SDM/ValidationPage";
 import SearchPage from "./pages/SDM/SearchPage";
+import ResponseFromCMO from "./pages/SDM/ResponseFromCMO";
 
 
 
@@ -68,6 +68,7 @@ import PermissionsManagementPage from "./pages/AdminPanel/PermissionsManagementP
 import SystemPerformancePage from "./pages/AdminPanel/SystemPerformancePage";
 import UserManagementPage from "./pages/AdminPanel/UserManagementPage";
 import EnquiryManagementPage from "./pages/AdminPanel/EnquiryManagementPage";
+import AllQueryPage from "./pages/AdminPanel/AllQueryPage";
 
 
 import EnquiryListPage from "./pages/SDM/EnquiryListPage";
@@ -81,9 +82,12 @@ import Signup from "./pages/Auth/Signup";
 import CreateHospital from "./pages/AdminPanel/Hospital";
 import BeneficiaryEditPageList from "./pages/CMO/BeneficiaryEditPageList";
 import BeneficiaryDetailsEditPage from "./pages/CMO/BeneficiaryDetailsEditPage";
+import BeneficiaryDetailPage from "./pages/CMO/BeneficiaryDetailPage";
 import EscalateCase from "./pages/CMO/EscalateCase";
 import Notification from "./pages/CMO/Notification";
 import Profile from "./pages/CMO/Profile";
+import QueryFromSDM from "./pages/CMO/QueryFromSDM";
+
 
 function App() {
   const PrivateRoute = ({ children, roleRequired }) => {
@@ -109,7 +113,7 @@ function App() {
 
 
   return (
-
+    <ThemeProvider>
       <Routes>
         {/* <Route path="/" element={<HomePage />} /> */}
         <Route path="/" element={<Login />} />
@@ -127,17 +131,22 @@ function App() {
 
 
 
-<Route path="/cmo-dashboard" element={<PrivateRoute roleRequired="CMO"><CmoDashboard /></PrivateRoute>}>
-  <Route index element={<Dashboard />} />
+        <Route path="/cmo-dashboard" element={<PrivateRoute roleRequired="CMO"><CmoDashboard /></PrivateRoute>}>
+          <Route index element={<Dashboard />} />
 
-  <Route path="beneficiary-detail-page" element={<BeneficiaryEditPageList />} />
-  <Route path="beneficiary-detail-page/:id" element={<BeneficiaryDetailsEditPage />} /> {/* Relative path */}
-  <Route path="enquiry-creation-page" element={<EnquiryCreationPage />} />
-  <Route path="case-status-page" element={<CaseStatusPage />} />
-  <Route path="escalate-case" element={<EscalateCase />} />
-  <Route path="notification" element={<Notification />} />
-  <Route path="profile" element={<Profile />} />
-</Route>
+          <Route path="beneficiary-detail-page" element={<BeneficiaryEditPageList />} />
+          <Route path="beneficiary-detail-page/:id" element={<BeneficiaryDetailsEditPage />} /> {/* Relative path */}
+          <Route path="enquiry-creation-page" element={<EnquiryCreationPage />} />
+          <Route path="case-status-page" element={<CaseStatusPage />} />
+          <Route path="escalate-case" element={<EscalateCase />} />
+          <Route path="query-from-sdm" element={<QueryFromSDM />} />
+          <Route path="notification" element={<Notification />} />
+          <Route path="profile" element={<Profile />} />
+        </Route>
+
+        {/* Standalone CMO routes */}
+        <Route path="/beneficiary-detail/:id" element={<PrivateRoute roleRequired="CMO"><BeneficiaryDetailPage /></PrivateRoute>} />
+        <Route path="/beneficiary-edit/:id" element={<PrivateRoute roleRequired="CMO"><BeneficiaryDetailsEditPage /></PrivateRoute>} />
 
 
 
@@ -145,8 +154,9 @@ function App() {
 
         <Route path="/sdm-dashboard" element={<PrivateRoute roleRequired="SDM"><SDMPanel /></PrivateRoute>}>
           <Route index element={<SDMDashboard />} />
-          <Route path="forwarding-to-dm" element={<ForwardToDMPage />} />
-          <Route path="approval-reject" element={<ApproveRejectPage />} />
+
+
+          <Route path="response-from-cmo" element={<ResponseFromCMO />} />
           <Route path="enquiry-detail-page/query-to-cmo/:enquiryId" element={<QueryToCMOPage />} />
           <Route path="enquiry-detail-page" element={<EnquiryListPage />} />
           <Route path="enquiry-detail-page/:enquiryId" element={<EnquiryDetailsPage />} />
@@ -180,6 +190,7 @@ function App() {
           <Route path="user-management" element={<UserManagementPage />} />
           <Route path="enquiry-management" element={<EnquiryManagementPage />} />
           <Route path="hospital-management" element={<CreateHospital />} />
+          <Route path="all-queries" element={<AllQueryPage />} />
         </Route>
 
         <Route path="/air-team" element={<PrivateRoute roleRequired="SERVICE_PROVIDER"><AirRequirementTeam /></PrivateRoute>}>
@@ -194,7 +205,7 @@ function App() {
         </Route>
 
       </Routes>
-
+    </ThemeProvider>
   );
 }
 

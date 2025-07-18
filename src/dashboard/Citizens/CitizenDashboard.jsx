@@ -1,49 +1,67 @@
 import React from 'react';
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
+import { 
+  FiHome, 
+  FiFileText, 
+  FiSearch, 
+  FiUpload, 
+  FiPhone, 
+  FiBell, 
+  FiHelpCircle 
+} from 'react-icons/fi';
+import SideBar from '../../components/Global/SideBar';
+import Header from '../../components/Global/Header';
 
 const CitizenDashboard = () => {
+  const navigate = useNavigate();
+  
+  // Get real user information from localStorage
+  const userName = localStorage.getItem('full_name') || localStorage.getItem('username') || 'Citizen User';
+  const userRole = 'Beneficiary';
+
+  const navigationLinks = [
+    { to: '/user', label: 'Home', icon: <FiHome /> },
+    { to: '/user/enquiry-form', label: 'Enquiry Form', icon: <FiFileText /> },
+    { to: '/user/status-check', label: 'Status Check', icon: <FiSearch /> },
+    { to: '/user/dox-upload', label: 'Upload Documents', icon: <FiUpload /> },
+    { to: '/user/emergency-contact', label: 'Emergency Contact', icon: <FiPhone /> },
+    { to: '/user/notification', label: 'Notifications', icon: <FiBell /> },
+    { to: '/user/faq-page', label: 'FAQs', icon: <FiHelpCircle /> },
+  ];
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate('/');
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header Section */}
-      <header className="bg-blue-600 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold">Citizen Dashboard</h1>
-          <p className="mt-2 text-sm">Access all your services in one place</p>
-        </div>
-      </header>
+    <div className="flex h-screen font-sans">
+      {/* Sidebar */}
+      <SideBar
+        title="Citizen Portal"
+        navigationLinks={navigationLinks}
+        userName={userName}
+        userRole={userRole}
+        onLogout={handleLogout}
+      />
 
-      {/* Navigation Section */}
-      <nav className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <ul className="flex flex-wrap gap-4 sm:gap-6">
-            {[
-              { to: "", label: "Home" },
-              { to: "enquiry-form", label: "Enquiry Form" },
-              { to: "status-check", label: "Status Check" },
-              { to: "dox-upload", label: "Upload Documents" },
-              { to: "emergency-contact", label: "Emergency Contact" },
-              { to: "notification", label: "Notifications" },
-              { to: "faq-page", label: "FAQs" },
-            ].map((item) => (
-              <li key={item.to}>
-                <Link
-                  to={item.to}
-                  className="text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200 px-3 py-2 rounded-md hover:bg-blue-50"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </nav>
+      {/* Main Content Area */}
+      <div className="flex-grow flex flex-col">
+        {/* Header */}
+        <Header 
+          greeting={`Welcome, ${userName}`}
+          userName={userName}
+          showSearch={true}
+          showNotifications={true}
+          showSettings={true}
+          notificationCount={2}
+        />
 
-      {/* Main Content Section */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-md p-6">
+        {/* Content */}
+        <main className="flex-grow p-6 bg-gray-50 overflow-y-auto">
           <Outlet />
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 };
