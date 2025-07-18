@@ -67,6 +67,7 @@ import ExportPage from "./pages/AdminPanel/ExportPage";
 import PermissionsManagementPage from "./pages/AdminPanel/PermissionsManagementPage";
 import SystemPerformancePage from "./pages/AdminPanel/SystemPerformancePage";
 import UserManagementPage from "./pages/AdminPanel/UserManagementPage";
+import EnquiryManagementPage from "./pages/AdminPanel/EnquiryManagementPage";
 
 
 import EnquiryListPage from "./pages/SDM/EnquiryListPage";
@@ -177,7 +178,8 @@ function App() {
           <Route path="permission-page" element={<PermissionsManagementPage />} />
           <Route path="system-performance-page" element={<SystemPerformancePage />} />
           <Route path="user-management" element={<UserManagementPage />} />
-                  <Route path="hospital-management" element={<CreateHospital />} />
+          <Route path="enquiry-management" element={<EnquiryManagementPage />} />
+          <Route path="hospital-management" element={<CreateHospital />} />
         </Route>
 
         <Route path="/air-team" element={<PrivateRoute roleRequired="SERVICE_PROVIDER"><AirRequirementTeam /></PrivateRoute>}>

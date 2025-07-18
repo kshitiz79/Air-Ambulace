@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { FiHome, FiTruck, FiFileText, FiInfo, FiDollarSign, FiActivity, FiUsers, FiBarChart2 } from 'react-icons/fi';
+import { FiHome, FiTruck, FiFileText, FiInfo, FiDollarSign, FiActivity, FiUsers, FiBarChart2, FiMessageSquare } from 'react-icons/fi';
 import { FaHospital } from 'react-icons/fa';
 import Sidebar from '../../components/Global/SideBar';
 
@@ -12,6 +12,7 @@ const links = [
   { to: '/admin/permission-page', label: 'Permissions', icon: <FiDollarSign /> },
   { to: '/admin/system-performance-page', label: 'System Performance', icon: <FiActivity /> },
   { to: '/admin/user-management', label: 'User Management', icon: <FiUsers /> },
+  { to: '/admin/enquiry-management', label: 'Enquiry Management', icon: <FiMessageSquare /> },
   { to: '/admin/district-data-page', label: 'District Data', icon: <FiBarChart2 /> },
   { to: '/admin/hospital-management', label: 'Hospital Data', icon: <FaHospital /> },
 ];

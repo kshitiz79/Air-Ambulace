@@ -16,6 +16,9 @@ const UserManagementPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [editFormData, setEditFormData] = useState({});
+  const [updateLoading, setUpdateLoading] = useState(false);
 
   // Fetch all users
   const fetchUsers = async () => {
@@ -87,6 +90,58 @@ const UserManagementPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle edit user
+  const handleEditUser = (user) => {
+    setEditingUser(user.user_id);
+    setEditFormData({
+      username: user.username,
+      full_name: user.full_name,
+      email: user.email || '',
+      role: user.role,
+      district_id: user.district_id || '',
+    });
+  };
+
+  // Handle edit form input changes
+  const handleEditInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditFormData({ ...editFormData, [name]: value });
+  };
+
+  // Handle update user
+  const handleUpdateUser = async (userId) => {
+    setError('');
+    setSuccess('');
+    setUpdateLoading(true);
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(`${baseUrl}/api/users/${userId}`, editFormData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSuccess('User updated successfully');
+      setEditingUser(null);
+      setEditFormData({});
+      fetchUsers(); // Refresh user list
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error updating user');
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
+  // Handle cancel edit
+  const handleCancelEdit = () => {
+    setEditingUser(null);
+    setEditFormData({});
+  };
+
+  // Get district name by ID
+  const getDistrictName = (districtId) => {
+    const district = districts.find(d => d.district_id === districtId);
+    return district ? district.district_name : 'N/A';
   };
 
   return (
@@ -208,22 +263,125 @@ const UserManagementPage = () => {
                   Role
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  District ID
+                  District
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {users && users.length > 0 ? users.map((user) => (
                 <tr key={user.user_id}>
-                  <td className="px-6 py-4 whitespace-nowrap">{user.username}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{user.full_name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{user.email || 'N/A'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{user.role}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{user.district_id || 'N/A'}</td>
+                  {editingUser === user.user_id ? (
+                    // Edit mode
+                    <>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <input
+                          type="text"
+                          name="username"
+                          value={editFormData.username}
+                          onChange={handleEditInputChange}
+                          className="w-full p-2 border rounded-md text-sm"
+                        />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <input
+                          type="text"
+                          name="full_name"
+                          value={editFormData.full_name}
+                          onChange={handleEditInputChange}
+                          className="w-full p-2 border rounded-md text-sm"
+                        />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <input
+                          type="email"
+                          name="email"
+                          value={editFormData.email}
+                          onChange={handleEditInputChange}
+                          className="w-full p-2 border rounded-md text-sm"
+                        />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <select
+                          name="role"
+                          value={editFormData.role}
+                          onChange={handleEditInputChange}
+                          className="w-full p-2 border rounded-md text-sm"
+                        >
+                          {['BENEFICIARY', 'CMO', 'SDM', 'DM', 'ADMIN', 'SERVICE_PROVIDER', 'HOSPITAL', 'SUPPORT'].map((role) => (
+                            <option key={role} value={role}>
+                              {role}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <select
+                          name="district_id"
+                          value={editFormData.district_id}
+                          onChange={handleEditInputChange}
+                          className="w-full p-2 border rounded-md text-sm"
+                        >
+                          <option value="">Select District</option>
+                          {districts.map((district) => (
+                            <option key={district.district_id} value={district.district_id}>
+                              {district.district_name}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleUpdateUser(user.user_id)}
+                            disabled={updateLoading}
+                            className="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 disabled:opacity-50"
+                          >
+                            {updateLoading ? 'Saving...' : 'Save'}
+                          </button>
+                          <button
+                            onClick={handleCancelEdit}
+                            className="px-3 py-1 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </td>
+                    </>
+                  ) : (
+                    // View mode
+                    <>
+                      <td className="px-6 py-4 whitespace-nowrap">{user.username}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{user.full_name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{user.email || 'N/A'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          user.role === 'ADMIN' ? 'bg-red-100 text-red-800' :
+                          user.role === 'CMO' ? 'bg-blue-100 text-blue-800' :
+                          user.role === 'SDM' ? 'bg-green-100 text-green-800' :
+                          user.role === 'DM' ? 'bg-purple-100 text-purple-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">{getDistrictName(user.district_id)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => handleEditUser(user)}
+                          className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
+                        >
+                          Edit
+                        </button>
+                      </td>
+                    </>
+                  )}
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
                     No users found
                   </td>
                 </tr>
