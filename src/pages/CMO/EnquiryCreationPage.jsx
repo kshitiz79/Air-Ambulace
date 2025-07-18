@@ -42,6 +42,9 @@ const labels = {
     ambulanceContact: 'Ambulance Contact Number',
     medicalTeamNote: 'Medical Team Note',
     remarks: 'Remarks',
+    escalateCase: 'Escalate Case Immediately',
+    escalationReason: 'Escalation Reason',
+    escalatedTo: 'Escalate To',
     submit: 'Submit Enquiry',
     next: 'Next',
     back: 'Back',
@@ -153,6 +156,9 @@ export default function EnquiryCreationPage() {
     ambulance_contact: '',
     medical_team_note: '',
     remarks: '',
+    escalate_case: false,
+    escalation_reason: '',
+    escalated_to: '',
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -199,7 +205,118 @@ export default function EnquiryCreationPage() {
     });
   };
 
-  // Validate all fields
+  // Validate current step fields only
+  const validateCurrentStep = (currentStep) => {
+    const errs = {};
+    
+    switch (currentStep) {
+      case 0: // Patient Details
+        if (!formData.patient_name.trim()) errs.patient_name = `${labels[language].patientName} is required`;
+        if (!formData.father_spouse_name.trim()) errs.father_spouse_name = `${labels[language].fatherSpouseName} is required`;
+        if (!formData.age || formData.age <= 0) errs.age = `${labels[language].age} is required and must be positive`;
+        if (!formData.gender) errs.gender = `${labels[language].gender} is required`;
+        if (!formData.address.trim()) errs.address = `${labels[language].address} is required`;
+        if (!formData.ayushman_card_number && (!formData.aadhar_card_number || !formData.pan_card_number)) {
+          errs.ayushman_card_number = 'Either Ayushman card or both Aadhar and PAN card numbers are required';
+        }
+        if (formData.ayushman_card_number && !/^\d{14}$/.test(formData.ayushman_card_number)) {
+          errs.ayushman_card_number = 'Ayushman card must be 14 digits';
+        }
+        if (formData.aadhar_card_number && !/^\d{12}$/.test(formData.aadhar_card_number)) {
+          errs.aadhar_card_number = 'Aadhar card must be 12 digits';
+        }
+        if (formData.pan_card_number && !/^[A-Z]{5}\d{4}[A-Z]$/.test(formData.pan_card_number)) {
+          errs.pan_card_number = 'PAN card must follow format ABCDE1234F';
+        }
+        break;
+        
+      case 1: // Contact Information
+        if (!formData.contact_name.trim()) errs.contact_name = `${labels[language].contactName} is required`;
+        if (!/^\d{10}$/.test(formData.contact_phone)) errs.contact_phone = `${labels[language].contactPhone} must be 10 digits`;
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contact_email)) {
+          errs.contact_email = `${labels[language].contactEmail} must be a valid email`;
+        }
+        break;
+        
+      case 2: // Medical Details
+        if (!formData.medical_condition.trim()) errs.medical_condition = `${labels[language].medicalCondition} is required`;
+        if (!formData.chief_complaint.trim()) errs.chief_complaint = `${labels[language].chiefComplaint} is required`;
+        if (!formData.general_condition.trim()) errs.general_condition = `${labels[language].generalCondition} is required`;
+        if (!formData.vitals) errs.vitals = `${labels[language].vitals} is required`;
+        break;
+        
+      case 3: // Referral Details
+        if (!formData.referring_physician_name.trim()) {
+          errs.referring_physician_name = `${labels[language].referringPhysicianName} is required`;
+        }
+        if (!formData.referring_physician_designation.trim()) {
+          errs.referring_physician_designation = `${labels[language].referringPhysicianDesignation} is required`;
+        }
+        if (!formData.recommending_authority_name.trim()) {
+          errs.recommending_authority_name = `${labels[language].recommendingAuthorityName} is required`;
+        }
+        if (!formData.recommending_authority_designation.trim()) {
+          errs.recommending_authority_designation = `${labels[language].recommendingAuthorityDesignation} is required`;
+        }
+        if (!formData.approval_authority_name.trim()) {
+          errs.approval_authority_name = `${labels[language].approvalAuthorityName} is required`;
+        }
+        if (!formData.approval_authority_designation.trim()) {
+          errs.approval_authority_designation = `${labels[language].approvalAuthorityDesignation} is required`;
+        }
+        break;
+        
+      case 4: // Transportation Details
+        if (!formData.transportation_category) {
+          errs.transportation_category = `${labels[language].transportationCategory} is required`;
+        }
+        if (!formData.air_transport_type) {
+          errs.air_transport_type = `${labels[language].airTransportType} is required`;
+        }
+        if (formData.ambulance_contact && !/^\d{10,15}$/.test(formData.ambulance_contact)) {
+          errs.ambulance_contact = `${labels[language].ambulanceContact} must be 10-15 digits`;
+        }
+        break;
+        
+      case 5: // Documentation
+        if (formData.documents.every(doc => !doc.file)) {
+          errs.documents = `${labels[language].documents} is required`;
+        } else {
+          formData.documents.forEach((doc, idx) => {
+            if (doc.file && !doc.type) {
+              errs[`document_${idx}_type`] = 'Document type is required for each uploaded file';
+            }
+            if (doc.file && !['image/jpeg', 'image/png', 'application/pdf'].includes(doc.file.type)) {
+              errs[`document_${idx}`] = 'Only JPEG, PNG, or PDF files are allowed';
+            }
+          });
+        }
+        break;
+        
+      case 6: // Hospital & District
+        if (!formData.hospital_id) errs.hospital_id = `${labels[language].hospitalId} is required`;
+        if (!formData.source_hospital_id) errs.source_hospital_id = `${labels[language].sourceHospitalId} is required`;
+        if (!formData.district_id) errs.district_id = `${labels[language].district} is required`;
+        
+        // Escalation validation
+        if (formData.escalate_case) {
+          if (!formData.escalation_reason.trim()) {
+            errs.escalation_reason = `${labels[language].escalationReason} is required when escalating`;
+          }
+          if (!formData.escalated_to) {
+            errs.escalated_to = `${labels[language].escalatedTo} is required when escalating`;
+          }
+        }
+        break;
+        
+      default:
+        break;
+    }
+    
+    return errs;
+  };
+
+  // Validate all fields for final submission
   const validateForm = () => {
     const errs = {};
     // Step 0: Patient Details
@@ -346,7 +463,35 @@ const handleSubmit = async (e) => {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to submit enquiry');
-    alert(`Enquiry #${data.data.enquiry_id} (${data.data.enquiry_code}) created! Documents: ${data.data.documents?.length || 0}`);
+    
+    // If escalation is requested, create escalation
+    if (formData.escalate_case) {
+      try {
+        const escalationRes = await fetch(`${baseUrl}/api/enquiries/${data.data.enquiry_id}/escalate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+          body: JSON.stringify({
+            escalation_reason: formData.escalation_reason,
+            escalated_to: formData.escalated_to,
+            escalated_by_user_id: userId,
+          }),
+        });
+        
+        const escalationData = await escalationRes.json();
+        if (!escalationRes.ok) throw new Error(escalationData.message || 'Failed to escalate case');
+        
+        alert(`Enquiry #${data.data.enquiry_id} (${data.data.enquiry_code}) created and escalated! Escalation ID: ${escalationData.data.escalation_id}`);
+      } catch (escalationErr) {
+        console.error('Escalation error:', escalationErr);
+        alert(`Enquiry #${data.data.enquiry_id} (${data.data.enquiry_code}) created but escalation failed: ${escalationErr.message}`);
+      }
+    } else {
+      alert(`Enquiry #${data.data.enquiry_id} (${data.data.enquiry_code}) created! Documents: ${data.data.documents?.length || 0}`);
+    }
+    
     setFormData({
       patient_name: '',
       ayushman_card_number: '',
@@ -382,6 +527,9 @@ const handleSubmit = async (e) => {
       ambulance_contact: '',
       medical_team_note: '',
       remarks: '',
+      escalate_case: false,
+      escalation_reason: '',
+      escalated_to: '',
     });
     setStep(0);
   } catch (err) {
@@ -863,6 +1011,57 @@ const handleSubmit = async (e) => {
               </select>
               {errors.district_id && <p className="text-red-600 text-sm">{errors.district_id}</p>}
             </div>
+            
+            {/* Escalation Section */}
+            <div className="border-t pt-4 mt-6">
+              <h4 className="text-lg font-medium text-gray-800 mb-4">Escalation Options</h4>
+              <div>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    name="escalate_case"
+                    checked={formData.escalate_case}
+                    onChange={handleChange}
+                    className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                  />
+                  <span className="text-sm font-medium text-gray-700">{labels[language].escalateCase}</span>
+                </label>
+              </div>
+              
+              {formData.escalate_case && (
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">{labels[language].escalationReason}</label>
+                    <textarea
+                      name="escalation_reason"
+                      value={formData.escalation_reason}
+                      onChange={handleChange}
+                      rows={3}
+                      className="w-full p-2 border rounded focus:ring-2 focus:ring-red-500"
+                      placeholder="Describe the reason for escalation..."
+                    />
+                    {errors.escalation_reason && <p className="text-red-600 text-sm">{errors.escalation_reason}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">{labels[language].escalatedTo}</label>
+                    <select
+                      name="escalated_to"
+                      value={formData.escalated_to}
+                      onChange={handleChange}
+                      className="w-full p-2 border rounded focus:ring-2 focus:ring-red-500"
+                    >
+                      <option value="">Select authority...</option>
+                      <option value="District Magistrate">District Magistrate</option>
+                      <option value="Chief Medical Officer">Chief Medical Officer</option>
+                      <option value="State Health Department">State Health Department</option>
+                      <option value="Emergency Response Team">Emergency Response Team</option>
+                      <option value="Senior Medical Authority">Senior Medical Authority</option>
+                    </select>
+                    {errors.escalated_to && <p className="text-red-600 text-sm">{errors.escalated_to}</p>}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         );
       default:
@@ -926,9 +1125,13 @@ const handleSubmit = async (e) => {
               <button
                 type="button"
                 onClick={() => {
-                  const errs = validateForm();
-                  if (Object.keys(errs).length === 0) setStep(step + 1);
-                  else setErrors(errs);
+                  const errs = validateCurrentStep(step);
+                  if (Object.keys(errs).length === 0) {
+                    setStep(step + 1);
+                    setErrors({});
+                  } else {
+                    setErrors(errs);
+                  }
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
               >

@@ -82,6 +82,7 @@ import BeneficiaryEditPageList from "./pages/CMO/BeneficiaryEditPageList";
 import BeneficiaryDetailsEditPage from "./pages/CMO/BeneficiaryDetailsEditPage";
 import EscalateCase from "./pages/CMO/EscalateCase";
 import Notification from "./pages/CMO/Notification";
+import Profile from "./pages/CMO/Profile";
 
 function App() {
   const PrivateRoute = ({ children, roleRequired }) => {
@@ -134,6 +135,7 @@ function App() {
   <Route path="case-status-page" element={<CaseStatusPage />} />
   <Route path="escalate-case" element={<EscalateCase />} />
   <Route path="notification" element={<Notification />} />
+  <Route path="profile" element={<Profile />} />
 </Route>
 
 

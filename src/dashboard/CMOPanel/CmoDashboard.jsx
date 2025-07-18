@@ -18,6 +18,7 @@ const navigationLinks = [
   { to: '/cmo-dashboard/beneficiary-detail-page', label: 'Beneficiary Details', icon: <FiUser /> },
   { to: '/cmo-dashboard/enquiry-creation-page', label: 'Enquiry Creation', icon: <FiEdit3 /> },
   { to: '/cmo-dashboard/case-status-page', label: 'Case Status', icon: <FiClipboard /> },
+  { to: '/cmo-dashboard/profile', label: 'My Profile', icon: <FiUser /> },
 ];
 
 const CmoDashboard = () => {
@@ -52,9 +53,11 @@ const CmoDashboard = () => {
           <button title="Settings" className="p-2 rounded-full hover:bg-blue-700/50 transition">
             <FiSettings className="text-xl" />
           </button>
-          <button title="Profile" className="p-2 rounded-full hover:bg-blue-700/50 transition">
-            <FiUser className="text-xl" />
-          </button>
+          <Link to="/cmo-dashboard/profile" title="Profile">
+            <button className="p-2 rounded-full hover:bg-blue-700/50 transition">
+              <FiUser className="text-xl" />
+            </button>
+          </Link>
         </Header>
 
         <main className="flex-grow p-8 bg-gray-50 overflow-y-auto">

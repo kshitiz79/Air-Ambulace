@@ -1,18 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bar } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
 import baseUrl from '../../baseUrl/baseUrl';
-
-// Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const EnquiryStatusPage = () => {
   const [enquiryId, setEnquiryId] = useState('');
@@ -124,43 +111,7 @@ const EnquiryStatusPage = () => {
     }
   };
 
-  // Chart data for status distribution
-  const statusCounts = allEnquiries.reduce((acc, enquiry) => {
-    acc[enquiry.status] = (acc[enquiry.status] || 0) + 1;
-    return acc;
-  }, {});
 
-  const chart = {
-    type: 'bar',
-    data: {
-      labels: Object.keys(statusCounts),
-      datasets: [
-        {
-          label: 'Enquiry Status Distribution',
-          data: Object.values(statusCounts),
-          backgroundColor: 'rgba(59, 130, 246, 0.5)',
-          borderColor: 'rgba(59, 130, 246, 1)',
-          borderWidth: 1,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: 'top' },
-        title: { display: true, text: 'Enquiry Status Distribution' },
-      },
-      scales: {
-        x: {
-          title: { display: true, text: 'Status' },
-        },
-        y: {
-          title: { display: true, text: 'Number of Enquiries' },
-          beginAtZero: true,
-        },
-      },
-    },
-  };
 
   // Status options for filter
   const statusOptions = [
@@ -220,11 +171,7 @@ const EnquiryStatusPage = () => {
         </div>
       </div>
 
-      {/* Status Chart */}
-      <div className="mb-8">
-        <h3 className="text-lg font-semibold mb-4">Enquiry Status Distribution</h3>
-        <Bar data={chart.data} options={chart.options} />
-      </div>
+
 
       {/* All Enquiries List */}
       <div>
@@ -254,15 +201,14 @@ const EnquiryStatusPage = () => {
                     <td className="p-3">{enquiry.patient_name}</td>
                     <td className="p-3">
                       <span
-                        className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${
-                          enquiry.status === 'APPROVED'
+                        className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${enquiry.status === 'APPROVED'
                             ? 'bg-green-100 text-green-800'
                             : enquiry.status === 'REJECTED'
-                            ? 'bg-red-100 text-red-800'
-                            : enquiry.status === 'FORWARDED'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}
+                              ? 'bg-red-100 text-red-800'
+                              : enquiry.status === 'FORWARDED'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                          }`}
                       >
                         {enquiry.status || 'PENDING'}
                       </span>
@@ -271,8 +217,8 @@ const EnquiryStatusPage = () => {
                       {enquiry.hospital && enquiry.hospital.name
                         ? enquiry.hospital.name
                         : enquiry.hospital_id
-                        ? `Hospital ID: ${enquiry.hospital_id}`
-                        : 'N/A'}
+                          ? `Hospital ID: ${enquiry.hospital_id}`
+                          : 'N/A'}
                     </td>
                     <td className="p-3">{enquiry.district?.district_name || 'N/A'}</td>
                     <td className="p-3">
