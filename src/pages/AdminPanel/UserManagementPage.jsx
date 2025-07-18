@@ -22,11 +22,15 @@ const UserManagementPage = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`${baseUrl}/api/users`, {
-        headers: { Authorization: token },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setUsers(response.data.users);
+      // Handle different response formats
+      const userData = response.data.data || response.data.users || response.data || [];
+      setUsers(Array.isArray(userData) ? userData : []);
     } catch (err) {
+      console.error('Failed to fetch users:', err);
       setError('Failed to fetch users: ' + (err.response?.data?.message || err.message));
+      setUsers([]); // Ensure users is always an array
     }
   };
 
@@ -34,9 +38,13 @@ const UserManagementPage = () => {
   const fetchDistricts = async () => {
     try {
       const response = await axios.get(`${baseUrl}/api/districts`);
-      setDistricts(response.data || []); // Adjusted to handle direct array response
+      // Handle different response formats
+      const districtData = response.data.data || response.data || [];
+      setDistricts(Array.isArray(districtData) ? districtData : []);
     } catch (err) {
+      console.error('Failed to fetch districts:', err);
       setError('Failed to fetch districts: ' + (err.response?.data?.error || err.message));
+      setDistricts([]); // Ensure districts is always an array
     }
   };
 
@@ -159,11 +167,13 @@ const UserManagementPage = () => {
                 className="mt-1 p-2 block w-full border rounded-md"
               >
                 <option value="">Select a district</option>
-                {districts.map((district) => (
+                {districts && districts.length > 0 ? districts.map((district) => (
                   <option key={district.district_id} value={district.district_id}>
                     {district.district_name}
                   </option>
-                ))}
+                )) : (
+                  <option disabled>No districts available</option>
+                )}
               </select>
             </div>
           </div>
@@ -204,7 +214,7 @@ const UserManagementPage = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((user) => (
+              {users && users.length > 0 ? users.map((user) => (
                 <tr key={user.user_id}>
                   <td className="px-6 py-4 whitespace-nowrap">{user.username}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{user.full_name}</td>
@@ -212,7 +222,13 @@ const UserManagementPage = () => {
                   <td className="px-6 py-4 whitespace-nowrap">{user.role}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{user.district_id || 'N/A'}</td>
                 </tr>
-              ))}
+              )) : (
+                <tr>
+                  <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
+                    No users found
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

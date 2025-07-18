@@ -21,7 +21,7 @@ const AdminDashboard = () => {
     <div className="flex h-screen font-sans">
       {/* Sidebar */}
       <Sidebar
-        links={links}
+        navigationLinks={links}
         title="Admin Dashboard"
         className="w-72 bg-white shadow-lg p-6 overflow-y-auto border-r border-gray-200"
         userName="Admin User"

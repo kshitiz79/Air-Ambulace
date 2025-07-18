@@ -3,7 +3,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FiLogOut } from 'react-icons/fi';
 
-const SideBar = ({ title, navigationLinks, userName, userRole, onLogout }) => {
+const SideBar = ({ title = "Dashboard", navigationLinks = [], userName = "User", userRole = "Role", onLogout }) => {
   const location = useLocation();
 
   return (
@@ -13,7 +13,7 @@ const SideBar = ({ title, navigationLinks, userName, userRole, onLogout }) => {
 
       <nav className="flex-grow">
         <ul className="space-y-2">
-          {navigationLinks.map(({ to, label, icon }) => {
+          {navigationLinks && navigationLinks.length > 0 ? navigationLinks.map(({ to, label, icon }) => {
             const isActive = location.pathname === to;
             return (
               <li key={to}>
@@ -30,7 +30,11 @@ const SideBar = ({ title, navigationLinks, userName, userRole, onLogout }) => {
                 </Link>
               </li>
             );
-          })}
+          }) : (
+            <li className="px-4 py-3 text-blue-200 text-sm">
+              No navigation links available
+            </li>
+          )}
         </ul>
       </nav>
 
