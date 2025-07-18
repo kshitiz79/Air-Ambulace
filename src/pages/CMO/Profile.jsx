@@ -111,7 +111,7 @@ const Profile = () => {
   const handleSaveProfile = async () => {
     try {
       setSaving(true);
-      const userId = localStorage.getItem('user_id');
+      const userId = localStorage.getItem('userId');
       
       const response = await fetch(`${baseUrl}/api/users/${userId}`, {
         method: 'PUT',
@@ -163,7 +163,7 @@ const Profile = () => {
 
     try {
       setSaving(true);
-      const userId = localStorage.getItem('user_id');
+      const userId = localStorage.getItem('userId');
       
       const response = await fetch(`${baseUrl}/api/users/${userId}/change-password`, {
         method: 'POST',

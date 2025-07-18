@@ -283,8 +283,8 @@ const EscalateCase = () => {
             <button
               onClick={() => setActiveTab('list')}
               className={`px-4 py-2 font-medium text-sm rounded-t-lg transition ${activeTab === 'list'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
                 }`}
             >
               <FaList className="inline mr-2" />
@@ -293,8 +293,8 @@ const EscalateCase = () => {
             <button
               onClick={() => setActiveTab('create')}
               className={`px-4 py-2 font-medium text-sm rounded-t-lg transition ${activeTab === 'create'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
                 }`}
             >
               <FaPlus className="inline mr-2" />
