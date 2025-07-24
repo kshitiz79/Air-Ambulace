@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { FiHome, FiThumbsUp, FiFileText, FiAlertCircle, FiDollarSign, FiSend, FiSearch } from 'react-icons/fi';
+import { FiHome, FiThumbsUp, FiFileText, FiAlertCircle, FiDollarSign, FiSend, FiSearch, FiUser } from 'react-icons/fi';
 import SideBar from './../../components/Global/SideBar';
 import Header from './../../components/Global/Header';
 
@@ -12,6 +12,7 @@ const navigationLinks = [
   { to: '/dm-dashboard/financial-page', label: 'Financial Page', icon: <FiDollarSign /> },
   { to: '/dm-dashboard/order-release-page', label: 'Order Release', icon: <FiSend /> },
   { to: '/dm-dashboard/search-page', label: 'Search Page', icon: <FiSearch /> },
+  { to: '/dm-dashboard/profile', label: 'Profile', icon: <FiUser /> },
 ];
 
 const DMDashboard = () => {

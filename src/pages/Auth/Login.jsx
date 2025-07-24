@@ -7,7 +7,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useThemeStyles } from '../../hooks/useThemeStyles';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -22,11 +22,11 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      console.log('Sending login request:', { username });
+      console.log('Sending login request:', { email });
       const response = await fetch(`${baseUrl}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       });
 
       if (!response.ok) {
@@ -132,10 +132,10 @@ const Login = () => {
                 isDark ? 'text-slate-400' : 'text-gray-50'
               }`} />
               <input
-                type="text"
-                placeholder="User Name"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 className={`w-full pl-12 pr-4 py-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
                   isDark 

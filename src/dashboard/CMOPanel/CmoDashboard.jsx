@@ -16,7 +16,7 @@ const navigationLinks = [
   { to: '/cmo-dashboard/escalate-case', label: 'Escalate Case', icon: <FiSend /> },
   { to: '/cmo-dashboard/beneficiary-detail-page', label: 'Beneficiary Details', icon: <FiUser /> },
   { to: '/cmo-dashboard/enquiry-creation-page', label: 'Enquiry Creation', icon: <FiEdit3 /> },
-  { to: '/cmo-dashboard/case-status-page', label: 'Case Status', icon: <FiClipboard /> },
+
   { to: '/cmo-dashboard/query-from-sdm', label: 'Queries from SDM', icon: <FiBell /> },
   { to: '/cmo-dashboard/profile', label: 'My Profile', icon: <FiUser /> },
 ];

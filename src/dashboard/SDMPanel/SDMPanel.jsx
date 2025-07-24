@@ -11,6 +11,7 @@ import {
   FiCornerUpLeft,
   FiFileText,
   FiSearch,
+  FiUser,
 } from 'react-icons/fi';
 
 const links = [
@@ -18,6 +19,7 @@ const links = [
   { to: '/sdm-dashboard/response-from-cmo', label: 'Response From CMO', icon: <FiCornerUpLeft /> },
   { to: '/sdm-dashboard/enquiry-detail-page', label: 'Enquiry Details', icon: <FiFileText /> },
   { to: '/sdm-dashboard/search-page', label: 'Search Page', icon: <FiSearch /> },
+  { to: '/sdm-dashboard/profile', label: 'Profile', icon: <FiUser /> },
 ];
 
 const SDMPanel = () => {

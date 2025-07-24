@@ -15,12 +15,12 @@ import Header from '../../components/Global/Header';
 
 const links = [
   { to: "/air-team", label: "Dashboard", icon: <FiHome /> },
-  { to: "/air-team/ambulance-assignment-page", label: "Ambulance Assignment", icon: <FiTruck /> },
-  { to: "/air-team/case-close-file", label: "Case Close File", icon: <FiFileText /> },
-  { to: "/air-team/case-detail-page", label: "Case Details", icon: <FiInfo /> },
-  { to: "/air-team/invoice-generation-page", label: "Invoice Generation", icon: <FiDollarSign /> },
-  { to: "/air-team/post-operation-page", label: "Post Operation", icon: <FiActivity /> },
-  { to: "/air-team/tracker-page", label: "Tracker", icon: <FiMapPin /> },
+  { to: "/air-team/ambulance-assignment-page", label: "Flight Assignments", icon: <FiTruck /> },
+  { to: "/air-team/case-detail-page", label: "Case Management", icon: <FiInfo /> },
+  { to: "/air-team/post-operation-page", label: "Operation Reports", icon: <FiActivity /> },
+  { to: "/air-team/tracker-page", label: "Flight Tracker", icon: <FiMapPin /> },
+  { to: "/air-team/invoice-generation-page", label: "Invoice Management", icon: <FiDollarSign /> },
+  { to: "/air-team/case-close-file", label: "Case Closure", icon: <FiFileText /> },
 ];
 const AirRequirementTeam = () => {
   const navigate = useNavigate();

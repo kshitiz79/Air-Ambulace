@@ -23,7 +23,7 @@ import FAQPage from "./pages/Citizen/FAQPage";
 import CmoDashboard from "./dashboard/CMOPanel/CmoDashboard";
 import EnquiryCreationPage from "./pages/CMO/EnquiryCreationPage";
 
-import CaseStatusPage from "./pages/CMO/CaseStatusPage";
+
 import Dashboard from "./pages/CMO/Dashboard";
 
 
@@ -50,13 +50,13 @@ import OrderReleasePage from "./pages/DM/OrderReleasePage";
 import DMSearchPage from "./pages/DM/DMSearchPage";
 
 import AirRequirementTeam from "./dashboard/AirRequirementTeam/AirRequirementTeam";
-import AirDashboard from "./pages/AirRequirement/AirDashboard";
-import AmbulanceAssignmentPage from "./pages/AirRequirement/AmbulanceAssignmentPage";
-import CaseClosurePage from "./pages/AirRequirement/CaseClosurePage";
-import CaseDetailsPage from "./pages/AirRequirement/CaseDetailsPage";
-import InvoiceGenerationPage from "./pages/AirRequirement/InvoiceGenerationPage";
-import PostOperationReportPage from "./pages/AirRequirement/PostOperationReportPage";
-import TrackerPage from "./pages/AirRequirement/TrackerPage";
+import AirDashboard from "./dashboard/AirRequirementTeam/pages/Dashboard";
+import AmbulanceAssignmentPage from "./dashboard/AirRequirementTeam/pages/AmbulanceAssignmentPage";
+import CaseDetailPage from "./dashboard/AirRequirementTeam/pages/CaseDetailPage";
+import PostOperationPage from "./dashboard/AirRequirementTeam/pages/PostOperationPage";
+import TrackerPage from "./dashboard/AirRequirementTeam/pages/TrackerPage";
+import InvoiceGenerationPage from "./dashboard/AirRequirementTeam/pages/InvoiceGenerationPage";
+import CaseCloseFile from "./dashboard/AirRequirementTeam/pages/CaseCloseFile";
 
 import AdminPanel from "./dashboard/AdminPanel/AdminPanel";
 import AdminDashboard from "./pages/AdminPanel/AdminDashboard";
@@ -75,7 +75,7 @@ import EnquiryListPage from "./pages/SDM/EnquiryListPage";
 
 
 import CaseFileListPage from "./pages/DM/CaseFileListPage";
-import CaseListPage from "./pages/AirRequirement/CaseListPage";
+
 import Login from "./pages/Auth/Login";
 // import HomePage from "./pages/HomePage";
 import Signup from "./pages/Auth/Signup";
@@ -87,6 +87,8 @@ import EscalateCase from "./pages/CMO/EscalateCase";
 import Notification from "./pages/CMO/Notification";
 import Profile from "./pages/CMO/Profile";
 import QueryFromSDM from "./pages/CMO/QueryFromSDM";
+import SDMProfile from "./pages/SDM/Profile";
+import DMProfile from "./pages/DM/Profile";
 
 
 function App() {
@@ -137,7 +139,7 @@ function App() {
           <Route path="beneficiary-detail-page" element={<BeneficiaryEditPageList />} />
           <Route path="beneficiary-detail-page/:id" element={<BeneficiaryDetailsEditPage />} /> {/* Relative path */}
           <Route path="enquiry-creation-page" element={<EnquiryCreationPage />} />
-          <Route path="case-status-page" element={<CaseStatusPage />} />
+        
           <Route path="escalate-case" element={<EscalateCase />} />
           <Route path="query-from-sdm" element={<QueryFromSDM />} />
           <Route path="notification" element={<Notification />} />
@@ -162,6 +164,7 @@ function App() {
           <Route path="enquiry-detail-page/:enquiryId" element={<EnquiryDetailsPage />} />
           <Route path="search-page" element={<SearchPage />} />
           <Route path="validation-page" element={<ValidationPage />} />
+          <Route path="profile" element={<SDMProfile />} />
         </Route>
 
 
@@ -177,6 +180,7 @@ function App() {
           <Route path="financial-page" element={<FinancialSanctionPage />} />
           <Route path="order-release-page" element={<OrderReleasePage />} />
           <Route path="search-page" element={<DMSearchPage />} />
+          <Route path="profile" element={<DMProfile />} />
         </Route>
 
         <Route path="/admin" element={<PrivateRoute roleRequired="ADMIN"><AdminPanel /></PrivateRoute>}>
@@ -196,12 +200,11 @@ function App() {
         <Route path="/air-team" element={<PrivateRoute roleRequired="SERVICE_PROVIDER"><AirRequirementTeam /></PrivateRoute>}>
           <Route index element={<AirDashboard />} />
           <Route path="ambulance-assignment-page" element={<AmbulanceAssignmentPage />} />
-          <Route path="case-close-file" element={<CaseClosurePage />} />
-          <Route path="case-detail-page" element={<CaseListPage />} />
-          <Route path="case-details/:enquiryId" element={<CaseDetailsPage />} />
-          <Route path="invoice-generation-page" element={<InvoiceGenerationPage />} />
-          <Route path="post-operation-page" element={<PostOperationReportPage />} />
+          <Route path="case-detail-page" element={<CaseDetailPage />} />
+          <Route path="post-operation-page" element={<PostOperationPage />} />
           <Route path="tracker-page" element={<TrackerPage />} />
+          <Route path="invoice-generation-page" element={<InvoiceGenerationPage />} />
+          <Route path="case-close-file" element={<CaseCloseFile />} />
         </Route>
 
       </Routes>
