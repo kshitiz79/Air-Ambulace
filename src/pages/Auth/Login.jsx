@@ -79,6 +79,12 @@ const Login = () => {
         case 'SERVICE_PROVIDER':
           navigate('/air-team', { replace: true });
           break;
+        case 'SUPPORT':
+          navigate('/it-team', { replace: true });
+          break;
+        case 'HOSPITAL':
+          navigate('/hospital-dashboard', { replace: true });
+          break;
         default:
           setErrorMessage('Role not recognized. Please contact support.');
           break;
@@ -100,7 +106,7 @@ const Login = () => {
       {!isDark && <div className="absolute inset-0 bg-black/20"></div>}
       
       {/* Theme Toggle Button */}
-      {/* <div className="absolute top-6 right-6 z-20">
+      <div className="absolute top-6 right-6 z-20">
         <button
           onClick={toggleTheme}
           className={`p-3 rounded-full transition-all duration-200 ${
@@ -112,7 +118,7 @@ const Login = () => {
         >
           {isDark ? <FaSun size={20} /> : <FaMoon size={20} />}
         </button>
-      </div> */}
+      </div>
 
       <div className="relative z-10 flex items-center justify-center h-full p-4">
         <div className={`w-full max-w-md rounded-2xl p-8 items-center justify-center mt-40 ${

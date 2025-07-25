@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { FiFileText, FiCheckCircle, FiClock, FiUser, FiDownload, FiEye } from 'react-icons/fi';
-import ThemeTable from '../../../components/Common/ThemeTable';
-import ThemeButton from '../../../components/Common/ThemeButton';
+import { FiFileText, FiCheckCircle, FiClock, FiUser, FiDownload, FiEye, FiRefreshCw, FiAlertCircle } from 'react-icons/fi';
+import ThemeTable from './../../components/Common/ThemeTable';
+import ThemeButton from './../../components/Common/ThemeButton';
+import baseUrl from '../../baseUrl/baseUrl';
 
 const CaseCloseFile = () => {
   const [cases, setCases] = useState([]);
+  const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [selectedCase, setSelectedCase] = useState(null);
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [closeFormData, setCloseFormData] = useState({
@@ -24,48 +27,91 @@ const CaseCloseFile = () => {
   const fetchCases = async () => {
     try {
       setLoading(true);
-      // Simulate API call
-      const mockData = [
-        {
-          enquiry_id: 12345,
-          patient_name: 'John Doe',
-          service_type: 'Air Ambulance',
-          pickup_location: 'Delhi AIIMS',
-          drop_location: 'Mumbai Hospital',
-          service_date: '2024-01-15',
-          status: 'COMPLETED',
-          closure_status: 'PENDING',
-          total_amount: 147500,
-          payment_status: 'PAID',
-          assigned_crew: 'Pilot: John Smith, Medic: Jane Doe',
-          completion_date: '2024-01-15 12:45:00',
-          documents_required: ['Medical Report', 'Flight Log', 'Invoice', 'Patient Feedback'],
-          documents_submitted: ['Medical Report', 'Flight Log', 'Invoice']
-        },
-        {
-          enquiry_id: 12346,
-          patient_name: 'Sarah Wilson',
-          service_type: 'Air Ambulance',
-          pickup_location: 'Bangalore General Hospital',
-          drop_location: 'Chennai Apollo',
-          service_date: '2024-01-14',
-          status: 'COMPLETED',
-          closure_status: 'CLOSED',
-          total_amount: 115640,
-          payment_status: 'PAID',
-          assigned_crew: 'Pilot: Mike Johnson, Medic: Lisa Brown',
-          completion_date: '2024-01-14 16:30:00',
-          closure_date: '2024-01-16 10:00:00',
-          documents_required: ['Medical Report', 'Flight Log', 'Invoice', 'Patient Feedback'],
-          documents_submitted: ['Medical Report', 'Flight Log', 'Invoice', 'Patient Feedback']
-        }
-      ];
-      setCases(mockData);
+      setError('');
+      
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      // Fetch enquiries, case closures, and invoices in parallel
+      const [enquiriesRes, closuresRes, invoicesRes] = await Promise.all([
+        fetch(`${baseUrl}/api/enquiries`, { headers }),
+        fetch(`${baseUrl}/api/case-closures`, { headers }).catch(() => ({ ok: false })),
+        fetch(`${baseUrl}/api/invoices`, { headers }).catch(() => ({ ok: false }))
+      ]);
+
+      if (!enquiriesRes.ok) {
+        throw new Error('Failed to fetch enquiries');
+      }
+
+      const enquiriesData = await enquiriesRes.json();
+      const closuresData = closuresRes.ok ? await closuresRes.json() : { data: [] };
+      const invoicesData = invoicesRes.ok ? await invoicesRes.json() : { data: [] };
+
+      // Process data
+      const enquiriesList = Array.isArray(enquiriesData) ? enquiriesData : enquiriesData.data || [];
+      const closuresList = Array.isArray(closuresData) ? closuresData : closuresData.data || [];
+      const invoicesList = Array.isArray(invoicesData) ? invoicesData : invoicesData.data || [];
+
+      // Create lookup maps
+      const closureMap = {};
+      closuresList.forEach(closure => {
+        closureMap[closure.enquiry_id] = closure;
+      });
+
+      const invoiceMap = {};
+      invoicesList.forEach(invoice => {
+        invoiceMap[invoice.enquiry_id] = invoice;
+      });
+
+      // Transform enquiries to case format for closure management
+      const transformedCases = enquiriesList
+        .filter(enquiry => enquiry.status === 'COMPLETED' || enquiry.status === 'IN_PROGRESS')
+        .map(enquiry => {
+          const closure = closureMap[enquiry.enquiry_id];
+          const invoice = invoiceMap[enquiry.enquiry_id];
+          
+          return {
+            enquiry_id: enquiry.enquiry_id,
+            enquiry_code: enquiry.enquiry_code || `ENQ${enquiry.enquiry_id}`,
+            patient_name: enquiry.patient_name,
+            service_type: 'Air Ambulance',
+            pickup_location: enquiry.sourceHospital?.name || enquiry.sourceHospital?.hospital_name || 'Source Hospital',
+            drop_location: enquiry.hospital?.name || enquiry.hospital?.hospital_name || 'Destination Hospital',
+            service_date: enquiry.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+            status: enquiry.status,
+            closure_status: closure?.closure_status || 'PENDING',
+            total_amount: invoice?.amount || 150000, // Default amount if no invoice
+            payment_status: invoice?.status === 'PAID' ? 'PAID' : 'PENDING',
+            assigned_crew: 'Air Ambulance Crew', // Could be enhanced with actual crew data
+            completion_date: enquiry.updated_at || enquiry.created_at,
+            closure_date: closure?.closure_date || null,
+            documents_required: ['Medical Report', 'Flight Log', 'Invoice', 'Patient Feedback'],
+            documents_submitted: enquiry.documents?.map(doc => doc.document_type) || [],
+            // Additional enquiry data
+            medical_condition: enquiry.medical_condition,
+            contact_phone: enquiry.contact_phone,
+            contact_name: enquiry.contact_name,
+            district: enquiry.district,
+            air_transport_type: enquiry.air_transport_type,
+            closure_details: closure
+          };
+        });
+
+      setCases(transformedCases);
+      setEnquiries(enquiriesList);
     } catch (error) {
       console.error('Error fetching cases:', error);
+      setError('Failed to load cases. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const refreshData = () => {
+    fetchCases();
   };
 
   const handleCloseCase = async (e) => {
@@ -117,8 +163,16 @@ const CaseCloseFile = () => {
   };
 
   const columns = [
-    { key: 'enquiry_id', label: 'Case ID' },
-    { key: 'patient_name', label: 'Patient Name' },
+    { 
+      key: 'enquiry_code', 
+      label: 'Enquiry Code',
+      render: (value, row) => (
+        <div>
+          <p className="font-mono text-sm">{value}</p>
+          <p className="text-xs text-gray-500">{row.patient_name}</p>
+        </div>
+      )
+    },
     { key: 'service_type', label: 'Service Type' },
     { 
       key: 'total_amount', 
@@ -182,7 +236,36 @@ const CaseCloseFile = () => {
           <h1 className="text-2xl font-bold text-gray-900">Case Close File</h1>
           <p className="text-gray-600">Manage case closures and final documentation</p>
         </div>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={refreshData}
+            className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            disabled={loading}
+          >
+            <FiRefreshCw className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+        </div>
       </div>
+
+      {/* Error Alert */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center space-x-3">
+            <FiAlertCircle className="text-red-600" size={20} />
+            <div>
+              <h4 className="font-medium text-red-800">Error Loading Cases</h4>
+              <p className="text-sm text-red-700 mt-1">{error}</p>
+              <button
+                onClick={refreshData}
+                className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

@@ -44,7 +44,7 @@ const AdminDashboard = () => {
       {/* Main Content Area */}
       <div className="flex-grow flex flex-col">
         {/* Header */}
-        <Header 
+        <Header
           greeting={`Welcome, ${userName}`}
           userName={userName}
           showSearch={true}
@@ -52,7 +52,7 @@ const AdminDashboard = () => {
           showSettings={true}
           notificationCount={5}
         >
-          
+
           <button title="Settings" className="p-2 rounded-full hover:bg-blue-700/50 transition">
             <FiSettings className="text-xl" />
           </button>

@@ -50,13 +50,14 @@ import OrderReleasePage from "./pages/DM/OrderReleasePage";
 import DMSearchPage from "./pages/DM/DMSearchPage";
 
 import AirRequirementTeam from "./dashboard/AirRequirementTeam/AirRequirementTeam";
-import AirDashboard from "./dashboard/AirRequirementTeam/pages/Dashboard";
-import AmbulanceAssignmentPage from "./dashboard/AirRequirementTeam/pages/AmbulanceAssignmentPage";
-import CaseDetailPage from "./dashboard/AirRequirementTeam/pages/CaseDetailPage";
-import PostOperationPage from "./dashboard/AirRequirementTeam/pages/PostOperationPage";
-import TrackerPage from "./dashboard/AirRequirementTeam/pages/TrackerPage";
-import InvoiceGenerationPage from "./dashboard/AirRequirementTeam/pages/InvoiceGenerationPage";
-import CaseCloseFile from "./dashboard/AirRequirementTeam/pages/CaseCloseFile";
+import AirDashboard from "./pages/AirRequirementTeam/Dashboard";
+import AmbulanceAssignmentPage from "./pages/AirRequirementTeam/AmbulanceAssignmentPage";
+import CaseDetailPage from "./pages/AirRequirementTeam/CaseDetailPage";
+import PostOperationPage from "./pages/AirRequirementTeam/PostOperationPage";
+import TrackerPage from "./pages/AirRequirementTeam/TrackerPage";
+import InvoiceGenerationPage from "./pages/AirRequirementTeam/InvoiceGenerationPage";
+import CaseCloseFile from "./pages/AirRequirementTeam/CaseCloseFile";
+import AirTeamProfile from "./pages/AirRequirementTeam/Profile";
 
 import AdminPanel from "./dashboard/AdminPanel/AdminPanel";
 import AdminDashboard from "./pages/AdminPanel/AdminDashboard";
@@ -89,6 +90,16 @@ import Profile from "./pages/CMO/Profile";
 import QueryFromSDM from "./pages/CMO/QueryFromSDM";
 import SDMProfile from "./pages/SDM/Profile";
 import DMProfile from "./pages/DM/Profile";
+
+// IT Team Dashboard imports
+import ITTeamDashboard from "./dashboard/ITTeam/ITTeamDashboard";
+import ITDashboard from "./pages/ITTeam/Dasboard";
+import AllUsers from "./pages/ITTeam/AllUsers";
+import SystemLogs from "./pages/ITTeam/SystemLogs";
+import DatabaseManagement from "./pages/ITTeam/DatabaseManagement";
+import SecurityCenter from "./pages/ITTeam/SecurityCenter";
+import SystemSettings from "./pages/ITTeam/SystemSettings";
+import AmbulanceManagementPage from "./pages/AirRequirementTeam/AmbulanceManagementPage";
 
 
 function App() {
@@ -139,7 +150,7 @@ function App() {
           <Route path="beneficiary-detail-page" element={<BeneficiaryEditPageList />} />
           <Route path="beneficiary-detail-page/:id" element={<BeneficiaryDetailsEditPage />} /> {/* Relative path */}
           <Route path="enquiry-creation-page" element={<EnquiryCreationPage />} />
-        
+
           <Route path="escalate-case" element={<EscalateCase />} />
           <Route path="query-from-sdm" element={<QueryFromSDM />} />
           <Route path="notification" element={<Notification />} />
@@ -199,12 +210,25 @@ function App() {
 
         <Route path="/air-team" element={<PrivateRoute roleRequired="SERVICE_PROVIDER"><AirRequirementTeam /></PrivateRoute>}>
           <Route index element={<AirDashboard />} />
+          <Route path="ambulance-management-page" element={<AmbulanceManagementPage />} />
           <Route path="ambulance-assignment-page" element={<AmbulanceAssignmentPage />} />
           <Route path="case-detail-page" element={<CaseDetailPage />} />
           <Route path="post-operation-page" element={<PostOperationPage />} />
           <Route path="tracker-page" element={<TrackerPage />} />
+
           <Route path="invoice-generation-page" element={<InvoiceGenerationPage />} />
           <Route path="case-close-file" element={<CaseCloseFile />} />
+          <Route path="profile" element={<AirTeamProfile />} />
+
+        </Route>
+
+        <Route path="/it-team" element={<PrivateRoute roleRequired="SUPPORT"><ITTeamDashboard /></PrivateRoute>}>
+          <Route index element={<ITDashboard />} />
+          <Route path="all-users" element={<AllUsers />} />
+          <Route path="system-logs" element={<SystemLogs />} />
+          <Route path="database-management" element={<DatabaseManagement />} />
+          <Route path="security-center" element={<SecurityCenter />} />
+          <Route path="system-settings" element={<SystemSettings />} />
         </Route>
 
       </Routes>

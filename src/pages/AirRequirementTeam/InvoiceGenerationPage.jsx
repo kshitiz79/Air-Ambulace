@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { FiPlus, FiDownload, FiEye, FiDollarSign, FiFileText, FiCalendar } from 'react-icons/fi';
-import ThemeTable from '../../../components/Common/ThemeTable';
-import ThemeButton from '../../../components/Common/ThemeButton';
-import ThemeInput from '../../../components/Common/ThemeInput';
+import { FiPlus, FiDownload, FiEye, FiDollarSign, FiFileText, FiCalendar, FiRefreshCw, FiAlertCircle } from 'react-icons/fi';
+import ThemeTable from './../../components/Common/ThemeTable';
+import ThemeButton from './../../components/Common/ThemeButton';
+import ThemeInput from './../../components/Common/ThemeInput';
+import baseUrl from '../../baseUrl/baseUrl';
 
 const InvoiceGenerationPage = () => {
   const [invoices, setInvoices] = useState([]);
+  const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [formData, setFormData] = useState({
     enquiry_id: '',
+    enquiry_code: '',
     amount: '',
     invoice_date: new Date().toISOString().split('T')[0]
   });
@@ -22,37 +26,58 @@ const InvoiceGenerationPage = () => {
   const fetchInvoices = async () => {
     try {
       setLoading(true);
-      // Simulate API call
-      const mockData = [
-        {
-          invoice_id: 1,
-          enquiry_id: 12345,
-          amount: 147500,
-          invoice_date: '2024-01-15',
-          status: 'PAID',
-          created_at: '2024-01-15 10:00:00',
-          enquiry: {
-            patient_name: 'John Doe'
-          }
-        },
-        {
-          invoice_id: 2,
-          enquiry_id: 12346,
-          amount: 115640,
-          invoice_date: '2024-01-15',
-          status: 'PENDING',
-          created_at: '2024-01-15 14:30:00',
-          enquiry: {
-            patient_name: 'Sarah Wilson'
-          }
-        }
-      ];
-      setInvoices(mockData);
+      setError('');
+      
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      // Fetch invoices and enquiries in parallel
+      const [invoicesRes, enquiriesRes] = await Promise.all([
+        fetch(`${baseUrl}/api/invoices`, { headers }).catch(err => ({ ok: false, error: err })),
+        fetch(`${baseUrl}/api/enquiries`, { headers }).catch(err => ({ ok: false, error: err }))
+      ]);
+
+      // Handle enquiries first (more critical)
+      const enquiriesData = enquiriesRes.ok ? await enquiriesRes.json() : { data: [] };
+      const enquiriesList = Array.isArray(enquiriesData) ? enquiriesData : enquiriesData.data || [];
+      setEnquiries(enquiriesList);
+
+      // Handle invoices (may not exist yet)
+      let invoicesList = [];
+      if (invoicesRes.ok) {
+        const invoicesData = await invoicesRes.json();
+        invoicesList = Array.isArray(invoicesData) ? invoicesData : invoicesData.data || [];
+      } else {
+        console.warn('Invoices API not available, using empty list');
+      }
+
+      // Create enquiry lookup map
+      const enquiryMap = {};
+      enquiriesList.forEach(enquiry => {
+        enquiryMap[enquiry.enquiry_id] = enquiry;
+      });
+
+      // Enhance invoices with enquiry information
+      const enhancedInvoices = invoicesList.map(invoice => ({
+        ...invoice,
+        enquiry: enquiryMap[invoice.enquiry_id] || null,
+        enquiry_code: enquiryMap[invoice.enquiry_id]?.enquiry_code || `ENQ${invoice.enquiry_id}`
+      }));
+
+      setInvoices(enhancedInvoices);
     } catch (error) {
       console.error('Error fetching invoices:', error);
+      setError('Failed to load invoices. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const refreshData = () => {
+    fetchInvoices();
   };
 
   const calculateTotals = () => {
@@ -98,11 +123,17 @@ const InvoiceGenerationPage = () => {
 
   const columns = [
     { key: 'invoice_id', label: 'Invoice ID' },
-    { key: 'enquiry_id', label: 'Case ID' },
     { 
-      key: 'enquiry', 
-      label: 'Patient Name',
-      render: (value) => value?.patient_name || 'N/A'
+      key: 'enquiry_code', 
+      label: 'Enquiry Code',
+      render: (value, row) => (
+        <div>
+          <p className="font-mono text-sm">{value}</p>
+          {row.enquiry && (
+            <p className="text-xs text-gray-500">{row.enquiry.patient_name}</p>
+          )}
+        </div>
+      )
     },
     { 
       key: 'amount', 
@@ -152,22 +183,52 @@ const InvoiceGenerationPage = () => {
           <h1 className="text-2xl font-bold text-gray-900">Invoice Generation</h1>
           <p className="text-gray-600">Create and manage invoices for air ambulance services</p>
         </div>
-        <ThemeButton
-          onClick={() => {
-            setSelectedInvoice(null);
-            setFormData({
-              enquiry_id: '',
-              amount: '',
-              invoice_date: new Date().toISOString().split('T')[0]
-            });
-            setShowModal(true);
-          }}
-          className="flex items-center space-x-2"
-        >
-          <FiPlus size={16} />
-          <span>Generate Invoice</span>
-        </ThemeButton>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={refreshData}
+            className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            disabled={loading}
+          >
+            <FiRefreshCw className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+          <ThemeButton
+            onClick={() => {
+              setSelectedInvoice(null);
+              setFormData({
+                enquiry_id: '',
+                enquiry_code: '',
+                amount: '',
+                invoice_date: new Date().toISOString().split('T')[0]
+              });
+              setShowModal(true);
+            }}
+            className="flex items-center space-x-2"
+          >
+            <FiPlus size={16} />
+            <span>Generate Invoice</span>
+          </ThemeButton>
+        </div>
       </div>
+
+      {/* Error Alert */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center space-x-3">
+            <FiAlertCircle className="text-red-600" size={20} />
+            <div>
+              <h4 className="font-medium text-red-800">Error Loading Invoices</h4>
+              <p className="text-sm text-red-700 mt-1">{error}</p>
+              <button
+                onClick={refreshData}
+                className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -237,13 +298,46 @@ const InvoiceGenerationPage = () => {
                 <div className="space-y-4">
                   <h4 className="text-lg font-medium text-gray-900 border-b pb-2">Invoice Information</h4>
                   
-                  <ThemeInput
-                    label="Case/Enquiry ID"
-                    type="number"
-                    value={formData.enquiry_id}
-                    onChange={(e) => setFormData({...formData, enquiry_id: e.target.value})}
-                    required
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Select Enquiry *
+                    </label>
+                    <select
+                      value={formData.enquiry_id}
+                      onChange={(e) => {
+                        const selectedEnquiry = enquiries.find(enq => enq.enquiry_id.toString() === e.target.value);
+                        setFormData({
+                          ...formData, 
+                          enquiry_id: e.target.value,
+                          enquiry_code: selectedEnquiry?.enquiry_code || ''
+                        });
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    >
+                      <option value="">Select an enquiry to generate invoice</option>
+                      {enquiries.map((enquiry) => (
+                        <option key={enquiry.enquiry_id} value={enquiry.enquiry_id}>
+                          {enquiry.enquiry_code} - {enquiry.patient_name} ({enquiry.status})
+                        </option>
+                      ))}
+                    </select>
+                    {formData.enquiry_id && (
+                      <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md text-sm">
+                        {(() => {
+                          const selected = enquiries.find(e => e.enquiry_id.toString() === formData.enquiry_id);
+                          return selected ? (
+                            <div>
+                              <p><strong>Patient:</strong> {selected.patient_name}</p>
+                              <p><strong>Medical Condition:</strong> {selected.medical_condition}</p>
+                              <p><strong>Transport Type:</strong> {selected.air_transport_type}</p>
+                              <p><strong>Route:</strong> {selected.sourceHospital?.name || 'Source'} → {selected.hospital?.name || 'Destination'}</p>
+                            </div>
+                          ) : null;
+                        })()}
+                      </div>
+                    )}
+                  </div>
                   
                   <ThemeInput
                     label="Invoice Amount (₹)"

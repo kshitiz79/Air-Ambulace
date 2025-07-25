@@ -459,7 +459,7 @@ const UserManagementPage = () => {
       </div>
 
 
-      export default UserManagementPage;
+  
       {/* Error/Success Messages */}
       {error && (
         <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg border border-red-200 flex items-center">
