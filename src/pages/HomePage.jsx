@@ -16,7 +16,7 @@ const Header = () => {
                 <Heart className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">पीएमश्री एयर एम्बुलेंस</h1>
+                <h1 className="text-sm md:text-xl font-bold text-gray-900">पीएमश्री एयर एम्बुलेंस</h1>
                 <p className="text-sm text-blue-600 font-medium">मध्यप्रदेश शासन</p>
               </div>
             </div>
@@ -44,22 +44,21 @@ const Header = () => {
 
 
 
+            <button
+  onClick={() => navigate("/sign-in")}
+  className="flex items-center bg-red-600 text-white px-3 py-2 text-sm rounded-md hover:bg-red-700 transition-colors font-medium
+             sm:px-5 sm:py-3 text-xs sm:rounded-lg"
+>
+  <User size={16} className="mr-2" />
+  Sign In
+</button>
 
-    <button
-      onClick={() => navigate("/sign-in")}
-      className="flex items-center bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
-    >
-      <User size={16} className="mr-2" />
-      Sign In
-    </button>
 
 
 
 
             {/* Mobile Menu Button */}
-            <button className="md:hidden p-2 text-gray-600 hover:text-red-600">
-              <Menu size={20} />
-            </button>
+           
           </div>
         </div>
       </div>
