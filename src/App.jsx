@@ -99,7 +99,16 @@ import SystemLogs from "./pages/ITTeam/SystemLogs";
 import DatabaseManagement from "./pages/ITTeam/DatabaseManagement";
 import SecurityCenter from "./pages/ITTeam/SecurityCenter";
 import SystemSettings from "./pages/ITTeam/SystemSettings";
+import DistrictManagement from "./pages/ITTeam/DistrictManagement";
+import HospitalManagement from "./pages/ITTeam/HospitalManagement";
+import ITAmbulanceManagement from "./pages/AirRequirementTeam/AmbulanceManagementPage";
+import EnquiryManagement from "./pages/ITTeam/EnquiryManagement";
+import FlightAssignments from "./pages/ITTeam/FlightAssignments";
+import DataImportExport from "./pages/ITTeam/DataImportExport";
+import AnalyticsReports from "./pages/ITTeam/AnalyticsReports";
+
 import AmbulanceManagementPage from "./pages/AirRequirementTeam/AmbulanceManagementPage";
+import HomePage from "./pages/HomePage";
 
 
 function App() {
@@ -128,8 +137,8 @@ function App() {
   return (
     <ThemeProvider>
       <Routes>
-        {/* <Route path="/" element={<HomePage />} /> */}
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/sign-in" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
         <Route path="/user" element={<PrivateRoute roleRequired="BENEFICIARY"><CitizenDashboard /></PrivateRoute>}>
@@ -153,7 +162,7 @@ function App() {
 
           <Route path="escalate-case" element={<EscalateCase />} />
           <Route path="query-from-sdm" element={<QueryFromSDM />} />
-          <Route path="notification" element={<Notification />} />
+          <Route path="notification" element={<NotificationPage />} />
           <Route path="profile" element={<Profile />} />
         </Route>
 
@@ -168,13 +177,13 @@ function App() {
         <Route path="/sdm-dashboard" element={<PrivateRoute roleRequired="SDM"><SDMPanel /></PrivateRoute>}>
           <Route index element={<SDMDashboard />} />
 
-
           <Route path="response-from-cmo" element={<ResponseFromCMO />} />
           <Route path="enquiry-detail-page/query-to-cmo/:enquiryId" element={<QueryToCMOPage />} />
           <Route path="enquiry-detail-page" element={<EnquiryListPage />} />
           <Route path="enquiry-detail-page/:enquiryId" element={<EnquiryDetailsPage />} />
           <Route path="search-page" element={<SearchPage />} />
           <Route path="validation-page" element={<ValidationPage />} />
+          <Route path="notification" element={<NotificationPage />} />
           <Route path="profile" element={<SDMProfile />} />
         </Route>
 
@@ -191,6 +200,7 @@ function App() {
           <Route path="financial-page" element={<FinancialSanctionPage />} />
           <Route path="order-release-page" element={<OrderReleasePage />} />
           <Route path="search-page" element={<DMSearchPage />} />
+          <Route path="notification" element={<NotificationPage />} />
           <Route path="profile" element={<DMProfile />} />
         </Route>
 
@@ -206,6 +216,7 @@ function App() {
           <Route path="enquiry-management" element={<EnquiryManagementPage />} />
           <Route path="hospital-management" element={<CreateHospital />} />
           <Route path="all-queries" element={<AllQueryPage />} />
+          <Route path="notification" element={<NotificationPage />} />
         </Route>
 
         <Route path="/air-team" element={<PrivateRoute roleRequired="SERVICE_PROVIDER"><AirRequirementTeam /></PrivateRoute>}>
@@ -215,20 +226,39 @@ function App() {
           <Route path="case-detail-page" element={<CaseDetailPage />} />
           <Route path="post-operation-page" element={<PostOperationPage />} />
           <Route path="tracker-page" element={<TrackerPage />} />
-
           <Route path="invoice-generation-page" element={<InvoiceGenerationPage />} />
           <Route path="case-close-file" element={<CaseCloseFile />} />
+          <Route path="notification" element={<NotificationPage />} />
           <Route path="profile" element={<AirTeamProfile />} />
-
         </Route>
 
         <Route path="/it-team" element={<PrivateRoute roleRequired="SUPPORT"><ITTeamDashboard /></PrivateRoute>}>
           <Route index element={<ITDashboard />} />
+
+          {/* User & System Management */}
           <Route path="all-users" element={<AllUsers />} />
           <Route path="system-logs" element={<SystemLogs />} />
           <Route path="database-management" element={<DatabaseManagement />} />
           <Route path="security-center" element={<SecurityCenter />} />
           <Route path="system-settings" element={<SystemSettings />} />
+
+          {/* Data Management */}
+          <Route path="district-management" element={<DistrictManagement />} />
+          <Route path="hospital-management" element={<HospitalManagement />} />
+          <Route path="ambulance-management" element={<ITAmbulanceManagement />} />
+
+          {/* Operations Management */}
+          <Route path="enquiry-management" element={<EnquiryManagement />} />
+          <Route path="flight-assignments" element={<FlightAssignments />} />
+          <Route path="invoices-management" element={<InvoiceGenerationPage />} />
+          <Route path="case-escalations" element={<EscalationPage />} />
+          <Route path="post-operations" element={<PostOperationPage />} />
+
+          {/* Import/Export & Analytics */}
+          <Route path="data-import-export" element={<DataImportExport />} />
+          <Route path="analytics-reports" element={<AnalyticsReports />} />
+          <Route path="advanced-search" element={<SearchPage />} />
+          <Route path="notification" element={<NotificationPage />} />
         </Route>
 
       </Routes>

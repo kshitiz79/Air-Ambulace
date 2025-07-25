@@ -280,7 +280,7 @@ const AllUsers = () => {
     }
 
     return (
-        <div className={`max-w-7xl mx-auto p-6 ${styles.pageBackground}`}>
+        <div className={`max-w-6xl mx-auto p-6 ${styles.pageBackground}`}>
             {/* Header */}
             <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} mb-6`}>
                 <div className={`px-6 py-4 border-b ${styles.borderColor}`}>

@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { FiBell, FiSettings, FiUser, FiSearch, FiMenu, FiSun, FiMoon } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
+import useNotifications from '../../hooks/useNotifications';
+import NotificationPopup from '../Common/NotificationPopup';
 
 const Header = ({ 
   greeting = "Welcome back", 
@@ -16,8 +19,10 @@ const Header = ({
   // Get real user data from localStorage
   const realUserName = userName || localStorage.getItem('full_name') || localStorage.getItem('username') || 'User';
   const [searchQuery, setSearchQuery] = useState('');
-  const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
+  const [showNotificationPopup, setShowNotificationPopup] = useState(false);
   const { theme, toggleTheme, isDark } = useTheme();
+  const { unreadCount } = useNotifications();
+  const navigate = useNavigate();
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -97,9 +102,9 @@ const Header = ({
 
         {/* Notifications */}
         {showNotifications && (
-          <div className="relative">
+          <>
             <button
-              onClick={() => setShowNotificationDropdown(!showNotificationDropdown)}
+              onClick={() => setShowNotificationPopup(!showNotificationPopup)}
               className={`relative p-2.5 rounded-xl transition-colors duration-200 ${
                 isDark 
                   ? 'hover:bg-slate-800 text-slate-400 hover:text-slate-200' 
@@ -108,52 +113,47 @@ const Header = ({
               title="Notifications"
             >
               <FiBell size={18} />
-              {notificationCount > 0 && (
+              {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-                  {notificationCount > 9 ? '9+' : notificationCount}
+                  {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
             </button>
 
-            {/* Notification Dropdown */}
-            {showNotificationDropdown && (
-              <div className={`absolute right-0 mt-2 w-80 rounded-xl shadow-xl border py-2 z-50 ${
-                isDark 
-                  ? 'bg-slate-800 border-slate-700' 
-                  : 'bg-white border-slate-200'
-              }`}>
-                <div className={`px-4 py-3 border-b ${
-                  isDark ? 'border-slate-700' : 'border-slate-100'
-                }`}>
-                  <h3 className={`font-semibold ${
-                    isDark ? 'text-slate-100' : 'text-slate-800'
-                  }`}>Notifications</h3>
-                </div>
-                <div className="max-h-64 overflow-y-auto">
-                  {notificationCount > 0 ? (
-                    <div className={`px-4 py-3 cursor-pointer ${
-                      isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'
-                    }`}>
-                      <p className={`text-sm font-medium ${
-                        isDark ? 'text-slate-100' : 'text-slate-800'
-                      }`}>Emergency Request</p>
-                      <p className={`text-xs mt-1 ${
-                        isDark ? 'text-slate-400' : 'text-slate-500'
-                      }`}>New air ambulance request received</p>
-                      <p className="text-xs text-blue-600 mt-1">2 minutes ago</p>
-                    </div>
-                  ) : (
-                    <div className={`px-4 py-8 text-center ${
-                      isDark ? 'text-slate-400' : 'text-slate-500'
-                    }`}>
-                      <FiBell className="mx-auto mb-2 text-2xl" />
-                      <p className="text-sm">No new notifications</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+            {/* Notification Popup */}
+            <NotificationPopup
+              isOpen={showNotificationPopup}
+              onClose={() => setShowNotificationPopup(false)}
+              onViewAll={() => {
+                setShowNotificationPopup(false);
+                // Navigate to notifications page based on user role
+                const role = localStorage.getItem('role');
+                switch (role) {
+                  case 'CMO':
+                    navigate('/cmo-dashboard/notification');
+                    break;
+                  case 'SDM':
+                    navigate('/sdm-dashboard/notification');
+                    break;
+                  case 'DM':
+                    navigate('/dm-dashboard/notification');
+                    break;
+                  case 'SERVICE_PROVIDER':
+                    navigate('/air-team/notification');
+                    break;
+                  case 'SUPPORT':
+                    navigate('/it-team/notification');
+                    break;
+                  case 'ADMIN':
+                    navigate('/admin/notification');
+                    break;
+                  default:
+                    navigate('/user/notification');
+                    break;
+                }
+              }}
+            />
+          </>
         )}
 
         {/* Settings */}

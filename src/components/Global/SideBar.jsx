@@ -68,57 +68,59 @@ const SideBar = ({
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-grow px-4 py-6">
-        <ul className="space-y-2">
-          {navigationLinks && navigationLinks.length > 0 ? navigationLinks.map(({ to, label, icon, badge }) => {
-            const isActive = location.pathname === to;
-            return (
-              <li key={to}>
-                <Link
-                  to={to}
-                  className={`group flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 relative ${
-                    isActive
-                      ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/25'
-                      : isDark 
-                        ? 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
-                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-800'
-                  }`}
-                  title={isCollapsed ? label : ''}
-                >
-                  <span className={`text-xl ${
-                    isActive 
-                      ? 'text-white' 
-                      : isDark 
-                        ? 'text-slate-400 group-hover:text-white'
-                        : 'text-slate-500 group-hover:text-slate-800'
-                  }`}>
-                    {icon}
-                  </span>
-                  {!isCollapsed && (
-                    <>
-                      <span className="text-sm font-medium flex-1">{label}</span>
-                      {badge && (
-                        <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                          {badge}
-                        </span>
-                      )}
-                    </>
-                  )}
-                  {isActive && (
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-white rounded-r-full"></div>
-                  )}
-                </Link>
+      {/* Navigation - Independently Scrollable */}
+      <nav className="flex-grow px-4 py-6 overflow-hidden">
+        <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent hover:scrollbar-thumb-gray-500">
+          <ul className="space-y-2 pr-2">
+            {navigationLinks && navigationLinks.length > 0 ? navigationLinks.map(({ to, label, icon, badge }) => {
+              const isActive = location.pathname === to;
+              return (
+                <li key={to}>
+                  <Link
+                    to={to}
+                    className={`group flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 relative ${
+                      isActive
+                        ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/25'
+                        : isDark 
+                          ? 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-800'
+                    }`}
+                    title={isCollapsed ? label : ''}
+                  >
+                    <span className={`text-xl ${
+                      isActive 
+                        ? 'text-white' 
+                        : isDark 
+                          ? 'text-slate-400 group-hover:text-white'
+                          : 'text-slate-500 group-hover:text-slate-800'
+                    }`}>
+                      {icon}
+                    </span>
+                    {!isCollapsed && (
+                      <>
+                        <span className="text-sm font-medium flex-1">{label}</span>
+                        {badge && (
+                          <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                            {badge}
+                          </span>
+                        )}
+                      </>
+                    )}
+                    {isActive && (
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-white rounded-r-full"></div>
+                    )}
+                  </Link>
+                </li>
+              );
+            }) : (
+              <li className={`px-4 py-3 text-sm text-center ${
+                isDark ? 'text-slate-400' : 'text-slate-500'
+              }`}>
+                {isCollapsed ? '...' : 'No navigation available'}
               </li>
-            );
-          }) : (
-            <li className={`px-4 py-3 text-sm text-center ${
-              isDark ? 'text-slate-400' : 'text-slate-500'
-            }`}>
-              {isCollapsed ? '...' : 'No navigation available'}
-            </li>
-          )}
-        </ul>
+            )}
+          </ul>
+        </div>
       </nav>
 
       {/* User Profile & Logout */}
