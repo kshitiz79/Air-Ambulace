@@ -7,6 +7,9 @@ const labels = {
   en: {
     title: 'Create Enquiry',
     patientName: 'Patient Name',
+    identityCardType: 'Identity Card Type',
+    abhaNumber: 'ABHA Number (14 digits)',
+    pmJayId: 'PM JAY ID (9 digits)',
     ayushmanCard: 'Ayushman Card Number (Optional)',
     aadharCard: 'Aadhar Card Number',
     panCard: 'PAN Card Number',
@@ -54,6 +57,9 @@ const labels = {
   hi: {
     title: 'पूछताछ बनाएं',
     patientName: 'रोगी का नाम',
+    identityCardType: 'पहचान कार्ड प्रकार',
+    abhaNumber: 'ABHA नंबर (14 अंक)',
+    pmJayId: 'PM JAY ID (9 अंक)',
     ayushmanCard: 'आयुष्मान कार्ड नंबर (वैकल्पिक)',
     aadharCard: 'आधार कार्ड नंबर',
     panCard: 'PAN कार्ड नंबर',
@@ -123,6 +129,7 @@ export default function EnquiryCreationPage() {
   const [districts, setDistricts] = useState([]);
   const [formData, setFormData] = useState({
     patient_name: '',
+    identity_card_type: '',
     ayushman_card_number: '',
     aadhar_card_number: '',
     pan_card_number: '',
@@ -208,7 +215,7 @@ export default function EnquiryCreationPage() {
   // Validate current step fields only
   const validateCurrentStep = (currentStep) => {
     const errs = {};
-    
+
     switch (currentStep) {
       case 0: // Patient Details
         if (!formData.patient_name.trim()) errs.patient_name = `${labels[language].patientName} is required`;
@@ -216,11 +223,35 @@ export default function EnquiryCreationPage() {
         if (!formData.age || formData.age <= 0) errs.age = `${labels[language].age} is required and must be positive`;
         if (!formData.gender) errs.gender = `${labels[language].gender} is required`;
         if (!formData.address.trim()) errs.address = `${labels[language].address} is required`;
-        if (!formData.ayushman_card_number && (!formData.aadhar_card_number || !formData.pan_card_number)) {
-          errs.ayushman_card_number = 'Either Ayushman card or both Aadhar and PAN card numbers are required';
+        // Identity card validation
+        if (!formData.identity_card_type) {
+          errs.identity_card_type = 'Please select identity card type';
+        } else if (formData.identity_card_type === 'ABHA') {
+          if (!formData.ayushman_card_number) {
+            errs.ayushman_card_number = 'ABHA Number is required';
+          } else if (!/^\d{14}$/.test(formData.ayushman_card_number)) {
+            errs.ayushman_card_number = 'ABHA Number must be exactly 14 digits';
+          }
+        } else if (formData.identity_card_type === 'PM_JAY') {
+          if (!formData.ayushman_card_number) {
+            errs.ayushman_card_number = 'PM JAY ID is required';
+          } else if (!/^\d{9}$/.test(formData.ayushman_card_number)) {
+            errs.ayushman_card_number = 'PM JAY ID must be exactly 9 digits';
+          }
         }
-        if (formData.ayushman_card_number && !/^\d{14}$/.test(formData.ayushman_card_number)) {
-          errs.ayushman_card_number = 'Ayushman card must be 14 digits';
+
+        // Alternative: Aadhar + PAN validation (if no ABHA/PM JAY)
+        if (!formData.identity_card_type && !formData.ayushman_card_number) {
+          if (!formData.aadhar_card_number && !formData.pan_card_number) {
+            errs.identity_fallback = 'Either select ABHA/PM JAY or provide both Aadhar and PAN card numbers';
+          } else {
+            if (formData.aadhar_card_number && !/^\d{12}$/.test(formData.aadhar_card_number)) {
+              errs.aadhar_card_number = 'Aadhar number must be exactly 12 digits';
+            }
+            if (formData.pan_card_number && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.pan_card_number)) {
+              errs.pan_card_number = 'Invalid PAN format (e.g., ABCDE1234F)';
+            }
+          }
         }
         if (formData.aadhar_card_number && !/^\d{12}$/.test(formData.aadhar_card_number)) {
           errs.aadhar_card_number = 'Aadhar card must be 12 digits';
@@ -229,7 +260,7 @@ export default function EnquiryCreationPage() {
           errs.pan_card_number = 'PAN card must follow format ABCDE1234F';
         }
         break;
-        
+
       case 1: // Contact Information
         if (!formData.contact_name.trim()) errs.contact_name = `${labels[language].contactName} is required`;
         if (!/^\d{10}$/.test(formData.contact_phone)) errs.contact_phone = `${labels[language].contactPhone} must be 10 digits`;
@@ -237,14 +268,14 @@ export default function EnquiryCreationPage() {
           errs.contact_email = `${labels[language].contactEmail} must be a valid email`;
         }
         break;
-        
+
       case 2: // Medical Details
         if (!formData.medical_condition.trim()) errs.medical_condition = `${labels[language].medicalCondition} is required`;
         if (!formData.chief_complaint.trim()) errs.chief_complaint = `${labels[language].chiefComplaint} is required`;
         if (!formData.general_condition.trim()) errs.general_condition = `${labels[language].generalCondition} is required`;
         if (!formData.vitals) errs.vitals = `${labels[language].vitals} is required`;
         break;
-        
+
       case 3: // Referral Details
         if (!formData.referring_physician_name.trim()) {
           errs.referring_physician_name = `${labels[language].referringPhysicianName} is required`;
@@ -265,7 +296,7 @@ export default function EnquiryCreationPage() {
           errs.approval_authority_designation = `${labels[language].approvalAuthorityDesignation} is required`;
         }
         break;
-        
+
       case 4: // Transportation Details
         if (!formData.transportation_category) {
           errs.transportation_category = `${labels[language].transportationCategory} is required`;
@@ -277,7 +308,7 @@ export default function EnquiryCreationPage() {
           errs.ambulance_contact = `${labels[language].ambulanceContact} must be 10-15 digits`;
         }
         break;
-        
+
       case 5: // Documentation
         if (formData.documents.every(doc => !doc.file)) {
           errs.documents = `${labels[language].documents} is required`;
@@ -292,12 +323,12 @@ export default function EnquiryCreationPage() {
           });
         }
         break;
-        
+
       case 6: // Hospital & District
         if (!formData.hospital_id) errs.hospital_id = `${labels[language].hospitalId} is required`;
         if (!formData.source_hospital_id) errs.source_hospital_id = `${labels[language].sourceHospitalId} is required`;
         if (!formData.district_id) errs.district_id = `${labels[language].district} is required`;
-        
+
         // Escalation validation
         if (formData.escalate_case) {
           if (!formData.escalation_reason.trim()) {
@@ -308,11 +339,11 @@ export default function EnquiryCreationPage() {
           }
         }
         break;
-        
+
       default:
         break;
     }
-    
+
     return errs;
   };
 
@@ -325,32 +356,46 @@ export default function EnquiryCreationPage() {
     if (!formData.age || formData.age <= 0) errs.age = `${labels[language].age} is required and must be positive`;
     if (!formData.gender) errs.gender = `${labels[language].gender} is required`;
     if (!formData.address.trim()) errs.address = `${labels[language].address} is required`;
-    if (!formData.ayushman_card_number && (!formData.aadhar_card_number || !formData.pan_card_number)) {
-      errs.ayushman_card_number = 'Either Ayushman card or both Aadhar and PAN card numbers are required';
+    // Identity card validation for final submission
+    if (!formData.identity_card_type) {
+      if (!formData.aadhar_card_number || !formData.pan_card_number) {
+        errs.identity_fallback = 'Either select ABHA/PM JAY or provide both Aadhar and PAN card numbers';
+      }
+    } else if (formData.identity_card_type === 'ABHA') {
+      if (!formData.ayushman_card_number) {
+        errs.ayushman_card_number = 'ABHA Number is required';
+      } else if (!/^\d{14}$/.test(formData.ayushman_card_number)) {
+        errs.ayushman_card_number = 'ABHA Number must be exactly 14 digits';
+      }
+    } else if (formData.identity_card_type === 'PM_JAY') {
+      if (!formData.ayushman_card_number) {
+        errs.ayushman_card_number = 'PM JAY ID is required';
+      } else if (!/^\d{9}$/.test(formData.ayushman_card_number)) {
+        errs.ayushman_card_number = 'PM JAY ID must be exactly 9 digits';
+      }
     }
-    if (formData.ayushman_card_number && !/^\d{14}$/.test(formData.ayushman_card_number)) {
-      errs.ayushman_card_number = 'Ayushman card must be 14 digits';
-    }
+
+    // Validate Aadhar and PAN if provided as alternative
     if (formData.aadhar_card_number && !/^\d{12}$/.test(formData.aadhar_card_number)) {
       errs.aadhar_card_number = 'Aadhar card must be 12 digits';
     }
     if (formData.pan_card_number && !/^[A-Z]{5}\d{4}[A-Z]$/.test(formData.pan_card_number)) {
       errs.pan_card_number = 'PAN card must follow format ABCDE1234F';
     }
-  
+
     // Step 1: Contact Information
     if (!formData.contact_name.trim()) errs.contact_name = `${labels[language].contactName} is required`;
     if (!/^\d{10}$/.test(formData.contact_phone)) errs.contact_phone = `${labels[language].contactPhone} must be 10 digits`;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contact_email)) {
       errs.contact_email = `${labels[language].contactEmail} must be a valid email`;
     }
-  
+
     // Step 2: Medical Details
     if (!formData.medical_condition.trim()) errs.medical_condition = `${labels[language].medicalCondition} is required`;
     if (!formData.chief_complaint.trim()) errs.chief_complaint = `${labels[language].chiefComplaint} is required`;
     if (!formData.general_condition.trim()) errs.general_condition = `${labels[language].generalCondition} is required`;
     if (!formData.vitals) errs.vitals = `${labels[language].vitals} is required`;
-  
+
     // Step 3: Referral Details
     if (!formData.referring_physician_name.trim()) {
       errs.referring_physician_name = `${labels[language].referringPhysicianName} is required`;
@@ -370,7 +415,7 @@ export default function EnquiryCreationPage() {
     if (!formData.approval_authority_designation.trim()) {
       errs.approval_authority_designation = `${labels[language].approvalAuthorityDesignation} is required`;
     }
-  
+
     // Step 4: Transportation Details
     if (!formData.transportation_category) {
       errs.transportation_category = `${labels[language].transportationCategory} is required`;
@@ -381,7 +426,7 @@ export default function EnquiryCreationPage() {
     if (formData.ambulance_contact && !/^\d{10,15}$/.test(formData.ambulance_contact)) {
       errs.ambulance_contact = `${labels[language].ambulanceContact} must be 10-15 digits`;
     }
-  
+
     // Step 5: Documentation
     if (formData.documents.every(doc => !doc.file)) {
       errs.documents = `${labels[language].documents} is required`;
@@ -395,12 +440,12 @@ export default function EnquiryCreationPage() {
         }
       });
     }
-  
+
     // Step 6: Hospital & District
     if (!formData.hospital_id) errs.hospital_id = `${labels[language].hospitalId} is required`;
     if (!formData.source_hospital_id) errs.source_hospital_id = `${labels[language].sourceHospitalId} is required`;
     if (!formData.district_id) errs.district_id = `${labels[language].district} is required`;
-  
+
     return errs;
   };
   // Handle input changes
@@ -426,119 +471,120 @@ export default function EnquiryCreationPage() {
   };
 
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  const errs = validateForm();
-  if (Object.keys(errs).length) {
-    setErrors(errs);
-    return;
-  }
-  setIsSubmitting(true);
-  setFormError('');
-
-  const payload = new FormData();
-  Object.keys(formData).forEach((key) => {
-    if (key === 'documents') {
-      formData.documents.forEach((doc) => {
-        if (doc.file && doc.type) payload.append(doc.type, doc.file);
-      });
-    } else {
-      if (key === 'bed_availability_confirmed' || key === 'als_ambulance_arranged') {
-        payload.append(key, formData[key] ? '1' : '0');
-      } else {
-        payload.append(key, formData[key]);
-      }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const errs = validateForm();
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      return;
     }
-  });
-  const userId = localStorage.getItem('user_id') || '10';
-  payload.append('submitted_by_user_id', userId);
+    setIsSubmitting(true);
+    setFormError('');
 
-  try {
-    const res = await fetch(`${baseUrl}/api/enquiries`, {
-      method: 'POST',
-      body: payload,
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to submit enquiry');
-    
-    // If escalation is requested, create escalation
-    if (formData.escalate_case) {
-      try {
-        const escalationRes = await fetch(`${baseUrl}/api/enquiries/${data.data.enquiry_id}/escalate`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-          body: JSON.stringify({
-            escalation_reason: formData.escalation_reason,
-            escalated_to: formData.escalated_to,
-            escalated_by_user_id: userId,
-          }),
+    const payload = new FormData();
+    Object.keys(formData).forEach((key) => {
+      if (key === 'documents') {
+        formData.documents.forEach((doc) => {
+          if (doc.file && doc.type) payload.append(doc.type, doc.file);
         });
-        
-        const escalationData = await escalationRes.json();
-        if (!escalationRes.ok) throw new Error(escalationData.message || 'Failed to escalate case');
-        
-        alert(`Enquiry #${data.data.enquiry_id} (${data.data.enquiry_code}) created and escalated! Escalation ID: ${escalationData.data.escalation_id}`);
-      } catch (escalationErr) {
-        console.error('Escalation error:', escalationErr);
-        alert(`Enquiry #${data.data.enquiry_id} (${data.data.enquiry_code}) created but escalation failed: ${escalationErr.message}`);
+      } else {
+        if (key === 'bed_availability_confirmed' || key === 'als_ambulance_arranged') {
+          payload.append(key, formData[key] ? '1' : '0');
+        } else {
+          payload.append(key, formData[key]);
+        }
       }
-    } else {
-      alert(`Enquiry #${data.data.enquiry_id} (${data.data.enquiry_code}) created! Documents: ${data.data.documents?.length || 0}`);
-    }
-    
-    setFormData({
-      patient_name: '',
-      ayushman_card_number: '',
-      aadhar_card_number: '',
-      pan_card_number: '',
-      medical_condition: '',
-      contact_name: '',
-      contact_phone: '',
-      contact_email: '',
-      documents: [{ file: null, type: '' }],
-      hospital_id: '',
-      source_hospital_id: '',
-      district_id: localStorage.getItem('district_id') || '',
-      father_spouse_name: '',
-      age: '',
-      gender: '',
-      address: '',
-      chief_complaint: '',
-      general_condition: '',
-      vitals: '',
-      referring_physician_name: '',
-      referring_physician_designation: '',
-      referral_note: '',
-      transportation_category: '',
-      air_transport_type: '',
-      recommending_authority_name: '',
-      recommending_authority_designation: '',
-      approval_authority_name: '',
-      approval_authority_designation: '',
-      bed_availability_confirmed: false,
-      als_ambulance_arranged: false,
-      ambulance_registration_number: '',
-      ambulance_contact: '',
-      medical_team_note: '',
-      remarks: '',
-      escalate_case: false,
-      escalation_reason: '',
-      escalated_to: '',
     });
-    setStep(0);
-  } catch (err) {
-    console.error('Submit error:', err);
-    setFormError(`${labels[language].error}: ${err.message}`);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    const userId = localStorage.getItem('user_id') || '10';
+    payload.append('submitted_by_user_id', userId);
+
+    try {
+      const res = await fetch(`${baseUrl}/api/enquiries`, {
+        method: 'POST',
+        body: payload,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to submit enquiry');
+
+      // If escalation is requested, create escalation
+      if (formData.escalate_case) {
+        try {
+          const escalationRes = await fetch(`${baseUrl}/api/enquiries/${data.data.enquiry_id}/escalate`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+            body: JSON.stringify({
+              escalation_reason: formData.escalation_reason,
+              escalated_to: formData.escalated_to,
+              escalated_by_user_id: userId,
+            }),
+          });
+
+          const escalationData = await escalationRes.json();
+          if (!escalationRes.ok) throw new Error(escalationData.message || 'Failed to escalate case');
+
+          alert(`Enquiry #${data.data.enquiry_id} (${data.data.enquiry_code}) created and escalated! Escalation ID: ${escalationData.data.escalation_id}`);
+        } catch (escalationErr) {
+          console.error('Escalation error:', escalationErr);
+          alert(`Enquiry #${data.data.enquiry_id} (${data.data.enquiry_code}) created but escalation failed: ${escalationErr.message}`);
+        }
+      } else {
+        alert(`Enquiry #${data.data.enquiry_id} (${data.data.enquiry_code}) created! Documents: ${data.data.documents?.length || 0}`);
+      }
+
+      setFormData({
+        patient_name: '',
+        identity_card_type: '',
+        ayushman_card_number: '',
+        aadhar_card_number: '',
+        pan_card_number: '',
+        medical_condition: '',
+        contact_name: '',
+        contact_phone: '',
+        contact_email: '',
+        documents: [{ file: null, type: '' }],
+        hospital_id: '',
+        source_hospital_id: '',
+        district_id: localStorage.getItem('district_id') || '',
+        father_spouse_name: '',
+        age: '',
+        gender: '',
+        address: '',
+        chief_complaint: '',
+        general_condition: '',
+        vitals: '',
+        referring_physician_name: '',
+        referring_physician_designation: '',
+        referral_note: '',
+        transportation_category: '',
+        air_transport_type: '',
+        recommending_authority_name: '',
+        recommending_authority_designation: '',
+        approval_authority_name: '',
+        approval_authority_designation: '',
+        bed_availability_confirmed: false,
+        als_ambulance_arranged: false,
+        ambulance_registration_number: '',
+        ambulance_contact: '',
+        medical_team_note: '',
+        remarks: '',
+        escalate_case: false,
+        escalation_reason: '',
+        escalated_to: '',
+      });
+      setStep(0);
+    } catch (err) {
+      console.error('Submit error:', err);
+      setFormError(`${labels[language].error}: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Render fields for current step
   const renderStepFields = () => {
@@ -607,40 +653,88 @@ const handleSubmit = async (e) => {
               />
               {errors.address && <p className="text-red-600 text-sm">{errors.address}</p>}
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">{labels[language].ayushmanCard}</label>
-                <input
-                  type="text"
-                  name="ayushman_card_number"
-                  value={formData.ayushman_card_number}
-                  onChange={handleChange}
+
+            {/* Identity Card Section */}
+            <div className="border-t pt-4 mt-4">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Identity Card Information</h3>
+
+              {/* Identity Card Type Dropdown */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">{labels[language].identityCardType}</label>
+                <select
+                  name="identity_card_type"
+                  value={formData.identity_card_type}
+                  onChange={(e) => {
+                    handleChange(e);
+                    // Clear the ayushman card number when changing type
+                    setFormData(prev => ({ ...prev, ayushman_card_number: '' }));
+                  }}
                   className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-                />
-                {errors.ayushman_card_number && <p className="text-red-600 text-sm">{errors.ayushman_card_number}</p>}
+                >
+                  <option value="">Select Identity Card Type</option>
+                  <option value="ABHA">{labels[language].abhaNumber}</option>
+                  <option value="PM_JAY">{labels[language].pmJayId}</option>
+                </select>
+                {errors.identity_card_type && <p className="text-red-600 text-sm">{errors.identity_card_type}</p>}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">{labels[language].aadharCard}</label>
-                <input
-                  type="text"
-                  name="aadhar_card_number"
-                  value={formData.aadhar_card_number}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-                />
-                {errors.aadhar_card_number && <p className="text-red-600 text-sm">{errors.aadhar_card_number}</p>}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">{labels[language].panCard}</label>
-              <input
-                type="text"
-                name="pan_card_number"
-                value={formData.pan_card_number}
-                onChange={handleChange}
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-              />
-              {errors.pan_card_number && <p className="text-red-600 text-sm">{errors.pan_card_number}</p>}
+
+              {/* Identity Card Number Input */}
+              {formData.identity_card_type && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    {formData.identity_card_type === 'ABHA' ? labels[language].abhaNumber : labels[language].pmJayId}
+                  </label>
+                  <input
+                    type="text"
+                    name="ayushman_card_number"
+                    value={formData.ayushman_card_number}
+                    onChange={handleChange}
+                    placeholder={formData.identity_card_type === 'ABHA' ? 'Enter 14-digit ABHA Number' : 'Enter 9-digit PM JAY ID'}
+                    maxLength={formData.identity_card_type === 'ABHA' ? 14 : 9}
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+                  />
+                  {errors.ayushman_card_number && <p className="text-red-600 text-sm">{errors.ayushman_card_number}</p>}
+                </div>
+              )}
+
+              {/* Alternative: Aadhar + PAN */}
+              {!formData.identity_card_type && (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600">Or provide both Aadhar and PAN Card:</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">{labels[language].aadharCard}</label>
+                      <input
+                        type="text"
+                        name="aadhar_card_number"
+                        value={formData.aadhar_card_number}
+                        onChange={handleChange}
+                        placeholder="Enter 12-digit Aadhar Number"
+                        maxLength={12}
+                        className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+                      />
+                      {errors.aadhar_card_number && <p className="text-red-600 text-sm">{errors.aadhar_card_number}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">{labels[language].panCard}</label>
+                      <input
+                        type="text"
+                        name="pan_card_number"
+                        value={formData.pan_card_number}
+                        onChange={(e) => {
+                          const value = e.target.value.toUpperCase();
+                          handleChange({ ...e, target: { ...e.target, value } });
+                        }}
+                        placeholder="e.g., ABCDE1234F"
+                        maxLength={10}
+                        className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+                      />
+                      {errors.pan_card_number && <p className="text-red-600 text-sm">{errors.pan_card_number}</p>}
+                    </div>
+                  </div>
+                  {errors.identity_fallback && <p className="text-red-600 text-sm">{errors.identity_fallback}</p>}
+                </div>
+              )}
             </div>
           </div>
         );
@@ -1011,7 +1105,7 @@ const handleSubmit = async (e) => {
               </select>
               {errors.district_id && <p className="text-red-600 text-sm">{errors.district_id}</p>}
             </div>
-            
+
             {/* Escalation Section */}
             <div className="border-t pt-4 mt-6">
               <h4 className="text-lg font-medium text-gray-800 mb-4">Escalation Options</h4>
@@ -1027,7 +1121,7 @@ const handleSubmit = async (e) => {
                   <span className="text-sm font-medium text-gray-700">{labels[language].escalateCase}</span>
                 </label>
               </div>
-              
+
               {formData.escalate_case && (
                 <div className="mt-4 space-y-4">
                   <div>
@@ -1076,9 +1170,8 @@ const handleSubmit = async (e) => {
         {steps.map((lab, i) => (
           <React.Fragment key={i}>
             <button
-              className={`w-full text-center py-2 rounded-full transition ${
-                i === step ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
+              className={`w-full text-center py-2 rounded-full transition ${i === step ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
               onClick={() => setStep(i)}
             >
               {lab}

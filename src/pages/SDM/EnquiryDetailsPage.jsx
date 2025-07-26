@@ -184,7 +184,28 @@ const EnquiryDetailsPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           <Card title="Patient Information" icon={FiUser}>
             <Field label="Patient Name" value={enquiry.patient_name} />
-            <Field label="Ayushman Card" value={enquiry.ayushman_card_number} />
+            
+            {/* Identity Card Information */}
+            {enquiry.identity_card_type && enquiry.ayushman_card_number ? (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500 mb-1">
+                  {enquiry.identity_card_type === 'ABHA' ? 'ABHA Number' : 'PM JAY ID'}
+                </label>
+                <div className="flex items-center space-x-3">
+                  <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                    enquiry.identity_card_type === 'ABHA' 
+                      ? 'bg-blue-100 text-blue-800' 
+                      : 'bg-green-100 text-green-800'
+                  }`}>
+                    {enquiry.identity_card_type === 'ABHA' ? 'ABHA (14 digits)' : 'PM JAY (9 digits)'}
+                  </span>
+                  <span className="text-gray-900 font-mono">{enquiry.ayushman_card_number}</span>
+                </div>
+              </div>
+            ) : enquiry.ayushman_card_number ? (
+              <Field label="Ayushman Card" value={enquiry.ayushman_card_number} />
+            ) : null}
+            
             <Field label="Aadhar Card" value={enquiry.aadhar_card_number} />
             <Field label="PAN Card" value={enquiry.pan_card_number} />
             <Field label="Medical Condition" value={enquiry.medical_condition} />

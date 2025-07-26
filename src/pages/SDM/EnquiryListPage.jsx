@@ -82,7 +82,8 @@ export const EnquiryListPage = () => {
         enquiry.enquiry_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         enquiry.medical_condition?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         enquiry.contact_phone?.includes(searchTerm) ||
-        enquiry.ayushman_card_number?.includes(searchTerm)
+        enquiry.ayushman_card_number?.includes(searchTerm) ||
+        enquiry.identity_card_type?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -288,8 +289,35 @@ export const EnquiryListPage = () => {
                     <div className="flex items-center gap-3">
                       <FiClipboard className="h-5 w-5 text-gray-400" />
                       <div>
-                        <p className="text-sm font-medium text-gray-900">Ayushman Card</p>
-                        <p className="text-sm text-gray-600">{enquiry.ayushman_card_number || 'Not provided'}</p>
+                        {enquiry.identity_card_type && enquiry.ayushman_card_number ? (
+                          <>
+                            <p className="text-sm font-medium text-gray-900">
+                              {enquiry.identity_card_type === 'ABHA' ? 'ABHA Number' : 'PM JAY ID'}
+                            </p>
+                            <div className="flex items-center space-x-2">
+                              <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                                enquiry.identity_card_type === 'ABHA' 
+                                  ? 'bg-blue-100 text-blue-800' 
+                                  : 'bg-green-100 text-green-800'
+                              }`}>
+                                {enquiry.identity_card_type === 'ABHA' ? 'ABHA' : 'PM JAY'}
+                              </span>
+                              <p className="text-sm text-gray-600 font-mono">{enquiry.ayushman_card_number}</p>
+                            </div>
+                          </>
+                        ) : enquiry.ayushman_card_number ? (
+                          <>
+                            <p className="text-sm font-medium text-gray-900">Ayushman Card</p>
+                            <p className="text-sm text-gray-600 font-mono">{enquiry.ayushman_card_number}</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm font-medium text-gray-900">Identity Card</p>
+                            <p className="text-sm text-gray-600">
+                              {enquiry.aadhar_card_number ? 'Aadhar + PAN provided' : 'Not provided'}
+                            </p>
+                          </>
+                        )}
                       </div>
                     </div>
 

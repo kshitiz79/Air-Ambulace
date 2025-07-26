@@ -29,6 +29,9 @@ const labels = {
     age: 'Age',
     gender: 'Gender',
     address: 'Address',
+    identityCardType: 'Identity Card Type',
+    abhaNumber: 'ABHA Number (14 digits)',
+    pmJayId: 'PM JAY ID (9 digits)',
     ayushmanCard: 'Ayushman Card Number',
     aadharCard: 'Aadhar Card Number',
     panCard: 'PAN Card Number',
@@ -83,6 +86,7 @@ const BeneficiaryDetailsEditPage = () => {
     address: '',
 
     // Identity Cards
+    identity_card_type: '',
     ayushman_card_number: '',
     aadhar_card_number: '',
     pan_card_number: '',
@@ -190,6 +194,7 @@ const BeneficiaryDetailsEditPage = () => {
           address: enquiry.address || '',
 
           // Identity Cards
+          identity_card_type: enquiry.identity_card_type || '',
           ayushman_card_number: enquiry.ayushman_card_number || '',
           aadhar_card_number: enquiry.aadhar_card_number || '',
           pan_card_number: enquiry.pan_card_number || '',
@@ -309,12 +314,25 @@ const BeneficiaryDetailsEditPage = () => {
     if (!formData.address.trim()) errs.address = `${labels[language].address} is required`;
 
     // Identity card validation
-    if (!formData.ayushman_card_number && (!formData.aadhar_card_number || !formData.pan_card_number)) {
-      errs.identity = 'Either Ayushman card or both Aadhar and PAN card numbers are required';
+    if (!formData.identity_card_type) {
+      if (!formData.aadhar_card_number || !formData.pan_card_number) {
+        errs.identity = 'Either select ABHA/PM JAY or provide both Aadhar and PAN card numbers';
+      }
+    } else if (formData.identity_card_type === 'ABHA') {
+      if (!formData.ayushman_card_number) {
+        errs.ayushman_card_number = 'ABHA Number is required';
+      } else if (!/^\d{14}$/.test(formData.ayushman_card_number)) {
+        errs.ayushman_card_number = 'ABHA Number must be exactly 14 digits';
+      }
+    } else if (formData.identity_card_type === 'PM_JAY') {
+      if (!formData.ayushman_card_number) {
+        errs.ayushman_card_number = 'PM JAY ID is required';
+      } else if (!/^\d{9}$/.test(formData.ayushman_card_number)) {
+        errs.ayushman_card_number = 'PM JAY ID must be exactly 9 digits';
+      }
     }
-    if (formData.ayushman_card_number && !/^\d{14}$/.test(formData.ayushman_card_number)) {
-      errs.ayushman_card_number = 'Ayushman Card Number must be 14 digits';
-    }
+    
+    // Validate Aadhar and PAN if provided as alternative
     if (formData.aadhar_card_number && !/^\d{12}$/.test(formData.aadhar_card_number)) {
       errs.aadhar_card_number = 'Aadhar Card Number must be 12 digits';
     }
@@ -360,6 +378,7 @@ const BeneficiaryDetailsEditPage = () => {
     payload.append('age', formData.age);
     payload.append('gender', formData.gender);
     payload.append('address', formData.address);
+    payload.append('identity_card_type', formData.identity_card_type);
     payload.append('ayushman_card_number', formData.ayushman_card_number);
     payload.append('aadhar_card_number', formData.aadhar_card_number);
     payload.append('pan_card_number', formData.pan_card_number);
@@ -586,51 +605,92 @@ const BeneficiaryDetailsEditPage = () => {
             <div className="px-6 py-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-800 flex items-center">
                 <FaIdCard className="mr-2 text-green-600" />
-                Identity Cards
+                Identity Information
               </h2>
             </div>
             <div className="p-6 space-y-4">
+              {/* Identity Card Type Dropdown */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {labels[language].ayushmanCard}
+                  {labels[language].identityCardType}
                 </label>
-                <input
-                  type="text"
-                  name="ayushman_card_number"
-                  value={formData.ayushman_card_number}
-                  onChange={handleChange}
+                <select
+                  name="identity_card_type"
+                  value={formData.identity_card_type}
+                  onChange={(e) => {
+                    handleChange(e);
+                    // Clear the ayushman card number when changing type
+                    setFormData(prev => ({ ...prev, ayushman_card_number: '' }));
+                  }}
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                {errors.ayushman_card_number && <p className="text-red-600 text-sm mt-1">{errors.ayushman_card_number}</p>}
+                >
+                  <option value="">Select Identity Card Type</option>
+                  <option value="ABHA">{labels[language].abhaNumber}</option>
+                  <option value="PM_JAY">{labels[language].pmJayId}</option>
+                </select>
+                {errors.identity_card_type && <p className="text-red-600 text-sm mt-1">{errors.identity_card_type}</p>}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {labels[language].aadharCard}
-                </label>
-                <input
-                  type="text"
-                  name="aadhar_card_number"
-                  value={formData.aadhar_card_number}
-                  onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                {errors.aadhar_card_number && <p className="text-red-600 text-sm mt-1">{errors.aadhar_card_number}</p>}
-              </div>
+              {/* Identity Card Number Input */}
+              {formData.identity_card_type && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {formData.identity_card_type === 'ABHA' ? labels[language].abhaNumber : labels[language].pmJayId}
+                  </label>
+                  <input
+                    type="text"
+                    name="ayushman_card_number"
+                    value={formData.ayushman_card_number}
+                    onChange={handleChange}
+                    placeholder={formData.identity_card_type === 'ABHA' ? 'Enter 14-digit ABHA Number' : 'Enter 9-digit PM JAY ID'}
+                    maxLength={formData.identity_card_type === 'ABHA' ? 14 : 9}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  {errors.ayushman_card_number && <p className="text-red-600 text-sm mt-1">{errors.ayushman_card_number}</p>}
+                </div>
+              )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {labels[language].panCard}
-                </label>
-                <input
-                  type="text"
-                  name="pan_card_number"
-                  value={formData.pan_card_number}
-                  onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                {errors.pan_card_number && <p className="text-red-600 text-sm mt-1">{errors.pan_card_number}</p>}
-              </div>
+              {/* Alternative: Aadhar + PAN */}
+              {!formData.identity_card_type && (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600">Or provide both Aadhar and PAN Card:</p>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {labels[language].aadharCard}
+                    </label>
+                    <input
+                      type="text"
+                      name="aadhar_card_number"
+                      value={formData.aadhar_card_number}
+                      onChange={handleChange}
+                      placeholder="Enter 12-digit Aadhar Number"
+                      maxLength={12}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    {errors.aadhar_card_number && <p className="text-red-600 text-sm mt-1">{errors.aadhar_card_number}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {labels[language].panCard}
+                    </label>
+                    <input
+                      type="text"
+                      name="pan_card_number"
+                      value={formData.pan_card_number}
+                      onChange={(e) => {
+                        const value = e.target.value.toUpperCase();
+                        handleChange({ ...e, target: { ...e.target, value } });
+                      }}
+                      placeholder="e.g., ABCDE1234F"
+                      maxLength={10}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    {errors.pan_card_number && <p className="text-red-600 text-sm mt-1">{errors.pan_card_number}</p>}
+                  </div>
+                </div>
+              )}
 
               {errors.identity && <p className="text-red-600 text-sm">{errors.identity}</p>}
             </div>

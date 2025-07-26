@@ -189,12 +189,34 @@ const BeneficiaryDetailPage = () => {
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {enquiry?.ayushman_card_number && (
+                  {/* Primary Identity Card (ABHA/PM JAY) */}
+                  {enquiry?.identity_card_type && enquiry?.ayushman_card_number && (
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-500 mb-1">
+                        {enquiry.identity_card_type === 'ABHA' ? 'ABHA Number' : 'PM JAY ID'}
+                      </label>
+                      <div className="flex items-center space-x-3">
+                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                          enquiry.identity_card_type === 'ABHA' 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {enquiry.identity_card_type === 'ABHA' ? 'ABHA (14 digits)' : 'PM JAY (9 digits)'}
+                        </span>
+                        <p className="text-lg text-gray-900 font-mono">{enquiry.ayushman_card_number}</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Legacy Ayushman Card (for backward compatibility) */}
+                  {!enquiry?.identity_card_type && enquiry?.ayushman_card_number && (
                     <div>
                       <label className="block text-sm font-medium text-gray-500 mb-1">Ayushman Card</label>
                       <p className="text-lg text-gray-900 font-mono">{enquiry.ayushman_card_number}</p>
                     </div>
                   )}
+                  
+                  {/* Alternative Identity Cards */}
                   {enquiry?.aadhar_card_number && (
                     <div>
                       <label className="block text-sm font-medium text-gray-500 mb-1">Aadhar Card</label>
@@ -205,6 +227,13 @@ const BeneficiaryDetailPage = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-500 mb-1">PAN Card</label>
                       <p className="text-lg text-gray-900 font-mono">{enquiry.pan_card_number}</p>
+                    </div>
+                  )}
+                  
+                  {/* No Identity Cards Message */}
+                  {!enquiry?.ayushman_card_number && !enquiry?.aadhar_card_number && !enquiry?.pan_card_number && (
+                    <div className="md:col-span-2">
+                      <p className="text-gray-500 italic">No identity card information available</p>
                     </div>
                   )}
                 </div>

@@ -98,22 +98,20 @@ const Login = () => {
   };
 
   return (
-    <div className={`relative min-h-screen ${
-      isDark 
-        ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' 
-        : 'bg-center bg-cover'
-    }`} style={!isDark ? { backgroundImage: `url('/bg-image.png')` } : {}}>
+    <div className={`relative min-h-screen ${isDark
+      ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'
+      : 'bg-center bg-cover'
+      }`} style={!isDark ? { backgroundImage: `url('/bg-image.png')` } : {}}>
       {!isDark && <div className="absolute inset-0 bg-black/20"></div>}
-      
+
       {/* Theme Toggle Button */}
       <div className="absolute top-6 right-6 z-20">
         <button
           onClick={toggleTheme}
-          className={`p-3 rounded-full transition-all duration-200 ${
-            isDark 
-              ? 'bg-slate-700 hover:bg-slate-600 text-yellow-400' 
-              : 'bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm'
-          }`}
+          className={`p-3 rounded-full transition-all duration-200 ${isDark
+            ? 'bg-slate-700 hover:bg-slate-600 text-yellow-400'
+            : 'bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm'
+            }`}
           title="Toggle theme"
         >
           {isDark ? <FaSun size={20} /> : <FaMoon size={20} />}
@@ -121,68 +119,64 @@ const Login = () => {
       </div>
 
       <div className="relative z-10 flex items-center justify-center h-full p-4">
-        <div className={`w-full max-w-md rounded-2xl p-8 items-center justify-center mt-40 ${
-          isDark 
-            ? 'bg-slate-800/90 backdrop-blur-sm border border-slate-700' 
-            : 'bg-white/10 backdrop-blur-sm'
-        }`}>
-          <h2 className={`text-3xl font-bold text-start mb-1 ${
-            isDark ? 'text-slate-100' : 'text-gray-100'
-          }`}>Welcome Back</h2>
-          <p className={`text-start mb-6 ${
-            isDark ? 'text-slate-300' : 'text-gray-100'
-          }`}>Log in to access your dashboard</p>
+        <div className={`w-full max-w-md rounded-2xl p-8 items-center justify-center mt-40 ${isDark
+          ? 'bg-slate-800/90 backdrop-blur-sm border border-slate-700'
+          : 'bg-white/10 backdrop-blur-sm'
+          }`}>
+          <h2 className={`text-3xl font-bold text-start mb-1 ${isDark ? 'text-slate-100' : 'text-gray-100'
+            }`}>Welcome Back</h2>
+          <p className={`text-start mb-6 ${isDark ? 'text-slate-300' : 'text-gray-100'
+            }`}>Log in to access your dashboard</p>
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="relative">
-              <FaUserCircle className={`absolute left-4 top-1/2 -translate-y-1/2 ${
-                isDark ? 'text-slate-400' : 'text-gray-50'
-              }`} />
+              <FaUserCircle className={`absolute left-4 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-400' : 'text-gray-50'
+                }`} />
               <input
                 type="email"
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className={`w-full pl-12 pr-4 py-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
-                  isDark 
-                    ? 'bg-slate-700/80 text-slate-100 placeholder-slate-400 border border-slate-600' 
-                    : 'bg-white/40 bg-opacity-60 placeholder-gray-100 text-white'
-                }`}
+                className={`w-full pl-12 pr-4 py-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${isDark
+                  ? 'bg-slate-700/80 text-slate-100 placeholder-slate-400 border border-slate-600'
+                  : 'bg-white/40 bg-opacity-60 placeholder-gray-100 text-white'
+                  }`}
               />
             </div>
             <div className="relative">
-              <FaLock className={`absolute left-4 top-1/2 -translate-y-1/2 ${
-                isDark ? 'text-slate-400' : 'text-gray-50'
-              }`} />
+              <FaLock className={`absolute left-4 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-400' : 'text-gray-50'
+                }`} />
               <input
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className={`w-full pl-12 pr-4 py-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
-                  isDark 
-                    ? 'bg-slate-700/80 text-slate-100 placeholder-slate-400 border border-slate-600' 
-                    : 'bg-white/40 bg-opacity-60 placeholder-gray-100 text-white'
-                }`}
+                className={`w-full pl-12 pr-4 py-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${isDark
+                  ? 'bg-slate-700/80 text-slate-100 placeholder-slate-400 border border-slate-600'
+                  : 'bg-white/40 bg-opacity-60 placeholder-gray-100 text-white'
+                  }`}
               />
             </div>
+
             {errorMessage && <p className="text-red-600 text-sm text-center animate-shake">{errorMessage}</p>}
-            <div className="flex gap-2">
+            <div className="flex  gap-2">
+
+
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-1/3 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-full transition"
+                className="w-1/3 flex items-center  justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold  rounded-full transition"
               >
                 {isLoading ? 'Logging in...' : 'Login'} <FaArrowRight />
               </button>
+
               <div className="text-center justify-center mt-3">
                 <span className={isDark ? 'text-slate-300' : 'text-gray-100'}>Forgot Password </span>
-                <button className={`font-semibold px-3 py-1 rounded-full transition-colors ${
-                  isDark 
-                    ? 'text-blue-400 bg-slate-700 hover:bg-slate-600' 
-                    : 'text-blue-100 bg-blue-900 hover:bg-blue-800'
-                }`}>
+                <button className={`font-semibold px-3 py-1 rounded-full transition-colors ${isDark
+                  ? 'text-blue-400 bg-slate-700 hover:bg-slate-600'
+                  : 'text-blue-100 bg-blue-900 hover:bg-blue-800'
+                  }`}>
                   Click me
                 </button>
               </div>
