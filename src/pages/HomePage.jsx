@@ -1,6 +1,7 @@
 import React from 'react';
-import { Phone, Clock, Shield, Heart, MapPin, Users, CheckCircle, Star, Menu, User } from 'lucide-react';
+import { Phone, Clock, Shield, Heart, MapPin, Users, CheckCircle, Star, User ,  ExternalLink  } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
+;
 
 
 const Header = () => {
@@ -12,8 +13,8 @@ const Header = () => {
           {/* Logo Section */}
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
-                <Heart className="w-6 h-6 text-white" />
+              <div className="w-12 h-12  rounded-full flex items-center justify-center">
+                <img src="./download.png" />
               </div>
               <div>
                 <h1 className="text-sm md:text-xl font-bold text-gray-900">पीएमश्री एयर एम्बुलेंस</h1>
@@ -36,8 +37,8 @@ const Header = () => {
               <Phone size={16} className="mr-2" />
               <span className="text-sm font-medium">Emergency</span>
             </a>
-            
-          
+
+
 
 
 
@@ -45,20 +46,20 @@ const Header = () => {
 
 
             <button
-  onClick={() => navigate("/sign-in")}
-  className="flex items-center bg-red-600 text-white px-3 py-2 text-sm rounded-md hover:bg-red-700 transition-colors font-medium
+              onClick={() => navigate("/sign-in")}
+              className="flex items-center bg-red-600 text-white px-3 py-2 text-sm rounded-md hover:bg-red-700 transition-colors font-medium
              sm:px-5 sm:py-3 text-xs sm:rounded-lg"
->
-  <User size={16} className="mr-2" />
-  Sign In
-</button>
+            >
+              <User size={16} className="mr-2" />
+              Sign In
+            </button>
 
 
 
 
 
             {/* Mobile Menu Button */}
-           
+
           </div>
         </div>
       </div>
@@ -74,7 +75,7 @@ const HeroSection = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
             <div className="flex items-center space-x-4 mb-6">
-              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23ffffff' stroke='%23dc2626' stroke-width='4'/%3E%3Cpath d='M30 50h40M50 30v40' stroke='%23dc2626' stroke-width='6'/%3E%3C/svg%3E" alt="Medical Cross" className="w-12 h-12"/>
+              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23ffffff' stroke='%23dc2626' stroke-width='4'/%3E%3Cpath d='M30 50h40M50 30v40' stroke='%23dc2626' stroke-width='6'/%3E%3C/svg%3E" alt="Medical Cross" className="w-12 h-12" />
               <div>
                 <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
                   पीएमश्री एयर एम्बुलेंस सेवा
@@ -82,7 +83,7 @@ const HeroSection = () => {
                 <p className="text-xl lg:text-2xl text-red-100 mt-2">आपातकालीन स्थिति की सहायता</p>
               </div>
             </div>
-            
+
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <h2 className="text-2xl font-semibold mb-4 flex items-center">
                 <Heart className="mr-3 text-red-300" size={28} />
@@ -107,7 +108,7 @@ const HeroSection = () => {
 
           <div className="relative">
             <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-12 border border-white/20">
-              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f8fafc'/%3E%3Cpath d='M50 150 L200 100 L350 150 L200 200 Z' fill='%23dc2626' opacity='0.8'/%3E%3Ccircle cx='200' cy='150' r='30' fill='%23ffffff'/%3E%3Cpath d='M190 150h20M200 140v20' stroke='%23dc2626' stroke-width='3'/%3E%3Ctext x='200' y='250' text-anchor='middle' fill='%23374151' font-size='16' font-weight='bold'%3EAir Ambulance Service%3C/text%3E%3C/svg%3E" alt="Air Ambulance" className="w-full h-64 object-cover rounded-2xl"/>
+              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f8fafc'/%3E%3Cpath d='M50 150 L200 100 L350 150 L200 200 Z' fill='%23dc2626' opacity='0.8'/%3E%3Ccircle cx='200' cy='150' r='30' fill='%23ffffff'/%3E%3Cpath d='M190 150h20M200 140v20' stroke='%23dc2626' stroke-width='3'/%3E%3Ctext x='200' y='250' text-anchor='middle' fill='%23374151' font-size='16' font-weight='bold'%3EAir Ambulance Service%3C/text%3E%3C/svg%3E" alt="Air Ambulance" className="w-full h-64 object-cover rounded-2xl" />
               <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center">
                 <CheckCircle size={10} className="mr-1" />
                 Operational
@@ -188,7 +189,7 @@ const BookingSection = () => {
       description: "Call +91 9870560022 or visit official website for immediate assistance"
     },
     {
-      step: "2", 
+      step: "2",
       title: "Verification",
       description: "Provide Ayushman Card details and patient information for eligibility verification"
     },
@@ -267,7 +268,7 @@ const ContactSection = () => {
                   <p className="text-gray-300">+91 9870001118 (Alternate)</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start space-x-4">
                 <MapPin className="w-6 h-6 text-red-400 mt-1 flex-shrink-0" />
                 <div>
@@ -290,7 +291,7 @@ const ContactSection = () => {
             <div className="mt-8 p-6 bg-red-600/20 rounded-xl border border-red-500/30">
               <h3 className="text-lg font-semibold mb-3 text-red-300">Important Notice</h3>
               <p className="text-sm text-gray-300">
-                For non-Ayushman cardholders, subsidized services are available. 
+                For non-Ayushman cardholders, subsidized services are available.
                 Contact directly for more information about costs and procedures.
               </p>
             </div>
@@ -337,6 +338,50 @@ const ContactSection = () => {
   );
 };
 
+const Footer = () => {
+  return (
+    <footer className="bg-gray-900 text-white">
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Company Info */}
+
+
+
+          {/* Emergency Contacts */}
+      
+
+          {/* Service Hours */}
+        
+        </div>
+
+        {/* Bottom Section */}
+        <div className="border-t border-gray-800 mt-8 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            <div className="text-gray-400 text-sm">
+              © 2025 पीएमश्री एयर एम्बुलेंस सेवा. All rights reserved.
+            </div>
+            
+            {/* Powered by RBSH */}
+            <div className="flex items-center space-x-2">
+              <span className="text-gray-400 text-sm">Powered by</span>
+              <a 
+                href="https://rbshstudio.com/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center space-x-1 text-blue-400 hover:text-blue-300 transition-colors"
+              >
+                <span className="font-semibold">RBSH Studio</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+
 const HomePage = () => {
   return (
     <div className="min-h-screen bg-white">
@@ -345,6 +390,7 @@ const HomePage = () => {
       <FeaturesSection />
       <BookingSection />
       <ContactSection />
+      <Footer />
     </div>
   );
 };
