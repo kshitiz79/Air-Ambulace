@@ -1,6 +1,7 @@
 import React from 'react';
 import { Phone, Clock, Shield, Heart, MapPin, Users, CheckCircle, Star, User ,  ExternalLink  } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
+import WhatsAppChatbot from '../components/WhatsAppChatbot';
 ;
 
 
@@ -8,23 +9,37 @@ const Header = () => {
   const navigate = useNavigate();
   return (
     <header className="bg-white shadow-lg border-b-2 border-blue-600 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-6 py-4">
+      <div className="mx-auto px-3 sm:px-6 md:px-16 py-2 sm:py-4">
         <div className="flex items-center justify-between">
           {/* Logo Section */}
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12  rounded-full flex items-center justify-center">
-                <img src="./download.png" />
-              </div>
-              <div>
-                <h1 className="text-sm md:text-xl font-bold text-gray-900">पीएमश्री एयर एम्बुलेंस</h1>
-                <p className="text-sm text-blue-600 font-medium">मध्यप्रदेश शासन</p>
-              </div>
+          <div className="flex items-center space-x-2 sm:space-x-4 md:space-x-6">
+            {/* FLYOLA Logo */}
+            {/* <div className="flex items-center">
+              <img 
+                src="./log.png" 
+                alt="FLYOLA Logo" 
+                className="h-8 sm:h-10 md:h-12 w-auto object-contain"
+              />
+            </div> */}
+
+            {/* MP Government Logo */}
+            <div className="flex items-center">
+              <img 
+                src="./download.png" 
+                alt="MP Government Logo" 
+                className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 object-contain"
+              />
+            </div>
+
+            {/* Title Text */}
+            <div>
+              <h1 className="text-xs sm:text-sm md:text-xl font-bold text-gray-900">पीएमश्री एयर एम्बुलेंस</h1>
+              <p className="text-[10px] sm:text-xs md:text-sm text-blue-600 font-medium">मध्यप्रदेश शासन</p>
             </div>
           </div>
 
           {/* Navigation Menu - Hidden on mobile */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden lg:flex items-center space-x-8">
             <a href="#home" className="text-gray-700 hover:text-red-600 font-medium transition-colors">Home</a>
             <a href="#services" className="text-gray-700 hover:text-red-600 font-medium transition-colors">Services</a>
             <a href="#booking" className="text-gray-700 hover:text-red-600 font-medium transition-colors">Book Now</a>
@@ -32,34 +47,20 @@ const Header = () => {
           </nav>
 
           {/* Sign In Button and Emergency Contact */}
-          <div className="flex items-center space-x-4">
-            <a href="tel:+919870560022" className="hidden sm:flex items-center bg-red-100 text-red-600 px-3 py-2 rounded-lg hover:bg-red-200 transition-colors">
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <a href="tel:+919870560022" className="hidden md:flex items-center bg-red-100 text-red-600 px-3 py-2 rounded-lg hover:bg-red-200 transition-colors">
               <Phone size={16} className="mr-2" />
               <span className="text-sm font-medium">Emergency</span>
             </a>
 
-
-
-
-
-
-
-
             <button
               onClick={() => navigate("/sign-in")}
-              className="flex items-center bg-red-600 text-white px-3 py-2 text-sm rounded-md hover:bg-red-700 transition-colors font-medium
-             sm:px-5 sm:py-3 text-xs sm:rounded-lg"
+              className="flex items-center bg-red-600 text-white px-2 py-1.5 text-xs rounded-md hover:bg-red-700 transition-colors font-medium sm:px-4 sm:py-2 sm:text-sm md:px-5 md:py-3 md:rounded-lg"
             >
-              <User size={16} className="mr-2" />
-              Sign In
+              <User size={14} className="mr-1 sm:mr-2 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Sign In</span>
+              <span className="sm:hidden">Login</span>
             </button>
-
-
-
-
-
-            {/* Mobile Menu Button */}
-
           </div>
         </div>
       </div>
@@ -71,46 +72,51 @@ const HeroSection = () => {
   return (
     <div className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white overflow-hidden">
       <div className="absolute inset-0 bg-black opacity-20"></div>
-      <div className="relative max-w-7xl mx-auto px-6 py-20">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div className="space-y-8">
-            <div className="flex items-center space-x-4 mb-6">
-              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23ffffff' stroke='%23dc2626' stroke-width='4'/%3E%3Cpath d='M30 50h40M50 30v40' stroke='%23dc2626' stroke-width='6'/%3E%3C/svg%3E" alt="Medical Cross" className="w-12 h-12" />
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 md:py-16 lg:py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 md:gap-12 items-center">
+          <div className="space-y-4 sm:space-y-6 md:space-y-8">
+            {/* Logo Section */}
+        
+
+            <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 mb-4 sm:mb-6">
+              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23ffffff' stroke='%23dc2626' stroke-width='4'/%3E%3Cpath d='M30 50h40M50 30v40' stroke='%23dc2626' stroke-width='6'/%3E%3C/svg%3E" alt="Medical Cross" className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0" />
               <div>
-                <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold leading-tight">
                   पीएमश्री एयर एम्बुलेंस सेवा
                 </h1>
-                <p className="text-xl lg:text-2xl text-red-100 mt-2">आपातकालीन स्थिति की सहायता</p>
+                <p className="text-sm sm:text-lg md:text-xl lg:text-2xl text-red-100 mt-1 sm:mt-2">आपातकालीन स्थिति की सहायता</p>
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <h2 className="text-2xl font-semibold mb-4 flex items-center">
-                <Heart className="mr-3 text-red-300" size={28} />
-                Free Emergency Air Transport
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/20">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-2 sm:mb-4 flex items-center">
+                <Heart className="mr-2 sm:mr-3 text-red-300" size={20} />
+                <span className="text-sm sm:text-base md:text-xl">Free Emergency Air Transport</span>
               </h2>
-              <p className="text-lg text-red-100 leading-relaxed">
+              <p className="text-sm sm:text-base md:text-lg text-red-100 leading-relaxed">
                 आयुष्मान कार्डधारकों के लिए राज्य के भीतर एवं बाहर के सरकारी व आयुष्मान सूची-बद्ध अस्पतालों में इलाज के लिए निःशुल्क हवाई परिवहन सुविधा।
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-4">
-              <a href="tel:+919870560022" className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-105 flex items-center">
-                <Phone className="mr-2" size={20} />
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
+              <a href="tel:+919870560022" className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-full transition-all duration-300 transform hover:scale-105 flex items-center justify-center text-sm sm:text-base">
+                <Phone className="mr-2" size={18} />
                 Emergency: 9870560022
               </a>
-              <div className="bg-white/20 backdrop-blur-sm py-4 px-6 rounded-full flex items-center">
-                <Clock className="mr-2 text-yellow-300" size={20} />
+              <div className="bg-white/20 backdrop-blur-sm py-3 sm:py-4 px-5 sm:px-6 rounded-full flex items-center justify-center text-sm sm:text-base">
+                <Clock className="mr-2 text-yellow-300" size={18} />
                 24×7 Available
               </div>
             </div>
           </div>
 
-          <div className="relative">
-            <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-12 border border-white/20">
-              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f8fafc'/%3E%3Cpath d='M50 150 L200 100 L350 150 L200 200 Z' fill='%23dc2626' opacity='0.8'/%3E%3Ccircle cx='200' cy='150' r='30' fill='%23ffffff'/%3E%3Cpath d='M190 150h20M200 140v20' stroke='%23dc2626' stroke-width='3'/%3E%3Ctext x='200' y='250' text-anchor='middle' fill='%23374151' font-size='16' font-weight='bold'%3EAir Ambulance Service%3C/text%3E%3C/svg%3E" alt="Air Ambulance" className="w-full h-64 object-cover rounded-2xl" />
-              <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center">
-                <CheckCircle size={10} className="mr-1" />
+          <div className="relative mt-6 lg:mt-0">
+         
+
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 border border-white/20">
+              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f8fafc'/%3E%3Cpath d='M50 150 L200 100 L350 150 L200 200 Z' fill='%23dc2626' opacity='0.8'/%3E%3Ccircle cx='200' cy='150' r='30' fill='%23ffffff'/%3E%3Cpath d='M190 150h20M200 140v20' stroke='%23dc2626' stroke-width='3'/%3E%3Ctext x='200' y='250' text-anchor='middle' fill='%23374151' font-size='16' font-weight='bold'%3EAir Ambulance Service%3C/text%3E%3C/svg%3E" alt="Air Ambulance" className="w-full h-48 sm:h-56 md:h-64 object-cover rounded-xl sm:rounded-2xl" />
+              <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-green-500 text-white px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-semibold flex items-center">
+                <CheckCircle size={12} className="mr-1" />
                 Operational
               </div>
             </div>
@@ -206,22 +212,22 @@ const BookingSection = () => {
   ];
 
   return (
-    <div className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">How to Book Air Ambulance</h2>
-          <p className="text-xl text-gray-600">Simple 4-step process for emergency medical transport</p>
+    <div className="py-12 sm:py-16 md:py-20 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-8 sm:mb-12 md:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-4">How to Book Air Ambulance</h2>
+          <p className="text-base sm:text-lg md:text-xl text-gray-600">Simple 4-step process for emergency medical transport</p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {steps.map((step, index) => (
             <div key={index} className="relative">
-              <div className="bg-red-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mb-6 mx-auto">
+              <div className="bg-red-600 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-lg sm:text-xl font-bold mb-4 sm:mb-6 mx-auto">
                 {step.step}
               </div>
               <div className="text-center">
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{step.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{step.description}</p>
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">{step.title}</h3>
+                <p className="text-sm sm:text-base text-gray-600 leading-relaxed px-2">{step.description}</p>
               </div>
               {index < steps.length - 1 && (
                 <div className="hidden lg:block absolute top-6 left-1/2 transform translate-x-6 w-full h-0.5 bg-red-200"></div>
@@ -230,18 +236,18 @@ const BookingSection = () => {
           ))}
         </div>
 
-        <div className="mt-16 bg-gradient-to-r from-red-600 to-red-700 rounded-2xl p-8 text-white text-center">
-          <h3 className="text-2xl font-bold mb-4">Emergency? Don't Wait!</h3>
-          <p className="text-lg mb-6 text-red-100">
+        <div className="mt-8 sm:mt-12 md:mt-16 bg-gradient-to-r from-red-600 to-red-700 rounded-xl sm:rounded-2xl p-6 sm:p-8 text-white text-center">
+          <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Emergency? Don't Wait!</h3>
+          <p className="text-sm sm:text-base md:text-lg mb-4 sm:mb-6 text-red-100">
             In critical situations, every second counts. Contact us immediately for rapid response.
           </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <a href="tel:+919870560022" className="bg-white text-red-600 font-bold py-3 px-8 rounded-full hover:bg-gray-100 transition-colors flex items-center">
-              <Phone className="mr-2" size={20} />
+          <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-4">
+            <a href="tel:+919870560022" className="bg-white text-red-600 font-bold py-3 px-6 sm:px-8 rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center text-sm sm:text-base">
+              <Phone className="mr-2" size={18} />
               Call Now: 9870560022
             </a>
-            <a href="tel:+919870500422" className="bg-red-800 text-white font-bold py-3 px-8 rounded-full hover:bg-red-900 transition-colors flex items-center">
-              <Phone className="mr-2" size={20} />
+            <a href="tel:+919870500422" className="bg-red-800 text-white font-bold py-3 px-6 sm:px-8 rounded-full hover:bg-red-900 transition-colors flex items-center justify-center text-sm sm:text-base">
+              <Phone className="mr-2" size={18} />
               Alternate: 9870500422
             </a>
           </div>
@@ -265,7 +271,7 @@ const ContactSection = () => {
                   <h3 className="text-xl font-semibold mb-2">Emergency Helpline</h3>
                   <p className="text-gray-300">+91 9870560022 (Primary)</p>
                   <p className="text-gray-300">+91 9870500422 (Secondary)</p>
-                  <p className="text-gray-300">+91 9870001118 (Alternate)</p>
+                  <p className="text-gray-300">+91 9319208927 (Alternate)</p>
                 </div>
               </div>
 
@@ -391,6 +397,7 @@ const HomePage = () => {
       <BookingSection />
       <ContactSection />
       <Footer />
+      <WhatsAppChatbot />
     </div>
   );
 };

@@ -121,7 +121,7 @@ const CaseCloseFile = () => {
         enquiry_id: selectedCase.enquiry_id,
         ...closeFormData,
         closure_date: new Date().toISOString(),
-        closed_by: localStorage.getItem('user_id')
+        closed_by: localStorage.getItem('userId') || localStorage.getItem('user_id')
       };
       
       console.log('Closing case:', closureData);

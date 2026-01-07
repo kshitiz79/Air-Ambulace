@@ -1,9 +1,8 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FaFileAlt, FaClock, FaCheckCircle, FaTimesCircle, 
-  FaSearch, FaSyncAlt, FaEye, FaEdit, FaArrowRight ,FaArrowUp ,FaArrowDown
+  FaSearch, FaSyncAlt, FaEye, FaEdit, FaArrowRight, FaArrowUp, FaArrowDown
 } from 'react-icons/fa';
 
 import { Doughnut, Line } from 'react-chartjs-2';
@@ -19,8 +18,7 @@ import {
   Legend,
 } from 'chart.js';
 
-import { useDashboardData } from '../../hooks/useDashboardData';
-
+import baseUrl from '../../baseUrl/baseUrl';
 import ChartCard from '../../components/Dashboard/ChartCard';
 import RecentActivity from '../../components/Dashboard/RecentActivity';
 import QuickActions from '../../components/Dashboard/QuickActions';
@@ -38,7 +36,20 @@ ChartJS.register(
 
 const SDMDashboard = () => {
   const [filter, setFilter] = useState({ status: 'ALL', priority: 'ALL', date: '' });
-  const { stats, chartData, recentActivity, loading, error, refreshData } = useDashboardData('SDM');
+  const [dashboardData, setDashboardData] = useState({
+    totalEnquiries: 0,
+    pendingReview: 0,
+    approved: 0,
+    rejected: 0,
+    forwardedToDM: 0,
+    queryToCMO: 0,
+    recentEnquiries: [],
+    monthlyStats: [],
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+
   // Quick actions for SDM
   const quickActions = [
     {
@@ -71,47 +82,126 @@ const SDMDashboard = () => {
     }
   ];
 
-  // Mock case data for table
-  const cases = [
-    {
-      id: 'ENQ001',
-      patientName: 'Ramesh Patel',
-      status: 'PENDING',
-      priority: 'HIGH',
-      date: '2025-01-20',
-      hospital: 'AIIMS Bhopal',
-    },
-    {
-      id: 'ENQ002',
-      patientName: 'Sita Devi',
-      status: 'FORWARDED',
-      priority: 'MEDIUM',
-      date: '2025-01-19',
-      hospital: 'CHL Indore',
-    },
-    {
-      id: 'ENQ003',
-      patientName: 'Vikram Singh',
-      status: 'REJECTED',
-      priority: 'LOW',
-      date: '2025-06-03',
-      hospital: 'GMC Gwalior',
-    },
-  ];
+  // Fetch dashboard data from backend
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const role = localStorage.getItem('role');
 
-  const filteredCases = cases.filter((c) => {
-    return (
-      (filter.status === 'ALL' || c.status === filter.status) &&
-      (filter.priority === 'ALL' || c.priority === filter.priority) &&
-      (!filter.date || c.date.includes(filter.date))
-    );
-  });
+      console.log('Fetching SDM dashboard data...');
 
+      const [enquiriesRes, queriesRes] = await Promise.all([
+        fetch(`${baseUrl}/api/enquiries`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${baseUrl}/api/case-queries`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => ({ ok: false })) // Handle if queries endpoint doesn't exist
+      ]);
 
+      if (!enquiriesRes.ok) throw new Error('Failed to fetch enquiries');
+
+      const [enquiriesData, queriesData] = await Promise.all([
+        enquiriesRes.json(),
+        queriesRes.ok ? queriesRes.json() : { data: [] }
+      ]);
+
+      const enquiries = enquiriesData.data || [];
+      const queries = queriesData.data || [];
+
+      console.log(`SDM Dashboard: Loaded ${enquiries.length} enquiries`);
+
+      // Calculate statistics
+      const stats = {
+        totalEnquiries: enquiries.length,
+        pendingReview: enquiries.filter(e => e.status === 'PENDING').length,
+        approved: enquiries.filter(e => e.status === 'APPROVED').length,
+        rejected: enquiries.filter(e => e.status === 'REJECTED').length,
+        forwardedToDM: enquiries.filter(e => e.status === 'FORWARDED').length,
+        queryToCMO: queries.length,
+        recentEnquiries: enquiries
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          .slice(0, 10),
+      };
+
+      // Calculate monthly statistics (last 6 months)
+      const monthlyStats = calculateMonthlyStats(enquiries);
+
+      setDashboardData({
+        ...stats,
+        monthlyStats,
+      });
+
+      setError('');
+    } catch (err) {
+      console.error('Dashboard fetch error:', err);
+      setError('Failed to load dashboard data: ' + err.message);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  // Calculate monthly statistics
+  const calculateMonthlyStats = (enquiries) => {
+    const months = [];
+    const now = new Date();
+
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthName = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      const monthEnquiries = enquiries.filter(e => {
+        const enquiryDate = new Date(e.created_at);
+        return enquiryDate.getMonth() === date.getMonth() &&
+          enquiryDate.getFullYear() === date.getFullYear();
+      });
+
+      months.push({
+        month: monthName,
+        total: monthEnquiries.length,
+        approved: monthEnquiries.filter(e => e.status === 'APPROVED').length,
+        rejected: monthEnquiries.filter(e => e.status === 'REJECTED').length,
+        pending: monthEnquiries.filter(e => e.status === 'PENDING').length,
+      });
+    }
+
+    return months;
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchDashboardData();
+  };
 
   const handleFilterChange = (e) => {
     setFilter({ ...filter, [e.target.name]: e.target.value });
   };
+
+  // Filter recent enquiries based on current filters
+  const filteredCases = dashboardData.recentEnquiries.filter((enquiry) => {
+    const matchesStatus = filter.status === 'ALL' || enquiry.status === filter.status;
+    
+    let matchesDateRange = true;
+    if (filter.date) {
+      const enquiryDate = new Date(enquiry.created_at).toISOString().split('T')[0];
+      matchesDateRange = enquiryDate.includes(filter.date);
+    }
+
+    return matchesStatus && matchesDateRange;
+  });
+
+  // Generate recent activity from enquiries
+  const recentActivity = dashboardData.recentEnquiries.slice(0, 5).map(enquiry => ({
+    type: enquiry.status === 'APPROVED' ? 'approval' : 
+          enquiry.status === 'REJECTED' ? 'rejection' : 'enquiry',
+    description: `${enquiry.enquiry_code || `ENQ${enquiry.enquiry_id}`} - ${enquiry.patient_name}`,
+    timestamp: new Date(enquiry.created_at)
+  }));
 
   if (loading) {
     return (
@@ -129,6 +219,7 @@ const SDMDashboard = () => {
             ))}
           </div>
         </div>
+        <p className="text-center text-gray-600 mt-4">Loading dashboard...</p>
       </div>
     );
   }
@@ -139,7 +230,7 @@ const SDMDashboard = () => {
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           <p>{error}</p>
           <button
-            onClick={refreshData}
+            onClick={handleRefresh}
             className="mt-2 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
           >
             Retry
@@ -151,28 +242,70 @@ const SDMDashboard = () => {
 
   // Prepare chart data
   const statusChartData = {
-    labels: chartData.status?.map(item => item.name) || [],
+    labels: ['Pending', 'Approved', 'Rejected', 'Forwarded'],
     datasets: [
       {
-        data: chartData.status?.map(item => item.value) || [],
-        backgroundColor: chartData.status?.map(item => item.color) || [],
+        data: [
+          dashboardData.pendingReview,
+          dashboardData.approved,
+          dashboardData.rejected,
+          dashboardData.forwardedToDM,
+        ],
+        backgroundColor: ['#fbbf24', '#10b981', '#ef4444', '#3b82f6'],
         borderWidth: 2,
       },
     ],
   };
 
   const monthlyChartData = {
-    labels: chartData.monthly?.map(item => item.month) || [],
+    labels: dashboardData.monthlyStats.map(m => m.month),
     datasets: [
       {
-        label: 'Enquiries',
-        data: chartData.monthly?.map(item => item.value) || [],
+        label: 'Total Enquiries',
+        data: dashboardData.monthlyStats.map(m => m.total),
         borderColor: '#3b82f6',
         backgroundColor: 'rgba(59,130,246,0.1)',
         tension: 0.4,
         fill: true,
       },
+      {
+        label: 'Approved',
+        data: dashboardData.monthlyStats.map(m => m.approved),
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16,185,129,0.1)',
+        tension: 0.4,
+        fill: true,
+      },
+      {
+        label: 'Rejected',
+        data: dashboardData.monthlyStats.map(m => m.rejected),
+        borderColor: '#ef4444',
+        backgroundColor: 'rgba(239,68,68,0.1)',
+        tension: 0.4,
+        fill: true,
+      },
     ],
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      PENDING: 'bg-yellow-100 text-yellow-800',
+      APPROVED: 'bg-green-100 text-green-800',
+      REJECTED: 'bg-red-100 text-red-800',
+      FORWARDED: 'bg-blue-100 text-blue-800',
+      ESCALATED: 'bg-purple-100 text-purple-800',
+      COMPLETED: 'bg-gray-100 text-gray-800',
+      IN_PROGRESS: 'bg-indigo-100 text-indigo-800',
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-IN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
   return (
@@ -187,7 +320,14 @@ const SDMDashboard = () => {
             </h1>
             <p className="mt-1 text-gray-600">Sub Divisional Magistrate Case Management Overview</p>
           </div>
-         
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+          >
+            <FaSyncAlt className={`mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
         </div>
       </div>
 
@@ -197,10 +337,9 @@ const SDMDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-blue-100 text-sm font-medium">Total Enquiries</p>
-              <p className="text-3xl font-bold">{stats.totalEnquiries || 0}</p>
+              <p className="text-3xl font-bold">{dashboardData.totalEnquiries}</p>
               <div className="mt-2 flex items-center">
-                <FaArrowUp className="text-blue-100 mr-1" />
-                <span className="text-blue-100 text-sm">+12% from last month</span>
+                <span className="text-blue-100 text-sm">All time total</span>
               </div>
             </div>
             <div className="bg-blue-400 bg-opacity-30 rounded-full p-3">
@@ -213,7 +352,7 @@ const SDMDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-yellow-100 text-sm font-medium">Pending Review</p>
-              <p className="text-3xl font-bold">{stats.pendingReview || 0}</p>
+              <p className="text-3xl font-bold">{dashboardData.pendingReview}</p>
               <div className="mt-2 flex items-center">
                 <FaClock className="text-yellow-100 mr-1" />
                 <span className="text-yellow-100 text-sm">Awaiting action</span>
@@ -229,10 +368,9 @@ const SDMDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 text-sm font-medium">Approved</p>
-              <p className="text-3xl font-bold">{stats.approved || 0}</p>
+              <p className="text-3xl font-bold">{dashboardData.approved}</p>
               <div className="mt-2 flex items-center">
-                <FaArrowUp className="text-green-100 mr-1" />
-                <span className="text-green-100 text-sm">+8% from last month</span>
+                <span className="text-green-100 text-sm">Successfully processed</span>
               </div>
             </div>
             <div className="bg-green-400 bg-opacity-30 rounded-full p-3">
@@ -245,10 +383,9 @@ const SDMDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-red-100 text-sm font-medium">Rejected</p>
-              <p className="text-3xl font-bold">{stats.rejected || 0}</p>
+              <p className="text-3xl font-bold">{dashboardData.rejected}</p>
               <div className="mt-2 flex items-center">
-                <FaArrowDown className="text-red-100 mr-1" />
-                <span className="text-red-100 text-sm">-3% from last month</span>
+                <span className="text-red-100 text-sm">Not approved</span>
               </div>
             </div>
             <div className="bg-red-400 bg-opacity-30 rounded-full p-3">
@@ -264,10 +401,9 @@ const SDMDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Forwarded to DM</p>
-              <p className="text-3xl font-bold text-gray-800">{stats.forwardedToDM || 0}</p>
+              <p className="text-3xl font-bold text-gray-800">{dashboardData.forwardedToDM}</p>
               <div className="mt-2 flex items-center">
-                <FaArrowUp className="text-green-500 mr-1" />
-                <span className="text-green-500 text-sm">+15% from last month</span>
+                <span className="text-gray-500 text-sm">Cases sent to District Magistrate</span>
               </div>
             </div>
             <div className="bg-purple-100 rounded-full p-3">
@@ -280,10 +416,9 @@ const SDMDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Query to CMO</p>
-              <p className="text-3xl font-bold text-gray-800">{stats.queryToCMO || 0}</p>
+              <p className="text-3xl font-bold text-gray-800">{dashboardData.queryToCMO}</p>
               <div className="mt-2 flex items-center">
-                <FaClock className="text-gray-500 mr-1" />
-                <span className="text-gray-500 text-sm">No change</span>
+                <span className="text-gray-500 text-sm">Queries sent to CMO</span>
               </div>
             </div>
             <div className="bg-indigo-100 rounded-full p-3">
@@ -354,6 +489,7 @@ const SDMDashboard = () => {
               >
                 <option value="ALL">All Status</option>
                 <option value="PENDING">Pending</option>
+                <option value="APPROVED">Approved</option>
                 <option value="FORWARDED">Forwarded</option>
                 <option value="REJECTED">Rejected</option>
               </select>
@@ -378,16 +514,16 @@ const SDMDashboard = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Enquiry ID
+                    Enquiry Code
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Patient
+                    Patient Name
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Priority
+                    Hospital
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Date
@@ -398,45 +534,32 @@ const SDMDashboard = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredCases.slice(0, 5).map((c) => (
-                  <tr key={c.id} className="hover:bg-gray-50">
+                {filteredCases.slice(0, 5).map((enquiry) => (
+                  <tr key={enquiry.enquiry_id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {c.id}
+                      {enquiry.enquiry_code || `ENQ${enquiry.enquiry_id}`}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {c.patientName}
+                      {enquiry.patient_name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${c.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                        c.status === 'FORWARDED' ? 'bg-blue-100 text-blue-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                        {c.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${c.priority === 'HIGH' ? 'bg-red-100 text-red-800' :
-                        c.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-green-100 text-green-800'
-                        }`}>
-                        {c.priority}
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(enquiry.status)}`}>
+                        {enquiry.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {c.date}
+                      {enquiry.hospital?.name || enquiry.hospital?.hospital_name || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {formatDate(enquiry.created_at)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <Link
-                        to={`/sdm-dashboard/enquiry-detail-page/${c.id}`}
+                        to={`/sdm-dashboard/enquiry-detail-page/${enquiry.enquiry_id}`}
                         className="text-blue-600 hover:text-blue-900 mr-3"
                       >
+                        <FaEye className="inline mr-1" />
                         View
-                      </Link>
-                      <Link
-                        to={`/sdm-dashboard/enquiry-detail-page/${c.id}`}
-                        className="text-green-600 hover:text-green-900"
-                      >
-                        Edit
                       </Link>
                     </td>
                   </tr>

@@ -83,8 +83,8 @@ const PostOperationPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Get current user ID from localStorage
-      const currentUserId = localStorage.getItem('user_id');
+      // Get current user ID from localStorage (use userId first, fallback to user_id)
+      const currentUserId = localStorage.getItem('userId') || localStorage.getItem('user_id');
       const reportData = {
         ...formData,
         submitted_by_user_id: currentUserId

@@ -90,7 +90,7 @@ const EscalateCase = () => {
         body: JSON.stringify({
           escalation_reason: escalationReason,
           escalated_to: escalatedTo,
-          escalated_by_user_id: localStorage.getItem('user_id') || '1',
+          escalated_by_user_id: localStorage.getItem('userId') || localStorage.getItem('user_id'),
         }),
       });
 

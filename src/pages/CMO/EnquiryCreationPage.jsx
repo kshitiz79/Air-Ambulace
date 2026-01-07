@@ -495,7 +495,13 @@ export default function EnquiryCreationPage() {
         }
       }
     });
-    const userId = localStorage.getItem('user_id') || '10';
+    // IMPORTANT: Use 'userId' (camelCase) to match what's stored in Login.jsx
+    const userId = localStorage.getItem('userId');
+    
+    if (!userId) {
+      throw new Error('User ID not found. Please log in again.');
+    }
+    
     payload.append('submitted_by_user_id', userId);
 
     try {

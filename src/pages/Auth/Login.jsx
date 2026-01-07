@@ -54,7 +54,8 @@ const Login = () => {
       localStorage.setItem('token', data.token);
       localStorage.setItem('role', data.role.toUpperCase());
       localStorage.setItem('district_id', data.district_id ?? '');
-      localStorage.setItem('userId', data.userId);
+      localStorage.setItem('userId', data.userId); // Primary key (camelCase)
+      localStorage.setItem('user_id', data.userId); // Backward compatibility (snake_case)
       localStorage.setItem('full_name', data.full_name || data.username || 'User');
       localStorage.setItem('username', data.username || '');
       localStorage.setItem('email', data.email || '');

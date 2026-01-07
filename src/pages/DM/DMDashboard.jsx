@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FaFileAlt,
@@ -15,7 +15,7 @@ import {
 } from 'react-icons/fa';
 import { Doughnut, Line, Bar } from 'react-chartjs-2';
 
-import { useDashboardData } from '../../hooks/useDashboardData';
+import baseUrl from '../../baseUrl/baseUrl';
 import StatsCard from '../../components/Dashboard/StatsCard';
 import ChartCard from '../../components/Dashboard/ChartCard';
 import RecentActivity from '../../components/Dashboard/RecentActivity';
@@ -24,7 +24,20 @@ import QuickActions from '../../components/Dashboard/QuickActions';
 
 const DMDashboard = () => {
   const [filter, setFilter] = useState({ status: 'ALL', date: '' });
-  const { stats, chartData, recentActivity, loading, error, refreshData } = useDashboardData('DM');
+  const [dashboardData, setDashboardData] = useState({
+    totalCases: 0,
+    pendingApproval: 0,
+    approved: 0,
+    rejected: 0,
+    financialSanctions: 0,
+    ordersReleased: 0,
+    recentEnquiries: [],
+    monthlyStats: [],
+    financialStats: [],
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   // Quick actions for DM
   const quickActions = [
@@ -57,44 +70,161 @@ const DMDashboard = () => {
       color: 'border-purple-200 hover:border-purple-400 hover:bg-purple-50'
     }
   ];
-  // Mock case data for table
-  const cases = [
-    {
-      id: 'ENQ001',
-      patientName: 'Ramesh Patel',
-      status: 'PENDING',
-      date: '2025-01-20',
-      hospital: 'AIIMS Bhopal',
-      amount: '₹50,000'
-    },
-    {
-      id: 'ENQ002',
-      patientName: 'Sita Devi',
-      status: 'APPROVED',
-      date: '2025-01-19',
-      hospital: 'CHL Indore',
-      amount: '₹75,000'
-    },
-    {
-      id: 'ENQ003',
-      patientName: 'Vikram Singh',
-      status: 'REJECTED',
-      date: '2025-01-18',
-      hospital: 'GMC Gwalior',
-      amount: '₹60,000'
-    },
-  ];
 
-  const filteredCases = cases.filter((c) => {
-    return (
-      (filter.status === 'ALL' || c.status === filter.status) &&
-      (!filter.date || c.date.includes(filter.date))
-    );
-  });
+  // Fetch dashboard data from backend
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+
+      console.log('Fetching DM dashboard data...');
+
+      const [enquiriesRes, ordersRes, financialRes] = await Promise.all([
+        fetch(`${baseUrl}/api/enquiries`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${baseUrl}/api/orders`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => ({ ok: false })),
+        fetch(`${baseUrl}/api/financial-sanctions`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => ({ ok: false }))
+      ]);
+
+      if (!enquiriesRes.ok) throw new Error('Failed to fetch enquiries');
+
+      const [enquiriesData, ordersData, financialData] = await Promise.all([
+        enquiriesRes.json(),
+        ordersRes.ok ? ordersRes.json() : { data: [] },
+        financialRes.ok ? financialRes.json() : { data: [] }
+      ]);
+
+      const enquiries = enquiriesData.data || [];
+      const orders = ordersData.data || [];
+      const financialSanctions = financialData.data || [];
+
+      console.log(`DM Dashboard: Loaded ${enquiries.length} enquiries`);
+
+      // Calculate statistics
+      const stats = {
+        totalCases: enquiries.length,
+        pendingApproval: enquiries.filter(e => e.status === 'FORWARDED' || e.status === 'PENDING').length,
+        approved: enquiries.filter(e => e.status === 'APPROVED').length,
+        rejected: enquiries.filter(e => e.status === 'REJECTED').length,
+        financialSanctions: financialSanctions.length,
+        ordersReleased: orders.filter(o => o.status === 'RELEASED').length,
+        recentEnquiries: enquiries
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          .slice(0, 10),
+      };
+
+      // Calculate monthly statistics (last 6 months)
+      const monthlyStats = calculateMonthlyStats(enquiries);
+
+      // Calculate financial statistics (last 6 months)
+      const financialStats = calculateFinancialStats(financialSanctions);
+
+      setDashboardData({
+        ...stats,
+        monthlyStats,
+        financialStats,
+      });
+
+      setError('');
+    } catch (err) {
+      console.error('Dashboard fetch error:', err);
+      setError('Failed to load dashboard data: ' + err.message);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  // Calculate monthly statistics
+  const calculateMonthlyStats = (enquiries) => {
+    const months = [];
+    const now = new Date();
+
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthName = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      const monthEnquiries = enquiries.filter(e => {
+        const enquiryDate = new Date(e.created_at);
+        return enquiryDate.getMonth() === date.getMonth() &&
+          enquiryDate.getFullYear() === date.getFullYear();
+      });
+
+      months.push({
+        month: monthName,
+        total: monthEnquiries.length,
+        approved: monthEnquiries.filter(e => e.status === 'APPROVED').length,
+        rejected: monthEnquiries.filter(e => e.status === 'REJECTED').length,
+        pending: monthEnquiries.filter(e => e.status === 'PENDING' || e.status === 'FORWARDED').length,
+      });
+    }
+
+    return months;
+  };
+
+  // Calculate financial statistics
+  const calculateFinancialStats = (sanctions) => {
+    const months = [];
+    const now = new Date();
+
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+      const monthSanctions = sanctions.filter(s => {
+        const sanctionDate = new Date(s.created_at);
+        return sanctionDate.getMonth() === date.getMonth() &&
+          sanctionDate.getFullYear() === date.getFullYear();
+      });
+
+      // Calculate total approved amount in lakhs
+      const totalAmount = monthSanctions.reduce((sum, s) => sum + (s.amount || 0), 0) / 100000;
+
+      months.push({
+        month: monthName,
+        amount: Math.round(totalAmount),
+      });
+    }
+
+    return months;
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchDashboardData();
+  };
 
   const handleFilterChange = (e) => {
     setFilter({ ...filter, [e.target.name]: e.target.value });
   };
+
+  // Filter recent enquiries based on current filters
+  const filteredCases = dashboardData.recentEnquiries.filter((enquiry) => {
+    const matchesStatus = filter.status === 'ALL' || enquiry.status === filter.status;
+    
+    let matchesDateRange = true;
+    if (filter.date) {
+      const enquiryDate = new Date(enquiry.created_at).toISOString().split('T')[0];
+      matchesDateRange = enquiryDate.includes(filter.date);
+    }
+
+    return matchesStatus && matchesDateRange;
+  });
+
+  // Generate recent activity from enquiries
+  const recentActivity = dashboardData.recentEnquiries.slice(0, 5).map(enquiry => ({
+    type: enquiry.status === 'APPROVED' ? 'approval' : 
+          enquiry.status === 'REJECTED' ? 'rejection' : 'enquiry',
+    description: `${enquiry.enquiry_code || `ENQ${enquiry.enquiry_id}`} - ${enquiry.patient_name}`,
+    timestamp: new Date(enquiry.created_at)
+  }));
 
   if (loading) {
     return (
@@ -112,6 +242,7 @@ const DMDashboard = () => {
             ))}
           </div>
         </div>
+        <p className="text-center text-gray-600 mt-4">Loading dashboard...</p>
       </div>
     );
   }
@@ -122,7 +253,7 @@ const DMDashboard = () => {
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           <p>{error}</p>
           <button
-            onClick={refreshData}
+            onClick={handleRefresh}
             className="mt-2 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
           >
             Retry
@@ -134,24 +265,36 @@ const DMDashboard = () => {
 
   // Prepare chart data
   const statusChartData = {
-    labels: chartData.status?.map(item => item.name) || [],
+    labels: ['Pending', 'Approved', 'Rejected'],
     datasets: [
       {
-        data: chartData.status?.map(item => item.value) || [],
-        backgroundColor: chartData.status?.map(item => item.color) || [],
+        data: [
+          dashboardData.pendingApproval,
+          dashboardData.approved,
+          dashboardData.rejected,
+        ],
+        backgroundColor: ['#fbbf24', '#10b981', '#ef4444'],
         borderWidth: 2,
       },
     ],
   };
 
   const monthlyChartData = {
-    labels: chartData.monthly?.map(item => item.month) || [],
+    labels: dashboardData.monthlyStats.map(m => m.month),
     datasets: [
       {
-        label: 'Cases',
-        data: chartData.monthly?.map(item => item.value) || [],
+        label: 'Total Cases',
+        data: dashboardData.monthlyStats.map(m => m.total),
         borderColor: '#10b981',
         backgroundColor: 'rgba(16,185,129,0.1)',
+        tension: 0.4,
+        fill: true,
+      },
+      {
+        label: 'Approved',
+        data: dashboardData.monthlyStats.map(m => m.approved),
+        borderColor: '#22c55e',
+        backgroundColor: 'rgba(34,197,94,0.1)',
         tension: 0.4,
         fill: true,
       },
@@ -159,16 +302,37 @@ const DMDashboard = () => {
   };
 
   const financialChartData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    labels: dashboardData.financialStats.map(f => f.month),
     datasets: [
       {
         label: 'Approved Amount (₹ Lakhs)',
-        data: [25, 30, 45, 35, 50, 40],
+        data: dashboardData.financialStats.map(f => f.amount),
         backgroundColor: 'rgba(34,197,94,0.8)',
         borderColor: '#22c55e',
         borderWidth: 1,
       },
     ],
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      PENDING: 'bg-yellow-100 text-yellow-800',
+      FORWARDED: 'bg-blue-100 text-blue-800',
+      APPROVED: 'bg-green-100 text-green-800',
+      REJECTED: 'bg-red-100 text-red-800',
+      ESCALATED: 'bg-purple-100 text-purple-800',
+      COMPLETED: 'bg-gray-100 text-gray-800',
+      IN_PROGRESS: 'bg-indigo-100 text-indigo-800',
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-IN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
   return (
@@ -184,10 +348,11 @@ const DMDashboard = () => {
             <p className="mt-1 text-gray-600">District Magistrate Case Management Overview</p>
           </div>
           <button
-            onClick={refreshData}
-            className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50"
           >
-            <FaSyncAlt className="mr-2" />
+            <FaSyncAlt className={`mr-2 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh
           </button>
         </div>
@@ -199,10 +364,9 @@ const DMDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-blue-100 text-sm font-medium">Total Cases</p>
-              <p className="text-3xl font-bold">{stats.totalCases || 0}</p>
+              <p className="text-3xl font-bold">{dashboardData.totalCases}</p>
               <div className="mt-2 flex items-center">
-                <FaArrowUp className="text-blue-100 mr-1" />
-                <span className="text-blue-100 text-sm">+8% from last month</span>
+                <span className="text-blue-100 text-sm">All time total</span>
               </div>
             </div>
             <div className="bg-blue-400 bg-opacity-30 rounded-full p-3">
@@ -215,7 +379,7 @@ const DMDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-yellow-100 text-sm font-medium">Pending Approval</p>
-              <p className="text-3xl font-bold">{stats.pendingApproval || 0}</p>
+              <p className="text-3xl font-bold">{dashboardData.pendingApproval}</p>
               <div className="mt-2 flex items-center">
                 <FaClock className="text-yellow-100 mr-1" />
                 <span className="text-yellow-100 text-sm">Awaiting decision</span>
@@ -231,10 +395,9 @@ const DMDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 text-sm font-medium">Approved</p>
-              <p className="text-3xl font-bold">{stats.approved || 0}</p>
+              <p className="text-3xl font-bold">{dashboardData.approved}</p>
               <div className="mt-2 flex items-center">
-                <FaArrowUp className="text-green-100 mr-1" />
-                <span className="text-green-100 text-sm">+12% from last month</span>
+                <span className="text-green-100 text-sm">Successfully approved</span>
               </div>
             </div>
             <div className="bg-green-400 bg-opacity-30 rounded-full p-3">
@@ -247,10 +410,9 @@ const DMDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-red-100 text-sm font-medium">Rejected</p>
-              <p className="text-3xl font-bold">{stats.rejected || 0}</p>
+              <p className="text-3xl font-bold">{dashboardData.rejected}</p>
               <div className="mt-2 flex items-center">
-                <FaArrowDown className="text-red-100 mr-1" />
-                <span className="text-red-100 text-sm">-5% from last month</span>
+                <span className="text-red-100 text-sm">Not approved</span>
               </div>
             </div>
             <div className="bg-red-400 bg-opacity-30 rounded-full p-3">
@@ -266,10 +428,9 @@ const DMDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Financial Sanctions</p>
-              <p className="text-3xl font-bold text-gray-800">{stats.financialSanctions || 0}</p>
+              <p className="text-3xl font-bold text-gray-800">{dashboardData.financialSanctions}</p>
               <div className="mt-2 flex items-center">
-                <FaArrowUp className="text-green-500 mr-1" />
-                <span className="text-green-500 text-sm">+18% from last month</span>
+                <span className="text-gray-500 text-sm">Total sanctions approved</span>
               </div>
             </div>
             <div className="bg-purple-100 rounded-full p-3">
@@ -282,10 +443,9 @@ const DMDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Orders Released</p>
-              <p className="text-3xl font-bold text-gray-800">{stats.ordersReleased || 0}</p>
+              <p className="text-3xl font-bold text-gray-800">{dashboardData.ordersReleased}</p>
               <div className="mt-2 flex items-center">
-                <FaArrowUp className="text-green-500 mr-1" />
-                <span className="text-green-500 text-sm">+10% from last month</span>
+                <span className="text-gray-500 text-sm">Orders issued</span>
               </div>
             </div>
             <div className="bg-indigo-100 rounded-full p-3">
@@ -376,6 +536,7 @@ const DMDashboard = () => {
               >
                 <option value="ALL">All Status</option>
                 <option value="PENDING">Pending</option>
+                <option value="FORWARDED">Forwarded</option>
                 <option value="APPROVED">Approved</option>
                 <option value="REJECTED">Rejected</option>
               </select>
@@ -400,16 +561,16 @@ const DMDashboard = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Case ID
+                    Enquiry Code
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Patient
+                    Patient Name
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Amount
+                    Hospital
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Date
@@ -420,33 +581,31 @@ const DMDashboard = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredCases.slice(0, 5).map((c) => (
-                  <tr key={c.id} className="hover:bg-gray-50">
+                {filteredCases.slice(0, 5).map((enquiry) => (
+                  <tr key={enquiry.enquiry_id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {c.id}
+                      {enquiry.enquiry_code || `ENQ${enquiry.enquiry_id}`}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {c.patientName}
+                      {enquiry.patient_name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${c.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                        c.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                        {c.status}
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(enquiry.status)}`}>
+                        {enquiry.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {c.amount}
+                      {enquiry.hospital?.name || enquiry.hospital?.hospital_name || 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {c.date}
+                      {formatDate(enquiry.created_at)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <Link
-                        to={`/dm-dashboard/case-file/${c.id}`}
+                        to={`/dm-dashboard/case-file/${enquiry.enquiry_id}`}
                         className="text-green-600 hover:text-green-900 mr-3"
                       >
+                        <FaEye className="inline mr-1" />
                         View
                       </Link>
                       <Link

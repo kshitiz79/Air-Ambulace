@@ -6,11 +6,11 @@ import Header from './../../components/Global/Header';
 
 const navigationLinks = [
   { to: '/dm-dashboard', label: 'Dashboard', icon: <FiHome /> },
-  { to: '/dm-dashboard/approval-reject', label: 'Approval / Reject', icon: <FiThumbsUp /> },
+  // { to: '/dm-dashboard/approval-reject', label: 'Approval / Reject', icon: <FiThumbsUp /> },
   { to: '/dm-dashboard/case-files', label: 'Case File', icon: <FiFileText /> },
   { to: '/dm-dashboard/escalation-page', label: 'Escalation Page', icon: <FiAlertCircle /> },
-  { to: '/dm-dashboard/financial-page', label: 'Financial Page', icon: <FiDollarSign /> },
-  { to: '/dm-dashboard/order-release-page', label: 'Order Release', icon: <FiSend /> },
+  // { to: '/dm-dashboard/financial-page', label: 'Financial Page', icon: <FiDollarSign /> },
+  // { to: '/dm-dashboard/order-release-page', label: 'Order Release', icon: <FiSend /> },
   { to: '/dm-dashboard/search-page', label: 'Search Page', icon: <FiSearch /> },
   { to: '/dm-dashboard/profile', label: 'Profile', icon: <FiUser /> },
 ];
