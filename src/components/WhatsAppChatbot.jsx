@@ -45,7 +45,7 @@ const WhatsAppChatbot = () => {
       {/* Floating Chat Button */}
       <div className="fixed bottom-6 right-6 z-[9999]">
         {isOpen && (
-          <div className="mb-4 bg-white rounded-2xl shadow-2xl w-80 sm:w-96 animate-slideUp">
+          <div className="mb-4 bg-white rounded-2xl shadow-sm w-80 sm:w-96 animate-slideUp">
             {/* Header */}
             <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-4 rounded-t-2xl flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -93,7 +93,7 @@ const WhatsAppChatbot = () => {
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <button
                   onClick={handleDirectChat}
-                  className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg"
+                  className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-sm"
                 >
                   <MessageCircle size={18} className="mr-2" />
                   Start WhatsApp Chat
@@ -121,7 +121,7 @@ const WhatsAppChatbot = () => {
           {/* Main Chat Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="relative z-10 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-full w-16 h-16 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 flex items-center justify-center group"
+            className="relative z-10 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-full w-16 h-16 shadow-sm hover:shadow-3xl transition-all duration-300 transform hover:scale-110 flex items-center justify-center group"
             aria-label="Open WhatsApp Chat"
           >
             <div className="flex items-center justify-center">

@@ -12,7 +12,7 @@ const ProfileHeader = ({
   getRoleBadgeColor 
 }) => {
   return (
-    <div className="bg-white rounded-lg shadow-lg mb-6">
+    <div className="bg-white rounded-lg shadow-sm mb-6">
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-4">

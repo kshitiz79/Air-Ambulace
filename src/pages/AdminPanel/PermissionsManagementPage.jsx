@@ -20,11 +20,11 @@ const dummyUsers = [
   },
   {
     user_id: 2,
-    username: 'cmo1',
-    full_name: 'CMO User',
-    email: 'cmo1@example.com',
+    username: 'cmho1',
+    full_name: 'CMHO User',
+    email: 'cmho1@example.com',
     phone: '0987654321',
-    role: 'CMOUSER',
+    role: 'CMHOUSER',
     district_id: '2',
     district: { district_id: '2', name: 'District 2' },
   },
@@ -178,7 +178,7 @@ const PermissionsManagementPage = () => {
     
 
       {/* Users Table */}
-      <div className="w-full max-w-7xl bg-white rounded-lg shadow-lg p-6">
+      <div className="w-full max-w-7xl bg-white rounded-lg shadow-sm p-6">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Manage Users</h2>
         {loading ? (
           <p className="text-center text-gray-500">Loading users...</p>
@@ -246,7 +246,7 @@ const PermissionsManagementPage = () => {
                   onChange={handleEditChange}
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                 >
-                  {['BENEFICIARY', 'CMOUSER', 'SDM', 'DM', 'SERVICE_PROVIDER', 'ADMIN', 'HOSPITAL', 'SUPPORT'].map((role) => (
+                  {['BENEFICIARY', 'CMHOUSER', 'SDM', 'DM', 'SERVICE_PROVIDER', 'ADMIN', 'HOSPITAL', 'SUPPORT'].map((role) => (
                     <option key={role} value={role}>{role}</option>
                   ))}
                 </select>

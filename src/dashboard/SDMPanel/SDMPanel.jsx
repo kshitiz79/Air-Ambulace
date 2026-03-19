@@ -14,20 +14,23 @@ import {
   FiUser,
 } from 'react-icons/fi';
 
-const links = [
-  { to: '/sdm-dashboard', label: 'Dashboard', icon: <FiHome /> },
-  { to: '/sdm-dashboard/response-from-cmo', label: 'Response From CMO', icon: <FiCornerUpLeft /> },
-  { to: '/sdm-dashboard/enquiry-detail-page', label: 'Enquiry Details', icon: <FiFileText /> },
-  { to: '/sdm-dashboard/search-page', label: 'Search Page', icon: <FiSearch /> },
-  { to: '/sdm-dashboard/profile', label: 'Profile', icon: <FiUser /> },
-];
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const SDMPanel = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
+
+  const links = [
+    { to: '/sdm-dashboard', label: t.dashboard, icon: <FiHome /> },
+    { to: '/sdm-dashboard/response-from-cmho', label: t.responseFromCMHO, icon: <FiCornerUpLeft /> },
+    { to: '/sdm-dashboard/enquiry-detail-page', label: t.enquiryDetails, icon: <FiFileText /> },
+    { to: '/sdm-dashboard/search-page', label: t.searchPage, icon: <FiSearch /> },
+    { to: '/sdm-dashboard/profile', label: t.profile, icon: <FiUser /> },
+  ];
   
   // Get real user information from localStorage
   const userName = localStorage.getItem('full_name') || localStorage.getItem('username') || 'SDM User';
-  const userRole = 'Sub Divisional Magistrate';
+  const userRole = t.subDivisionalMagistrate;
 
   const handleLogout = () => {
     localStorage.clear();
@@ -37,7 +40,7 @@ const SDMPanel = () => {
   return (
     <div className="flex h-screen font-sans">
       <SideBar
-        title="SDM Dashboard"
+        title={t.sdmDashboard}
         navigationLinks={links}
         userName={userName}
         userRole={userRole}

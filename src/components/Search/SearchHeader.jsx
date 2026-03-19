@@ -1,19 +1,22 @@
 import React from 'react';
 import { FiSearch } from 'react-icons/fi';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const SearchHeader = ({ userRole = 'SDM' }) => {
+  const { t } = useLanguage();
+
   const getTitle = () => {
-    return userRole === 'DM' ? 'Advanced Case Search' : 'Advanced Search';
+    return userRole === 'COLLECTOR' || userRole === 'DM' ? (t.advancedCaseSearch || 'Advanced Case Search') : (t.advancedSearch || 'Advanced Search');
   };
 
   const getDescription = () => {
-    return userRole === 'DM' 
-      ? 'Search cases by multiple criteria for review and approval'
-      : 'Search enquiries by multiple criteria';
+    return userRole === 'COLLECTOR' || userRole === 'DM' 
+      ? (t.searchCasesDesc || 'Search cases by multiple criteria for review and approval')
+      : (t.searchEnquiriesDesc || 'Search enquiries by multiple criteria');
   };
 
   const getIconColor = () => {
-    return userRole === 'DM' ? 'text-green-600' : 'text-blue-600';
+    return userRole === 'COLLECTOR' || userRole === 'DM' ? 'text-green-600' : 'text-blue-600';
   };
 
   return (

@@ -1,168 +1,88 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import baseUrl from '../baseUrl/baseUrl';
 
-export const useDashboardData = (role) => {
-  const [stats, setStats] = useState({});
-  const [chartData, setChartData] = useState({});
-  const [recentActivity, setRecentActivity] = useState([]);
+/**
+ * Shared hook for dashboard data fetching.
+ * Handles enquiries + optional extra endpoints, calculates monthly stats.
+ * @param {string[]} extraEndpoints - additional API paths to fetch (e.g. ['/api/orders', '/api/financial-sanctions'])
+ */
+export const useDashboardData = (extraEndpoints = []) => {
+  const [enquiries, setEnquiries] = useState([]);
+  const [extras, setExtras] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Mock data generator for development
-  const generateMockData = (userRole) => {
-    const baseStats = {
-      SDM: {
-        totalEnquiries: Math.floor(Math.random() * 500) + 100,
-        pendingReview: Math.floor(Math.random() * 50) + 10,
-        approved: Math.floor(Math.random() * 200) + 50,
-        rejected: Math.floor(Math.random() * 30) + 5,
-        forwardedToDM: Math.floor(Math.random() * 100) + 20,
-        queryToCMO: Math.floor(Math.random() * 40) + 5
-      },
-      DM: {
-        totalCases: Math.floor(Math.random() * 300) + 80,
-        pendingApproval: Math.floor(Math.random() * 40) + 8,
-        approved: Math.floor(Math.random() * 150) + 40,
-        rejected: Math.floor(Math.random() * 20) + 3,
-        financialSanctions: Math.floor(Math.random() * 80) + 15,
-        ordersReleased: Math.floor(Math.random() * 60) + 12
-      },
-      CMO: {
-        totalBeneficiaries: Math.floor(Math.random() * 800) + 200,
-        activeEnquiries: Math.floor(Math.random() * 60) + 15,
-        completedCases: Math.floor(Math.random() * 400) + 100,
-        pendingDocuments: Math.floor(Math.random() * 25) + 5,
-        escalatedCases: Math.floor(Math.random() * 15) + 2,
-        queriesFromSDM: Math.floor(Math.random() * 30) + 5
-      }
-    };
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
 
-    const activities = [
-      {
-        type: 'enquiry',
-        description: 'New enquiry submitted by Ramesh Patel',
-        timestamp: new Date(Date.now() - Math.random() * 3600000)
-      },
-      {
-        type: 'approval',
-        description: 'Case ENQ001 approved for air ambulance service',
-        timestamp: new Date(Date.now() - Math.random() * 7200000)
-      },
-      {
-        type: 'rejection',
-        description: 'Case ENQ002 rejected due to incomplete documents',
-        timestamp: new Date(Date.now() - Math.random() * 10800000)
-      },
-      {
-        type: 'user',
-        description: 'Profile updated successfully',
-        timestamp: new Date(Date.now() - Math.random() * 14400000)
-      },
-      {
-        type: 'enquiry',
-        description: 'Query sent to CMO for case ENQ003',
-        timestamp: new Date(Date.now() - Math.random() * 18000000)
-      }
-    ];
+      const [enquiriesRes, ...extraRes] = await Promise.all([
+        fetch(`${baseUrl}/api/enquiries`, { headers }),
+        ...extraEndpoints.map(ep =>
+          fetch(`${baseUrl}${ep}`, { headers }).catch(() => ({ ok: false }))
+        ),
+      ]);
 
-    const monthlyData = Array.from({ length: 12 }, (_, i) => ({
-      month: new Date(2024, i).toLocaleString('default', { month: 'short' }),
-      value: Math.floor(Math.random() * 100) + 20
-    }));
+      if (!enquiriesRes.ok) throw new Error('Failed to fetch enquiries');
 
-    const statusData = userRole === 'SDM' ? [
-      { name: 'Pending', value: baseStats.SDM.pendingReview, color: '#fbbf24' },
-      { name: 'Approved', value: baseStats.SDM.approved, color: '#10b981' },
-      { name: 'Rejected', value: baseStats.SDM.rejected, color: '#ef4444' },
-      { name: 'Forwarded', value: baseStats.SDM.forwardedToDM, color: '#3b82f6' }
-    ] : userRole === 'DM' ? [
-      { name: 'Pending', value: baseStats.DM.pendingApproval, color: '#fbbf24' },
-      { name: 'Approved', value: baseStats.DM.approved, color: '#10b981' },
-      { name: 'Rejected', value: baseStats.DM.rejected, color: '#ef4444' },
-      { name: 'Financial', value: baseStats.DM.financialSanctions, color: '#8b5cf6' }
-    ] : [
-      { name: 'Active', value: baseStats.CMO.activeEnquiries, color: '#3b82f6' },
-      { name: 'Completed', value: baseStats.CMO.completedCases, color: '#10b981' },
-      { name: 'Pending', value: baseStats.CMO.pendingDocuments, color: '#fbbf24' },
-      { name: 'Escalated', value: baseStats.CMO.escalatedCases, color: '#ef4444' }
-    ];
+      const enquiriesData = await enquiriesRes.json();
+      const extraData = await Promise.all(
+        extraRes.map(r => (r.ok ? r.json() : Promise.resolve({ data: [] })))
+      );
 
-    return {
-      stats: baseStats[userRole] || {},
-      chartData: {
-        monthly: monthlyData,
-        status: statusData
-      },
-      activities: activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-    };
-  };
-
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        
-        // For now, use mock data. Replace with actual API calls later
-        const mockData = generateMockData(role);
-        
-        setStats(mockData.stats);
-        setChartData(mockData.chartData);
-        setRecentActivity(mockData.activities);
-        
-        // Uncomment below for actual API integration
-        /*
-        const response = await fetch(`${baseUrl}/api/dashboard/${role.toLowerCase()}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch dashboard data');
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          setStats(data.stats);
-          setChartData(data.chartData);
-          setRecentActivity(data.activities);
-        }
-        */
-        
-        setError('');
-      } catch (err) {
-        console.error('Dashboard data fetch error:', err);
-        setError('Failed to load dashboard data');
-        
-        // Fallback to mock data on error
-        const mockData = generateMockData(role);
-        setStats(mockData.stats);
-        setChartData(mockData.chartData);
-        setRecentActivity(mockData.activities);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (role) {
-      fetchDashboardData();
+      setEnquiries(enquiriesData.data || []);
+      setExtras(extraData.map(d => d.data || []));
+      setError('');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-  }, [role]);
+  }, []);
 
-  const refreshData = () => {
-    const mockData = generateMockData(role);
-    setStats(mockData.stats);
-    setChartData(mockData.chartData);
-    setRecentActivity(mockData.activities);
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  const refresh = () => { setRefreshing(true); fetchData(); };
+
+  /** Calculate last-6-months stats from an enquiries array */
+  const calcMonthlyStats = (enqs, locale = 'en-US') =>
+    Array.from({ length: 6 }, (_, i) => {
+      const now = new Date();
+      const date = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+      const month = date.toLocaleDateString(locale, { month: 'short', year: 'numeric' });
+      const m = enqs.filter(e => {
+        const d = new Date(e.created_at);
+        return d.getMonth() === date.getMonth() && d.getFullYear() === date.getFullYear();
+      });
+      return {
+        month,
+        total: m.length,
+        approved: m.filter(e => e.status === 'APPROVED').length,
+        rejected: m.filter(e => e.status === 'REJECTED').length,
+        pending: m.filter(e => ['PENDING', 'FORWARDED'].includes(e.status)).length,
+      };
+    });
+
+  /** Standard enquiry status counts */
+  const counts = {
+    total: enquiries.length,
+    pending: enquiries.filter(e => e.status === 'PENDING').length,
+    approved: enquiries.filter(e => e.status === 'APPROVED').length,
+    rejected: enquiries.filter(e => e.status === 'REJECTED').length,
+    forwarded: enquiries.filter(e => e.status === 'FORWARDED').length,
+    escalated: enquiries.filter(e => e.status === 'ESCALATED').length,
+    completed: enquiries.filter(e => e.status === 'COMPLETED').length,
+    inProgress: enquiries.filter(e => e.status === 'IN_PROGRESS').length,
+    pendingOrForwarded: enquiries.filter(e => ['PENDING', 'FORWARDED'].includes(e.status)).length,
   };
 
-  return {
-    stats,
-    chartData,
-    recentActivity,
-    loading,
-    error,
-    refreshData
-  };
+  const recent = [...enquiries]
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .slice(0, 10);
+
+  return { enquiries, extras, loading, error, refreshing, refresh, counts, recent, calcMonthlyStats };
 };

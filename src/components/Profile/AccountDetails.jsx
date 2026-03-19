@@ -3,7 +3,7 @@ import { FaShieldAlt, FaCalendarAlt } from 'react-icons/fa';
 
 const AccountDetails = ({ user, getRoleBadgeColor, formatDate }) => {
   return (
-    <div className="bg-white rounded-lg shadow-lg">
+    <div className="bg-white rounded-lg shadow-sm">
       <div className="px-6 py-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-800 flex items-center">
           <FaShieldAlt className="mr-2 text-purple-600" />

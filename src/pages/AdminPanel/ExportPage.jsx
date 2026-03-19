@@ -240,7 +240,7 @@ const ExportPage = () => {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-sm p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-blue-100 text-sm font-medium">Total Enquiries</p>
@@ -252,7 +252,7 @@ const ExportPage = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg shadow-lg p-6 text-white">
+        <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg shadow-sm p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-yellow-100 text-sm font-medium">Pending Enquiries</p>
@@ -264,7 +264,7 @@ const ExportPage = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white">
+        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-sm p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 text-sm font-medium">Approved Enquiries</p>
@@ -276,7 +276,7 @@ const ExportPage = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-lg shadow-lg p-6 text-white">
+        <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-lg shadow-sm p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-red-100 text-sm font-medium">Rejected Enquiries</p>
@@ -396,7 +396,7 @@ const ExportPage = () => {
       </div>
 
       {/* Enquiries Table */}
-      <div className="w-full max-w-6xl bg-white rounded-lg shadow-lg p-6 mt-6">
+      <div className="w-full max-w-6xl bg-white rounded-lg shadow-sm p-6 mt-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Enquiries</h2>
           <button

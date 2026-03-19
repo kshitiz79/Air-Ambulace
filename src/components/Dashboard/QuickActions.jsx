@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const QuickActions = ({ actions = [] }) => {
+  const { t } = useLanguage();
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
+    <div className="bg-white rounded-lg shadow-sm p-6">
+      <h3 className="text-lg font-semibold text-gray-800 mb-4">{t.quickActions || 'Quick Actions'}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {actions.map((action, index) => (
           <Link

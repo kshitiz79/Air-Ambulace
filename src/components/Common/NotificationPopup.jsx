@@ -151,7 +151,7 @@ const NotificationPopup = ({ isOpen, onClose, onViewAll }) => {
     <div className="absolute top-full right-0 z-50 mt-2">
       <div
         ref={popupRef}
-        className="bg-white rounded-xl shadow-2xl border border-gray-100 w-96 max-h-[85vh] overflow-hidden transform transition-all duration-200 ease-out"
+        className="bg-white rounded-xl shadow-sm border border-gray-100 w-96 max-h-[85vh] overflow-hidden transform transition-all duration-200 ease-out"
         style={{
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)'
         }}

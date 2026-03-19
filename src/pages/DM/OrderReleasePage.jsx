@@ -15,7 +15,7 @@ const OrderReleasePage = () => {
     // Simulate order release
     addNotification(`Order released for Enquiry ${enquiryId}`);
     alert(`Order released for Enquiry ${enquiryId}`);
-    navigate('/dm');
+    navigate('/collector-dashboard');
   };
 
   return (

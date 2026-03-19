@@ -5,6 +5,7 @@ import {
   Navigate // <-- ADD THIS LINE
 } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
 
 
 
@@ -20,11 +21,11 @@ import NotificationPage from "./pages/Citizen/NotificationPage";
 import DoxUpload from "./pages/Citizen/DoxUpload";
 import FAQPage from "./pages/Citizen/FAQPage";
 
-import CmoDashboard from "./dashboard/CMOPanel/CmoDashboard";
-import EnquiryCreationPage from "./pages/CMO/EnquiryCreationPage";
+import CmhoDashboard from "./dashboard/CMHOPanel/CmhoDashboard";
+import EnquiryCreationPage from "./pages/CMHO/EnquiryCreationPage";
 
 
-import Dashboard from "./pages/CMO/Dashboard";
+import Dashboard from "./pages/CMHO/Dashboard";
 
 
 
@@ -32,22 +33,22 @@ import SDMPanel from "./dashboard/SDMPanel/SDMPanel";
 import SDMDashboard from "./pages/SDM/SDMDashboard";
 
 import EnquiryDetailsPage from "./pages/SDM/EnquiryDetailsPage";
-import QueryToCMOPage from "./pages/SDM/QueryToCMOPage";
+import QueryToCMHOPage from "./pages/SDM/QueryToCMHOPage";
 import ValidationPage from "./pages/SDM/ValidationPage";
 import SearchPage from "./pages/SDM/SearchPage";
-import ResponseFromCMO from "./pages/SDM/ResponseFromCMO";
+import ResponseFromCMHO from "./pages/SDM/ResponseFromCMHO";
 
 
 
 
 import DmPanel from "./dashboard/DMPanel/DmPanel";
-import DMDashboard from "./pages/DM/DMDashboard";
+import CollectorDashboard from "./pages/DM/CollectorDashboard";
 import ApprovalANDRejectionPage from "./pages/DM/ApprovalANDRejectionPage";
 import CaseFileViewPage from "./pages/DM/CaseFileViewPage";
 import EscalationPage from "./pages/DM/EscalationPage";
 import FinancialSanctionPage from "./pages/DM/FinancialSanctionPage";
 import OrderReleasePage from "./pages/DM/OrderReleasePage";
-import DMSearchPage from "./pages/DM/DMSearchPage";
+import CollectorSearchPage from "./pages/DM/CollectorSearchPage";
 
 import AirRequirementTeam from "./dashboard/AirRequirementTeam/AirRequirementTeam";
 import AirDashboard from "./pages/AirRequirementTeam/Dashboard";
@@ -81,15 +82,30 @@ import Login from "./pages/Auth/Login";
 // import HomePage from "./pages/HomePage";
 import Signup from "./pages/Auth/Signup";
 import CreateHospital from "./pages/AdminPanel/Hospital";
-import BeneficiaryEditPageList from "./pages/CMO/BeneficiaryEditPageList";
-import BeneficiaryDetailsEditPage from "./pages/CMO/BeneficiaryDetailsEditPage";
-import BeneficiaryDetailPage from "./pages/CMO/BeneficiaryDetailPage";
-import EscalateCase from "./pages/CMO/EscalateCase";
-import Notification from "./pages/CMO/Notification";
-import Profile from "./pages/CMO/Profile";
-import QueryFromSDM from "./pages/CMO/QueryFromSDM";
+import BeneficiaryEditPageList from "./pages/CMHO/BeneficiaryEditPageList";
+import BeneficiaryDetailsEditPage from "./pages/CMHO/BeneficiaryDetailsEditPage";
+import BeneficiaryDetailPage from "./pages/CMHO/BeneficiaryDetailPage";
+import EscalateCase from "./pages/CMHO/EscalateCase";
+import Notification from "./pages/CMHO/Notification";
+import Profile from "./pages/CMHO/Profile";
+import QueryFromSDM from "./pages/CMHO/QueryFromSDM";
+import QueryFromCollector from "./pages/CMHO/QueryFromCollector";
 import SDMProfile from "./pages/SDM/Profile";
 import DMProfile from "./pages/DM/Profile";
+import CollectorQueryToCmhoPage from "./pages/DM/CollectorQueryToCmhoPage";
+
+// DME Dashboard imports
+import DmePanel from "./dashboard/DMEPanel/DmePanel";
+import DMEDashboard from "./pages/DME/DMEDashboard";
+import DMEApprovalRejection from "./pages/DME/DMEApprovalRejection";
+import DMECaseFileList from "./pages/DME/DMECaseFileList";
+import DMECaseFileView from "./pages/DME/DMECaseFileView";
+import DMEEscalation from "./pages/DME/DMEEscalation";
+import DMEFinancialSanction from "./pages/DME/DMEFinancialSanction";
+import DMEOrderRelease from "./pages/DME/DMEOrderRelease";
+import DMESearch from "./pages/DME/DMESearch";
+import DMEProfile from "./pages/DME/DMEProfile";
+import DMEQueryToCMHO from "./pages/DME/DMEQueryToCMHO";
 
 // IT Team Dashboard imports
 import ITTeamDashboard from "./dashboard/ITTeam/ITTeamDashboard";
@@ -109,6 +125,9 @@ import AnalyticsReports from "./pages/ITTeam/AnalyticsReports";
 
 import AmbulanceManagementPage from "./pages/AirRequirementTeam/AmbulanceManagementPage";
 import HomePage from "./pages/HomePage";
+import { isTokenExpired } from "./utils/authUtils";
+import ScriptWarningToast from "./components/Common/ScriptWarningToast";
+import EmergencyContactFloat from "./components/Common/EmergencyContactFloat";
 
 
 function App() {
@@ -118,8 +137,16 @@ function App() {
     console.log('PrivateRoute check:', { token: !!token, role, roleRequired, pathname: window.location.pathname });
 
     if (!token) {
-      console.log('Redirecting to /login: No token');
-      return <Navigate to="/login" />;
+      console.log('Redirecting to /sign-in: No token');
+      return <Navigate to="/sign-in" />;
+    }
+
+    if (isTokenExpired(token)) {
+      console.log('Redirecting to /sign-in: Token expired');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('role');
+      return <Navigate to="/sign-in?expired=true" />;
     }
 
     if (roleRequired && role !== roleRequired) {
@@ -136,6 +163,9 @@ function App() {
 
   return (
     <ThemeProvider>
+      <LanguageProvider>
+      <ScriptWarningToast />
+      <EmergencyContactFloat />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/sign-in" element={<Login />} />
@@ -153,7 +183,7 @@ function App() {
 
 
 
-        <Route path="/cmo-dashboard" element={<PrivateRoute roleRequired="CMO"><CmoDashboard /></PrivateRoute>}>
+        <Route path="/cmho-dashboard" element={<PrivateRoute roleRequired="CMHO"><CmhoDashboard /></PrivateRoute>}>
           <Route index element={<Dashboard />} />
 
           <Route path="beneficiary-detail-page" element={<BeneficiaryEditPageList />} />
@@ -161,14 +191,15 @@ function App() {
           <Route path="enquiry-creation-page" element={<EnquiryCreationPage />} />
 
           <Route path="escalate-case" element={<EscalateCase />} />
-          <Route path="query-from-sdm" element={<QueryFromSDM />} />
+          {/* <Route path="query-from-sdm" element={<QueryFromSDM />} /> */}
+          <Route path="query-from-collector" element={<QueryFromCollector />} />
           <Route path="notification" element={<NotificationPage />} />
           <Route path="profile" element={<Profile />} />
         </Route>
 
-        {/* Standalone CMO routes */}
-        <Route path="/beneficiary-detail/:id" element={<PrivateRoute roleRequired="CMO"><BeneficiaryDetailPage /></PrivateRoute>} />
-        <Route path="/beneficiary-edit/:id" element={<PrivateRoute roleRequired="CMO"><BeneficiaryDetailsEditPage /></PrivateRoute>} />
+        {/* Standalone CMHO routes */}
+        <Route path="/beneficiary-detail/:id" element={<PrivateRoute roleRequired="CMHO"><BeneficiaryDetailPage /></PrivateRoute>} />
+        <Route path="/beneficiary-edit/:id" element={<PrivateRoute roleRequired="CMHO"><BeneficiaryDetailsEditPage /></PrivateRoute>} />
 
 
 
@@ -177,8 +208,8 @@ function App() {
         <Route path="/sdm-dashboard" element={<PrivateRoute roleRequired="SDM"><SDMPanel /></PrivateRoute>}>
           <Route index element={<SDMDashboard />} />
 
-          <Route path="response-from-cmo" element={<ResponseFromCMO />} />
-          <Route path="enquiry-detail-page/query-to-cmo/:enquiryId" element={<QueryToCMOPage />} />
+          <Route path="response-from-cmho" element={<ResponseFromCMHO />} />
+          <Route path="enquiry-detail-page/query-to-cmho/:enquiryId" element={<QueryToCMHOPage />} />
           <Route path="enquiry-detail-page" element={<EnquiryListPage />} />
           <Route path="enquiry-detail-page/:enquiryId" element={<EnquiryDetailsPage />} />
           <Route path="search-page" element={<SearchPage />} />
@@ -191,15 +222,16 @@ function App() {
 
 
 
-        <Route path="/dm-dashboard" element={<PrivateRoute roleRequired="DM"><DmPanel /></PrivateRoute>}>
-          <Route index element={<DMDashboard />} />
+        <Route path="/collector-dashboard" element={<PrivateRoute roleRequired="COLLECTOR"><DmPanel /></PrivateRoute>}>
+          <Route index element={<CollectorDashboard />} />
           <Route path="approval-reject" element={<ApprovalANDRejectionPage />} />
           <Route path="case-file/:enquiryId" element={<CaseFileViewPage />} />
+          <Route path="query-to-cmho/:enquiryId" element={<CollectorQueryToCmhoPage />} />
           <Route path="case-files" element={<CaseFileListPage />} />
           <Route path="escalation-page" element={<EscalationPage />} />
           <Route path="financial-page" element={<FinancialSanctionPage />} />
           <Route path="order-release-page" element={<OrderReleasePage />} />
-          <Route path="search-page" element={<DMSearchPage />} />
+          <Route path="search-page" element={<CollectorSearchPage />} />
           <Route path="notification" element={<NotificationPage />} />
           <Route path="profile" element={<DMProfile />} />
         </Route>
@@ -232,6 +264,22 @@ function App() {
           <Route path="profile" element={<AirTeamProfile />} />
         </Route>
 
+        <Route path="/dme-dashboard" element={<PrivateRoute roleRequired="DME"><DmePanel /></PrivateRoute>}>
+          <Route index element={<DMEDashboard />} />
+          <Route path="approval-reject" element={<DMEApprovalRejection />} />
+          <Route path="case-files" element={<DMECaseFileList />} />
+          <Route path="case-file/:enquiryId" element={<DMECaseFileView />} />
+          <Route path="escalation-page" element={<DMEEscalation />} />
+          <Route path="financial-page" element={<DMEFinancialSanction />} />
+          <Route path="financial-page/:enquiryId" element={<DMEFinancialSanction />} />
+          <Route path="order-release-page" element={<DMEOrderRelease />} />
+          <Route path="order-release-page/:enquiryId" element={<DMEOrderRelease />} />
+          <Route path="search-page" element={<DMESearch />} />
+          <Route path="profile" element={<DMEProfile />} />
+          <Route path="query-to-cmho/:enquiryId" element={<DMEQueryToCMHO />} />
+          <Route path="notification" element={<NotificationPage />} />
+        </Route>
+
         <Route path="/it-team" element={<PrivateRoute roleRequired="SUPPORT"><ITTeamDashboard /></PrivateRoute>}>
           <Route index element={<ITDashboard />} />
 
@@ -262,6 +310,7 @@ function App() {
         </Route>
 
       </Routes>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

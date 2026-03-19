@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   FiPhone, FiMail, FiCalendar, FiEye, FiSearch
 } from 'react-icons/fi';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const SearchResults = ({ 
   results, 
@@ -11,19 +12,18 @@ const SearchResults = ({
   getStatusBadge,
   formatDate 
 }) => {
+  const { t } = useLanguage();
+  const isCollector = userRole === 'COLLECTOR' || userRole === 'DM';
+
   const getViewLink = (item) => {
-    if (userRole === 'DM') {
-      return `/dm-dashboard/case-file/${item.enquiry_id}`;
+    if (isCollector) {
+      return `/collector-dashboard/case-file/${item.enquiry_id}`;
     }
     return `/sdm-dashboard/enquiry-detail-page/${item.enquiry_id}`;
   };
 
-  const getItemLabel = () => {
-    return userRole === 'DM' ? 'case' : 'enquiry';
-  };
-
   const getItemsLabel = () => {
-    return userRole === 'DM' ? 'cases' : 'enquiries';
+    return isCollector ? (t.cases || 'cases') : (t.enquiries || 'enquiries');
   };
 
   if (!hasSearched) {
@@ -34,9 +34,9 @@ const SearchResults = ({
     <div className="border-t border-gray-200">
       <div className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Search Results</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t.searchResults || 'Search Results'}</h2>
           <span className="text-sm text-gray-600">
-            {results.length} result{results.length !== 1 ? 's' : ''} found
+            {results.length} {results.length !== 1 ? (t.resultsFound || 'results found') : (t.resultFound || 'result found')}
           </span>
         </div>
 
@@ -46,27 +46,27 @@ const SearchResults = ({
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {userRole === 'DM' ? 'Case Details' : 'Enquiry Details'}
+                    {isCollector ? (t.caseDetails || 'Case Details') : (t.enquiryDetails || 'Enquiry Details')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Patient Info
+                    {t.patientInfo || 'Patient Info'}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Contact
+                    {t.contact || 'Contact'}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                    {t.status || 'Status'}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
+                    {t.date || 'Date'}
                   </th>
-                  {userRole === 'DM' && (
+                  {isCollector && (
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Amount
+                      {t.amount || 'Amount'}
                     </th>
                   )}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                    {t.actions || 'Actions'}
                   </th>
                 </tr>
               </thead>
@@ -86,10 +86,10 @@ const SearchResults = ({
                         {item.patient_name}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {item.father_spouse_name && `Father/Spouse: ${item.father_spouse_name}`}
+                        {item.father_spouse_name && `${t.fatherSpouseName || 'Father/Spouse'}: ${item.father_spouse_name}`}
                       </div>
                       <div className="text-sm text-gray-500">
-                        Age: {item.age || 'N/A'}, Gender: {item.gender || 'N/A'}
+                        {t.age || 'Age'}: {item.age || 'N/A'}, {t.gender || 'Gender'}: {item.gender || 'N/A'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -111,7 +111,7 @@ const SearchResults = ({
                         {formatDate(item.created_at)}
                       </div>
                     </td>
-                    {userRole === 'DM' && (
+                    {isCollector && (
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
                           {item.estimated_amount ? `₹${item.estimated_amount.toLocaleString()}` : 'N/A'}
@@ -124,7 +124,7 @@ const SearchResults = ({
                         className="flex items-center text-blue-600 hover:text-blue-900"
                       >
                         <FiEye className="mr-1" />
-                        View Details
+                        {t.viewDetails || 'View Details'}
                       </Link>
                     </td>
                   </tr>
@@ -136,10 +136,10 @@ const SearchResults = ({
           <div className="text-center py-12">
             <FiSearch className="mx-auto text-6xl text-gray-400 mb-4" />
             <div className="text-gray-500 text-lg">
-              No {getItemsLabel()} found matching your search criteria
+              {t.noResultsMatching || `No ${getItemsLabel()} found matching your search criteria`}
             </div>
             <p className="text-gray-400 mt-2">
-              Try adjusting your search parameters
+              {t.tryAdjustingSearch || 'Try adjusting your search parameters'}
             </p>
           </div>
         )}

@@ -14,7 +14,7 @@ export default function FAQPage() {
     },
     {
       question: 'What documents are required?',
-      answer: 'Ayushman card, medical reports, and ID proof (optional, may be handled by CMO).'
+      answer: 'Ayushman card, medical reports, and ID proof (optional, may be handled by CMHO).'
     }
   ];
 

@@ -1,7 +1,10 @@
 import React from 'react';
 import { FaClock, FaUser, FaFileAlt, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const RecentActivity = ({ activities = [] }) => {
+  const { t } = useLanguage();
+
   const getActivityIcon = (type) => {
     switch (type) {
       case 'enquiry':
@@ -23,17 +26,17 @@ const RecentActivity = ({ activities = [] }) => {
     const diffInMinutes = Math.floor((now - time) / (1000 * 60));
     
     if (diffInMinutes < 60) {
-      return `${diffInMinutes}m ago`;
+      return `${diffInMinutes}${t.minutesAgoShort || 'm'} ${t.ago || 'ago'}`;
     } else if (diffInMinutes < 1440) {
-      return `${Math.floor(diffInMinutes / 60)}h ago`;
+      return `${Math.floor(diffInMinutes / 60)}${t.hoursAgoShort || 'h'} ${t.ago || 'ago'}`;
     } else {
-      return `${Math.floor(diffInMinutes / 1440)}d ago`;
+      return `${Math.floor(diffInMinutes / 1440)}${t.daysAgoShort || 'd'} ${t.ago || 'ago'}`;
     }
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h3>
+    <div className="bg-white rounded-lg shadow-sm p-6">
+      <h3 className="text-lg font-semibold text-gray-800 mb-4">{t.recentActivity || 'Recent Activity'}</h3>
       <div className="space-y-4 max-h-96 overflow-y-auto">
         {activities.length > 0 ? (
           activities.map((activity, index) => (
@@ -50,7 +53,7 @@ const RecentActivity = ({ activities = [] }) => {
         ) : (
           <div className="text-center py-8">
             <FaClock className="mx-auto h-12 w-12 text-gray-400" />
-            <p className="mt-2 text-sm text-gray-500">No recent activity</p>
+            <p className="mt-2 text-sm text-gray-500">{t.noRecentActivity || 'No recent activity'}</p>
           </div>
         )}
       </div>

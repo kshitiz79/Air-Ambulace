@@ -1,28 +1,60 @@
-import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FaUser, FaLock, FaArrowRight, FaUserCircle, FaSun, FaMoon } from 'react-icons/fa';
-import baseUrl from '../../baseUrl/baseUrl';
+import React, { useState, useContext, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { FaUser, FaLock, FaArrowRight, FaUserCircle, FaEye, FaEyeSlash } from 'react-icons/fa';
+import baseUrl from '../../baseUrl/baseUrl.jsx';
 import { AuthContext } from '../../Context/AuthContext.jsx';
-import { useTheme } from '../../contexts/ThemeContext';
-import { useThemeStyles } from '../../hooks/useThemeStyles';
+import { useTheme } from '../../contexts/ThemeContext.jsx';
+import { useThemeStyles } from '../../hooks/useThemeStyles.js';
+import { useLanguage } from '../../contexts/LanguageContext.jsx';
 
 const Login = () => {
   const [email, setEmail] = useState('');
+  const [step, setStep] = useState(1);
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [timer, setTimer] = useState(60);
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useContext(AuthContext);
-  const { isDark, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('expired') === 'true') {
+      setErrorMessage('Your session has expired. Please log in again.');
+      window.history.replaceState({}, '', '/sign-in');
+    }
+  }, [location]);
+
+  useEffect(() => {
+    let interval;
+    if (step === 3 && timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    } else {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [step, timer]);
+
+  const { isDark } = useTheme();
   const styles = useThemeStyles();
+  const { t } = useLanguage();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMessage('');
+    setSuccessMessage('');
     setIsLoading(true);
 
     try {
-      console.log('Sending login request:', { email });
       const response = await fetch(`${baseUrl}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -36,8 +68,6 @@ const Login = () => {
       }
 
       const data = await response.json();
-      console.log('Login response:', data);
-
       if (!data.token || !data.role || !data.userId) {
         setErrorMessage('Invalid server response. Missing required fields.');
         return;
@@ -48,50 +78,150 @@ const Login = () => {
         role: data.role.toUpperCase(),
         full_name: data.full_name || 'Unknown',
       };
-      console.log('Storing user data:', userData);
+      
       login(userData, data.token);
 
       localStorage.setItem('token', data.token);
       localStorage.setItem('role', data.role.toUpperCase());
       localStorage.setItem('district_id', data.district_id ?? '');
-      localStorage.setItem('userId', data.userId); // Primary key (camelCase)
-      localStorage.setItem('user_id', data.userId); // Backward compatibility (snake_case)
+      localStorage.setItem('userId', data.userId);
+      localStorage.setItem('user_id', data.userId);
       localStorage.setItem('full_name', data.full_name || data.username || 'User');
       localStorage.setItem('username', data.username || '');
       localStorage.setItem('email', data.email || '');
 
-      console.log('Navigating to role:', data.role.toUpperCase());
       switch (data.role.toUpperCase()) {
-        case 'BENEFICIARY':
-          navigate('/user', { replace: true });
-          break;
-        case 'CMO':
-          navigate('/cmo-dashboard', { replace: true });
-          break;
-        case 'SDM':
-          navigate('/sdm-dashboard', { replace: true });
-          break;
-        case 'ADMIN':
-          navigate('/admin', { replace: true });
-          break;
-        case 'DM':
-          navigate('/dm-dashboard', { replace: true });
-          break;
-        case 'SERVICE_PROVIDER':
-          navigate('/air-team', { replace: true });
-          break;
-        case 'SUPPORT':
-          navigate('/it-team', { replace: true });
-          break;
-        case 'HOSPITAL':
-          navigate('/hospital-dashboard', { replace: true });
-          break;
-        default:
-          setErrorMessage('Role not recognized. Please contact support.');
-          break;
+        case 'BENEFICIARY': navigate('/user', { replace: true }); break;
+        case 'CMHO': navigate('/cmho-dashboard', { replace: true }); break;
+        case 'SDM': navigate('/sdm-dashboard', { replace: true }); break;
+        case 'ADMIN': navigate('/admin', { replace: true }); break;
+        case 'COLLECTOR': navigate('/collector-dashboard', { replace: true }); break;
+        case 'SERVICE_PROVIDER': navigate('/air-team', { replace: true }); break;
+        case 'SUPPORT': navigate('/it-team', { replace: true }); break;
+        case 'HOSPITAL': navigate('/hospital-dashboard', { replace: true }); break;
+        case 'DME': navigate('/dme-dashboard', { replace: true }); break;
+        default: setErrorMessage('Role not recognized. Please contact support.'); break;
       }
     } catch (err) {
-      console.error('Login error:', err);
+      setErrorMessage('Server error. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSendOtp = async (e) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`${baseUrl}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setSuccessMessage('OTP sent successfully to your email');
+        setStep(3); // Based on user instructions: Send is step 2, Verify is step 3
+        setTimer(60);
+      } else {
+        setErrorMessage(data.message || 'Failed to send OTP');
+      }
+    } catch (err) {
+      setErrorMessage('Server error. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`${baseUrl}/api/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp: otp.join('') })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setSuccessMessage('OTP verified successfully');
+        setStep(4);
+      } else {
+        setErrorMessage(data.message || 'Invalid OTP');
+      }
+    } catch (err) {
+      setErrorMessage('Server error. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (timer > 0) return;
+    setErrorMessage('');
+    setSuccessMessage('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`${baseUrl}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setSuccessMessage('OTP resent successfully to your email');
+        setTimer(60);
+      } else {
+        setErrorMessage(data.message || 'Failed to resend OTP');
+      }
+    } catch (err) {
+      setErrorMessage('Server error. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setErrorMessage("Passwords do not match!");
+      return;
+    }
+    setErrorMessage('');
+    setSuccessMessage('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`${baseUrl}/api/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp: otp.join(''), newPassword })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setSuccessMessage('Password reset successfully! You can now login.');
+        setTimeout(() => {
+          setStep(1);
+          setEmail('');
+          setOtp(['', '', '', '', '', '']);
+          setNewPassword('');
+          setSuccessMessage('');
+        }, 2000);
+      } else {
+        setErrorMessage(data.message || 'Failed to reset password');
+      }
+    } catch (err) {
       setErrorMessage('Server error. Please try again later.');
     } finally {
       setIsLoading(false);
@@ -99,90 +229,351 @@ const Login = () => {
   };
 
   return (
-    <div className={`relative min-h-screen ${isDark
-      ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'
-      : 'bg-center bg-cover'
-      }`} style={!isDark ? { backgroundImage: `url('/bg-image.png')` } : {}}>
-      {!isDark && <div className="absolute inset-0 bg-black/20"></div>}
+<div
+  className="relative min-h-screen bg-center bg-cover"
+  style={{ backgroundImage: `url('/bg-image.png')` }}
+>
+  <div className="absolute inset-0 bg-black/20"></div>
 
-      {/* Theme Toggle Button */}
-      <div className="absolute top-6 right-6 z-20">
-        <button
-          onClick={toggleTheme}
-          className={`p-3 rounded-full transition-all duration-200 ${isDark
-            ? 'bg-slate-700 hover:bg-slate-600 text-yellow-400'
-            : 'bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm'
-            }`}
-          title="Toggle theme"
-        >
-          {isDark ? <FaSun size={20} /> : <FaMoon size={20} />}
-        </button>
-      </div>
-
-      <div className="relative z-10 flex items-center justify-center h-full p-4">
-        <div className={`w-full max-w-md rounded-2xl p-8 items-center justify-center mt-40 ${isDark
-          ? 'bg-slate-800/90 backdrop-blur-sm border border-slate-700'
-          : 'bg-white/10 backdrop-blur-sm'
-          }`}>
-          <h2 className={`text-3xl font-bold text-start mb-1 ${isDark ? 'text-slate-100' : 'text-gray-100'
-            }`}>Welcome Back</h2>
-          <p className={`text-start mb-6 ${isDark ? 'text-slate-300' : 'text-gray-100'
-            }`}>Log in to access your dashboard</p>
+  <div className="relative z-10 flex items-center justify-start h-screen px-10">
+    
+<div className="w-full max-w-xl p-10 px-24 h-[700px] bg-white border border-slate-300  shadow-lg flex flex-col justify-center">
+          
+          {step === 1 && (
+            <>
+              <h2 className={`text-3xl font-bold text-center mb-1 ${isDark ? 'text-slate-900' : 'text-gray-900'}`}>{t.welcomeBack || 'Welcome Back'}</h2>
+              <p className={`text-center mb-6 ${isDark ? 'text-slate-900' : 'text-gray-900'}`}>{t.logInToAccess || 'Log in to access your dashboard'}</p>
+              
           <form onSubmit={handleLogin} className="space-y-5">
-            <div className="relative">
-              <FaUserCircle className={`absolute left-4 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-400' : 'text-gray-50'
-                }`} />
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className={`w-full pl-12 pr-4 py-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${isDark
-                  ? 'bg-slate-700/80 text-slate-100 placeholder-slate-400 border border-slate-600'
-                  : 'bg-white/40 bg-opacity-60 placeholder-gray-100 text-white'
-                  }`}
-              />
-            </div>
-            <div className="relative">
-              <FaLock className={`absolute left-4 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-400' : 'text-gray-50'
-                }`} />
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className={`w-full pl-12 pr-4 py-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${isDark
-                  ? 'bg-slate-700/80 text-slate-100 placeholder-slate-400 border border-slate-600'
-                  : 'bg-white/40 bg-opacity-60 placeholder-gray-100 text-white'
-                  }`}
-              />
-            </div>
 
-            {errorMessage && <p className="text-red-600 text-sm text-center animate-shake">{errorMessage}</p>}
-            <div className="flex  gap-2">
+  <div className="relative">
+    <FaUserCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-700" />
+
+    <input
+      type="email"
+      placeholder={t.email || 'Email'}
+      value={email}
+      onChange={(e)=>setEmail(e.target.value)}
+      required
+      className="w-full pl-12 pr-4 py-3 rounded-sm bg-white border border-gray-300 placeholder-gray-600 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+    />
+  </div>
 
 
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-1/3 flex items-center  justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold  rounded-full transition"
-              >
-                {isLoading ? 'Logging in...' : 'Login'} <FaArrowRight />
-              </button>
+  <div className="relative">
+    <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-700" />
 
-              <div className="text-center justify-center mt-3">
-                <span className={isDark ? 'text-slate-300' : 'text-gray-100'}>Forgot Password </span>
-                <button className={`font-semibold px-3 py-1 rounded-full transition-colors ${isDark
-                  ? 'text-blue-400 bg-slate-700 hover:bg-slate-600'
-                  : 'text-blue-100 bg-blue-900 hover:bg-blue-800'
-                  }`}>
-                  Click me
-                </button>
-              </div>
-            </div>
-          </form>
+    <input
+      type={showPassword ? "text" : "password"}
+      placeholder={t.password || 'Password'}
+      value={password}
+      onChange={(e)=>setPassword(e.target.value)}
+      required
+      className="w-full pl-12 pr-12 py-3 rounded-sm bg-white border border-gray-300 placeholder-gray-600 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+    />
+    <button
+      type="button"
+      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+      onClick={() => setShowPassword(!showPassword)}
+    >
+      {showPassword ? <FaEyeSlash /> : <FaEye />}
+    </button>
+  </div>
+
+
+  {errorMessage && (
+    <p className="text-red-600 text-sm text-center animate-shake">
+      {errorMessage}
+    </p>
+  )}
+
+  {successMessage && (
+    <p className="text-green-600 text-sm text-center">
+      {successMessage}
+    </p>
+  )}
+
+
+  <div className="flex flex-col gap-2 pt-2">
+
+    <button
+      type="submit"
+      disabled={isLoading}
+      className="w-full flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-sm transition disabled:opacity-70 cursor-pointer"
+    >
+      {isLoading ? (t.loggingIn || 'Logging in...') : (t.login || 'Login')} <FaArrowRight />
+    </button>
+
+
+
+    
+
+      <button
+        type="button"
+        onClick={() => {
+          setStep(2);
+          setErrorMessage('');
+          setSuccessMessage('');
+        }}
+        className=" text-blue-600 hover:text-blue-800 px-3 py-1 rounded-sm transition-colors cursor-pointer"
+      >
+         {t.forgotPassword || 'Forgot Password?'}
+      </button>
+
+
+
+  </div>
+
+</form>
+            </>
+          )}
+
+          {step === 2 && (
+        <form onSubmit={handleSendOtp} className="space-y-5">
+
+  <h2 className="text-4xl font-bold text-center mb-6 text-gray-900">
+    {t.resetPassword || 'Reset Password'}
+  </h2>
+
+  <p className="text-center text-sm mb-4 text-gray-700">
+    {t.enterEmailForOtp || 'Enter your email address to receive an OTP'}
+  </p>
+
+  <div className="relative">
+    <FaUserCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-700" />
+
+    <input
+      type="email"
+      placeholder={t.enterYourEmail || 'Enter your email'}
+      value={email}
+      onChange={(e)=>setEmail(e.target.value)}
+      required
+      className="w-full pl-12 pr-4 py-3 rounded-sm bg-white border border-gray-300 placeholder-gray-600 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+    />
+  </div>
+
+  {errorMessage && (
+    <p className="text-red-500 text-sm text-center">
+      {errorMessage}
+    </p>
+  )}
+
+  {successMessage && (
+    <p className="text-green-500 text-sm text-center">
+      {successMessage}
+    </p>
+  )}
+
+  <div className="flex flex-col gap-3">
+
+    <button
+      type="submit"
+      disabled={isLoading}
+      className="w-full bg-blue-500 hover:bg-blue-600 py-3 text-white font-semibold rounded-sm transition disabled:opacity-70"
+    >
+      {isLoading ? (t.sending || 'Sending...') : (t.sendOtp || 'Send OTP')}
+    </button>
+
+    <button
+      type="button"
+      onClick={() => {
+        setStep(1);
+        setErrorMessage('');
+        setSuccessMessage('');
+      }}
+      className="w-full text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors mt-2"
+    >
+      {t.backToLogin || 'Back to Login'}
+    </button>
+
+  </div>
+
+</form>
+          )}
+
+{step === 3 && (
+<form onSubmit={handleVerifyOtp} className="flex flex-col items-center text-center space-y-6">
+
+  <h2 className="text-4xl font-bold text-gray-900">
+    {t.verifyYourEmail || 'Verify Your Email Address'}
+  </h2>
+
+  <p className="text-gray-500 text-lg">
+    {t.sentCodeTo || 'We sent an activation authentication code to'}
+    <br />
+    <span className="text-blue-600 font-semibold">{email}</span>
+  </p>
+
+  {/* OTP BOXES */}
+  <div className="flex gap-4 justify-center mt-4">
+    {[...Array(6)].map((_, i) => (
+      <input
+        key={i}
+        type="text"
+        maxLength="1"
+        className="w-14 h-14 border border-gray-300 rounded-lg text-center text-xl focus:ring-2 focus:ring-blue-500 outline-none"
+        value={otp[i]}
+        onChange={(e) => {
+          const value = e.target.value;
+          if (!/^[0-9]?$/.test(value)) return;
+
+          const newOtp = [...otp];
+          newOtp[i] = value;
+          setOtp(newOtp);
+
+          if (value && e.target.nextSibling) {
+            e.target.nextSibling.focus();
+          }
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Backspace' && !otp[i] && e.target.previousSibling) {
+            e.target.previousSibling.focus();
+          }
+        }}
+      />
+    ))}
+  </div>
+
+  {errorMessage && (
+    <p className="text-red-500 text-sm">{errorMessage}</p>
+  )}
+
+  {successMessage && (
+    <p className="text-green-500 text-sm">{successMessage}</p>
+  )}
+
+  <p className="text-gray-500 text-sm">
+    {t.wrongEmailAddress || 'Wrong email address?'}
+    <button
+      type="button"
+      onClick={() => setStep(2)}
+      className="text-blue-600 font-semibold"
+    >
+      {t.goBack || 'Go Back'}
+    </button>
+  </p>
+
+  <p className="text-sm font-bold text-gray-400">
+    {timer > 0 ? (
+      `${t.resendCodeIn || 'Resend Code in'} 0:${timer.toString().padStart(2, '0')}`
+    ) : (
+      <span className="text-green-600">{t.canResendNow || 'You can resend now'}</span>
+    )}
+  </p>
+
+
+  <button
+    type="submit"
+    disabled={isLoading}
+    className="w-full max-w-md bg-gradient-to-r from-blue-500 to-blue-500 py-3 text-white font-semibold rounded-md"
+  >
+    {isLoading ? (t.verifying || 'Verifying...') : (t.verifyOtp || 'Verify OTP')}
+  </button>
+
+  <p className="text-gray-500 text-sm">
+    {t.haventReceivedOtp || "Haven't received the OTP yet?"}
+    <button 
+      type="button"
+      onClick={handleResendOtp}
+      disabled={timer > 0 || isLoading}
+      className={`font-semibold transition-colors ${timer > 0 || isLoading ? 'text-gray-300 cursor-not-allowed' : 'text-blue-600 hover:text-blue-800'}`}
+    >
+      {t.resendOtp || 'Resend OTP'}
+    </button>
+  </p>
+
+</form>
+)}
+
+{step === 4 && (
+<form onSubmit={handleResetPassword} className="flex flex-col items-center text-center space-y-2">
+
+  <h2 className="text-4xl font-bold text-gray-900">
+    {t.createNewPassword || 'Create new password'}
+  </h2>
+
+  <p className="text-gray-500 text-lg max-w-md">
+    {t.newPasswordDifferent || 'Your new password must be different from previous used passwords.'}
+  </p>
+
+  {/* PASSWORD */}
+  <div className="w-full max-w-md text-left">
+    <label className="text-sm text-gray-500">{t.password || 'Password'}</label>
+
+    <div className="relative mt-2">
+      <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+
+      <input
+        type={showPassword ? "text" : "password"}
+        placeholder={t.password || 'Password'}
+        value={newPassword}
+        onChange={(e)=>setNewPassword(e.target.value)}
+        required
+        minLength={8}
+        className="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-md placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      />
+      <button
+        type="button"
+        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+        onClick={() => setShowPassword(!showPassword)}
+      >
+        {showPassword ? <FaEyeSlash /> : <FaEye />}
+      </button>
+    </div>
+
+    <p className="text-sm text-gray-400 mt-1">
+      {t.mustBeAtLeast8Chars || 'Must be at least 8 characters.'}
+    </p>
+  </div>
+
+  {/* CONFIRM PASSWORD */}
+  <div className="w-full max-w-md text-left">
+    <label className="text-sm text-gray-500">{t.confirmPassword || 'Confirm Password'}</label>
+
+    <div className="relative mt-2">
+      <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+
+      <input
+        type={showConfirmPassword ? "text" : "password"}
+        placeholder={t.confirmPassword || 'Confirm Password'}
+        value={confirmPassword}
+        onChange={(e)=>setConfirmPassword(e.target.value)}
+        required
+        className="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-md placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      />
+      <button
+        type="button"
+        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+      >
+        {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+      </button>
+    </div>
+
+    <p className="text-sm text-gray-400 mt-1">
+      {t.passwordsMustMatch || 'Both passwords must match.'}
+    </p>
+  </div>
+
+  {errorMessage && (
+    <p className="text-red-500 text-sm">{errorMessage}</p>
+  )}
+
+  {successMessage && (
+    <p className="text-green-500 text-sm">{successMessage}</p>
+  )}
+
+  <button
+    type="submit"
+    disabled={isLoading}
+    className="w-full max-w-md bg-blue-500 hover:bg-blue-600 py-3 text-white font-semibold rounded-md"
+  >
+    {isLoading ? (t.resetting || "Resetting...") : (t.resetPassword || "Reset Password")}
+  </button>
+
+</form>
+)}
+
         </div>
       </div>
     </div>

@@ -38,6 +38,106 @@ const EnquiryDetailsPage = () => {
   const [showEscalationModal, setShowEscalationModal] = useState(false);
   const [escalationReason, setEscalationReason] = useState('');
   const [escalatedTo, setEscalatedTo] = useState('District Magistrate');
+  const [language, setLanguage] = useState('en');
+
+  const labels = {
+    en: {
+      patientInfo: "Patient Information",
+      patientName: "Patient Name",
+      fatherSpouseName: "Father/Spouse Name",
+      age: "Age",
+      gender: "Gender",
+      address: "Address",
+      medicalCondition: "Medical Condition",
+      chiefComplaint: "Chief Complaint",
+      generalCondition: "General Condition",
+      vitals: "Vitals",
+      identityInfo: "Identity Information",
+      hospitalDistrictInfo: "Hospital & District Info",
+      destinationHospital: "Destination Hospital",
+      sourceHospital: "Source Hospital",
+      district: "District",
+      contactPerson: "Contact Person",
+      contactName: "Contact Name",
+      contactPhone: "Contact Phone",
+      contactEmail: "Contact Email",
+      referralTransport: "Referral & Transport",
+      referringPhysician: "Referring Physician",
+      designation: "Designation",
+      referralNote: "Referral Note",
+      transportationCategory: "Transportation Category",
+      airTransportType: "Air Transport Type",
+      authorityDetails: "Authority Details",
+      recommendingAuthority: "Recommending Authority",
+      approvalAuthority: "Approval Authority",
+      ambulanceNotes: "Ambulance & Notes",
+      bedAvailability: "Bed Availability",
+      alsAmbulance: "ALS Ambulance",
+      ambulanceReg: "Ambulance Reg",
+      ambulanceContact: "Ambulance Contact",
+      medicalTeamNote: "Medical Team Note",
+      remarks: "Remarks",
+      documents: "Documents",
+      download: "Download",
+      yes: "Yes",
+      no: "No",
+      abhaNumber: "ABHA Number",
+      pmJayId: "PM JAY ID",
+      backToList: "Back to List",
+      queryCmho: "Query CMHO",
+      approve: "Approve",
+      reject: "Reject",
+      forwardDm: "Forward to Collector"
+    },
+    hi: {
+      patientInfo: "रोगी की जानकारी",
+      patientName: "रोगी का नाम",
+      fatherSpouseName: "पिता/पति/पत्नी का नाम",
+      age: "आयु",
+      gender: "लिंग",
+      address: "पता",
+      medicalCondition: "चिकित्सा स्थिति",
+      chiefComplaint: "मुख्य शिकायत",
+      generalCondition: "सामान्य स्थिति",
+      vitals: "महत्वपूर्ण संकेत",
+      identityInfo: "पहचान कार्ड की जानकारी",
+      hospitalDistrictInfo: "अस्पताल और जिला जानकारी",
+      destinationHospital: "गंतव्य अस्पताल",
+      sourceHospital: "स्रोत अस्पताल",
+      district: "जिला",
+      contactPerson: "संपर्क व्यक्ति",
+      contactName: "संपर्क नाम",
+      contactPhone: "संपर्क फोन",
+      contactEmail: "संपर्क ईमेल",
+      referralTransport: "रेफरल और परिवहन",
+      referringPhysician: "रेफर करने वाले चिकित्सक",
+      designation: "पद",
+      referralNote: "रेफरल नोट",
+      transportationCategory: "परिवहन श्रेणी",
+      airTransportType: "हवाई परिवहन प्रकार",
+      authorityDetails: "प्राधिकरण विवरण",
+      recommendingAuthority: "सिफारिश करने वाला प्राधिकरण",
+      approvalAuthority: "अनुमोदन प्राधिकरण",
+      ambulanceNotes: "एम्बुलेंस और नोट्स",
+      bedAvailability: "बेड की उपलब्धता",
+      alsAmbulance: "ALS एम्बुलेंस",
+      ambulanceReg: "एम्बुलेंस पंजीकरण",
+      ambulanceContact: "एम्बुलेंस संपर्क",
+      medicalTeamNote: "मेडिकल टीम नोट",
+      remarks: "टिप्पणियाँ",
+      documents: "दस्तावेज़",
+      download: "डाउनलोड",
+      yes: "हाँ",
+      no: "नहीं",
+      abhaNumber: "ABHA नंबर",
+      pmJayId: "PM JAY ID",
+      backToList: "सूची पर वापस जाएं",
+      queryCmho: "CMHO से पूछताछ करें",
+      approve: "स्वीकार करें",
+      reject: "अस्वीकार करें",
+      forwardDm: "कलेक्टर को भेजें"
+    }
+  };
 
   useEffect(() => {
     const fetchEnquiry = async () => {
@@ -155,7 +255,7 @@ const EnquiryDetailsPage = () => {
   );
 
   const Card = ({ title, children, icon: Icon }) => (
-    <div className="bg-white rounded-2xl shadow-lg p-6 transition-all hover:shadow-xl">
+    <div className="bg-white rounded-2xl shadow-sm p-6 transition-all hover:shadow-sm">
       <div className="flex items-center gap-3 border-b border-gray-200 pb-3 mb-4">
         {Icon && <Icon className="text-blue-600 h-6 w-6" />}
         <h3 className="text-xl font-semibold text-gray-800">{title}</h3>
@@ -175,21 +275,29 @@ const EnquiryDetailsPage = () => {
     <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-          <h1 className="text-3xl font-bold text-gray-900">Enquiry #{enquiryId}</h1>
+          <div className="flex flex-col">
+            <h1 className="text-3xl font-bold text-gray-900">Enquiry #{enquiryId}</h1>
+            <button
+              onClick={() => setLanguage(lang => (lang === 'en' ? 'hi' : 'en'))}
+              className="mt-2 text-sm px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50 transition w-fit"
+            >
+              {language === 'en' ? 'हिन्दी में देखें' : 'View in English'}
+            </button>
+          </div>
           <span className={`px-4 py-2 text-sm font-medium rounded-full ring-1 ring-inset ${statusStyles[enquiry.status] || 'bg-gray-100 text-gray-800'}`}>
             {enquiry.status}
           </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-          <Card title="Patient Information" icon={FiUser}>
-            <Field label="Patient Name" value={enquiry.patient_name} />
+          <Card title={labels[language].patientInfo} icon={FiUser}>
+            <Field label={labels[language].patientName} value={enquiry.patient_name} />
             
             {/* Identity Card Information */}
             {enquiry.identity_card_type && enquiry.ayushman_card_number ? (
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-500 mb-1">
-                  {enquiry.identity_card_type === 'ABHA' ? 'ABHA Number' : 'PM JAY ID'}
+                  {enquiry.identity_card_type === 'ABHA' ? labels[language].abhaNumber : labels[language].pmJayId}
                 </label>
                 <div className="flex items-center space-x-3">
                   <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
@@ -208,53 +316,53 @@ const EnquiryDetailsPage = () => {
             
             <Field label="Aadhar Card" value={enquiry.aadhar_card_number} />
             <Field label="PAN Card" value={enquiry.pan_card_number} />
-            <Field label="Medical Condition" value={enquiry.medical_condition} />
-            <Field label="Chief Complaint" value={enquiry.chief_complaint} />
-            <Field label="General Condition" value={enquiry.general_condition} />
-            <Field label="Vitals" value={enquiry.vitals} />
-            <Field label="Age" value={enquiry.age} />
-            <Field label="Gender" value={enquiry.gender} />
-            <Field label="Address" value={enquiry.address} />
+            <Field label={labels[language].medicalCondition} value={enquiry.medical_condition} />
+            <Field label={labels[language].chiefComplaint} value={enquiry.chief_complaint} />
+            <Field label={labels[language].generalCondition} value={enquiry.general_condition} />
+            <Field label={labels[language].vitals} value={enquiry.vitals} />
+            <Field label={labels[language].age} value={enquiry.age} />
+            <Field label={labels[language].gender} value={enquiry.gender} />
+            <Field label={labels[language].address} value={enquiry.address} />
           </Card>
 
-          <Card title="Hospital & District Info" icon={FiHome}>
-            <Field label="Destination Hospital" value={enquiry.hospital?.name} />
-            <Field label="Source Hospital" value={enquiry.sourceHospital?.name} />
-            <Field label="District" value={enquiry.district?.district_name} />
+          <Card title={labels[language].hospitalDistrictInfo} icon={FiHome}>
+            <Field label={labels[language].destinationHospital} value={enquiry.hospital?.name} />
+            <Field label={labels[language].sourceHospital} value={enquiry.sourceHospital?.name} />
+            <Field label={labels[language].district} value={enquiry.district?.district_name} />
           </Card>
 
-          <Card title="Contact Person" icon={FiPhone}>
-            <Field label="Contact Name" value={enquiry.contact_name} />
-            <Field label="Contact Phone" value={enquiry.contact_phone} />
-            <Field label="Contact Email" value={enquiry.contact_email} />
+          <Card title={labels[language].contactPerson} icon={FiPhone}>
+            <Field label={labels[language].contactName} value={enquiry.contact_name} />
+            <Field label={labels[language].contactPhone} value={enquiry.contact_phone} />
+            <Field label={labels[language].contactEmail} value={enquiry.contact_email} />
           </Card>
 
-          <Card title="Referral & Transport" icon={FiClipboard}>
-            <Field label="Referring Physician" value={enquiry.referring_physician_name} />
-            <Field label="Designation" value={enquiry.referring_physician_designation} />
-            <Field label="Referral Note" value={enquiry.referral_note} />
-            <Field label="Transportation Category" value={enquiry.transportation_category} />
-            <Field label="Air Transport Type" value={enquiry.air_transport_type} />
+          <Card title={labels[language].referralTransport} icon={FiClipboard}>
+            <Field label={labels[language].referringPhysician} value={enquiry.referring_physician_name} />
+            <Field label={labels[language].designation} value={enquiry.referring_physician_designation} />
+            <Field label={labels[language].referralNote} value={enquiry.referral_note} />
+            <Field label={labels[language].transportationCategory} value={enquiry.transportation_category} />
+            <Field label={labels[language].airTransportType} value={enquiry.air_transport_type} />
           </Card>
 
-          <Card title="Authority Details" icon={FiUser}>
-            <Field label="Recommending Authority" value={enquiry.recommending_authority_name} />
-            <Field label="Designation" value={enquiry.recommending_authority_designation} />
-            <Field label="Approval Authority" value={enquiry.approval_authority_name} />
-            <Field label="Designation" value={enquiry.approval_authority_designation} />
+          <Card title={labels[language].authorityDetails} icon={FiUser}>
+            <Field label={labels[language].recommendingAuthority} value={enquiry.recommending_authority_name} />
+            <Field label={labels[language].designation} value={enquiry.recommending_authority_designation} />
+            <Field label={labels[language].approvalAuthority} value={enquiry.approval_authority_name} />
+            <Field label={labels[language].designation} value={enquiry.approval_authority_designation} />
           </Card>
 
-          <Card title="Ambulance & Notes" icon={FiFileText}>
-            <Field label="Bed Availability" value={enquiry.bed_availability_confirmed ? 'Yes' : 'No'} />
-            <Field label="ALS Ambulance" value={enquiry.als_ambulance_arranged ? 'Yes' : 'No'} />
-            <Field label="Ambulance Reg" value={enquiry.ambulance_registration_number} />
-            <Field label="Ambulance Contact" value={enquiry.ambulance_contact} />
-            <Field label="Medical Team Note" value={enquiry.medical_team_note} />
-            <Field label="Remarks" value={enquiry.remarks} />
+          <Card title={labels[language].ambulanceNotes} icon={FiFileText}>
+            <Field label={labels[language].bedAvailability} value={enquiry.bed_availability_confirmed ? labels[language].yes : labels[language].no} />
+            <Field label={labels[language].alsAmbulance} value={enquiry.als_ambulance_arranged ? labels[language].yes : labels[language].no} />
+            <Field label={labels[language].ambulanceReg} value={enquiry.ambulance_registration_number} />
+            <Field label={labels[language].ambulanceContact} value={enquiry.ambulance_contact} />
+            <Field label={labels[language].medicalTeamNote} value={enquiry.medical_team_note} />
+            <Field label={labels[language].remarks} value={enquiry.remarks} />
           </Card>
         </div>
 
-        <Card title="Documents" icon={FiFileText}>
+        <Card title={labels[language].documents} icon={FiFileText}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {enquiry.documents?.length > 0 ? enquiry.documents.map((doc) => (
               <div key={doc.document_id} className="bg-indigo-50 p-4 rounded-xl shadow-sm hover:shadow-md transition">
@@ -265,7 +373,7 @@ const EnquiryDetailsPage = () => {
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
                 >
-                  <FiDownload className="h-5 w-5" /> Download
+                  <FiDownload className="h-5 w-5" /> {labels[language].download}
                 </a>
               </div>
             )) : <p className="text-gray-500">No documents uploaded.</p>}
@@ -273,7 +381,7 @@ const EnquiryDetailsPage = () => {
         </Card>
 
         {/* Professional Action Panel */}
-        <div className="mt-8 bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="mt-8 bg-white rounded-2xl shadow-sm overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
             <h3 className="text-xl font-semibold text-white flex items-center gap-2">
@@ -286,18 +394,18 @@ const EnquiryDetailsPage = () => {
           {/* Action Buttons */}
           <div className="p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-              {/* Query CMO - Primary Action */}
+              {/* Query CMHO - Primary Action */}
               <Link
-                to={`/sdm-dashboard/enquiry-detail-page/query-to-cmo/${enquiryId}`}
-                className="group relative overflow-hidden bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-xl p-4 hover:from-yellow-600 hover:to-yellow-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                to={`/sdm-dashboard/enquiry-detail-page/query-to-cmho/${enquiryId}`}
+                className="group relative overflow-hidden bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-xl p-4 hover:from-yellow-600 hover:to-yellow-700 transition-all duration-200 shadow-sm hover:shadow-sm transform hover:-translate-y-1"
               >
                 <div className="flex items-center gap-3">
                   <div className="bg-white/20 p-2 rounded-lg">
                     <FiClipboard className="h-6 w-6" />
                   </div>
                   <div>
-                    <h4 className="font-semibold">Query CMO</h4>
-                    <p className="text-sm text-yellow-100">Send inquiry to CMO</p>
+                    <h4 className="font-semibold">{labels[language].queryCmho}</h4>
+                    <p className="text-sm text-yellow-100">Send inquiry to CMHO</p>
                   </div>
                 </div>
                 <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
@@ -307,10 +415,10 @@ const EnquiryDetailsPage = () => {
               <button
                 onClick={() => handleApproveReject('APPROVE')}
                 disabled={['APPROVED', 'REJECTED', 'ESCALATED'].includes(enquiry.status) || actionLoading === 'approve'}
-                className={`group relative overflow-hidden rounded-xl p-4 transition-all duration-200 shadow-lg transform ${
+                className={`group relative overflow-hidden rounded-xl p-4 transition-all duration-200 shadow-sm transform ${
                   ['APPROVED', 'REJECTED', 'ESCALATED'].includes(enquiry.status) || actionLoading === 'approve'
                     ? 'bg-gray-300 cursor-not-allowed text-gray-500'
-                    : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 hover:shadow-xl hover:-translate-y-1'
+                    : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 hover:shadow-sm hover:-translate-y-1'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -345,10 +453,10 @@ const EnquiryDetailsPage = () => {
               <button
                 onClick={() => handleApproveReject('REJECT')}
                 disabled={['APPROVED', 'REJECTED', 'ESCALATED'].includes(enquiry.status) || actionLoading === 'reject'}
-                className={`group relative overflow-hidden rounded-xl p-4 transition-all duration-200 shadow-lg transform ${
+                className={`group relative overflow-hidden rounded-xl p-4 transition-all duration-200 shadow-sm transform ${
                   ['APPROVED', 'REJECTED', 'ESCALATED'].includes(enquiry.status) || actionLoading === 'reject'
                     ? 'bg-gray-300 cursor-not-allowed text-gray-500'
-                    : 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 hover:shadow-xl hover:-translate-y-1'
+                    : 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 hover:shadow-sm hover:-translate-y-1'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -383,10 +491,10 @@ const EnquiryDetailsPage = () => {
               <button
                 onClick={handleForward}
                 disabled={['FORWARDED', 'ESCALATED'].includes(enquiry.status) || actionLoading === 'forwarding'}
-                className={`group relative overflow-hidden rounded-xl p-4 transition-all duration-200 shadow-lg transform ${
+                className={`group relative overflow-hidden rounded-xl p-4 transition-all duration-200 shadow-sm transform ${
                   ['FORWARDED', 'ESCALATED'].includes(enquiry.status) || actionLoading === 'forwarding'
                     ? 'bg-gray-300 cursor-not-allowed text-gray-500'
-                    : 'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-700 hover:shadow-xl hover:-translate-y-1'
+                    : 'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-700 hover:shadow-sm hover:-translate-y-1'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -402,13 +510,13 @@ const EnquiryDetailsPage = () => {
                     )}
                   </div>
                   <div>
-                    <h4 className="font-semibold">{actionLoading === 'forwarding' ? 'Forwarding...' : 'Forward to DM'}</h4>
+                    <h4 className="font-semibold">{actionLoading === 'forwarding' ? 'Forwarding...' : 'Forward to Collector'}</h4>
                     <p className={`text-sm ${
                       ['FORWARDED', 'ESCALATED'].includes(enquiry.status) || actionLoading === 'forwarding'
                         ? 'text-gray-400'
                         : 'text-purple-100'
                     }`}>
-                      Send to District Magistrate
+                      Send to Collector
                     </p>
                   </div>
                 </div>
@@ -421,10 +529,10 @@ const EnquiryDetailsPage = () => {
               <button
                 onClick={() => setShowEscalationModal(true)}
                 disabled={enquiry.status === 'ESCALATED' || actionLoading === 'escalating'}
-                className={`group relative overflow-hidden rounded-xl p-4 transition-all duration-200 shadow-lg transform ${
+                className={`group relative overflow-hidden rounded-xl p-4 transition-all duration-200 shadow-sm transform ${
                   enquiry.status === 'ESCALATED' || actionLoading === 'escalating'
                     ? 'bg-gray-300 cursor-not-allowed text-gray-500'
-                    : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 hover:shadow-xl hover:-translate-y-1'
+                    : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 hover:shadow-sm hover:-translate-y-1'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -458,7 +566,7 @@ const EnquiryDetailsPage = () => {
               {/* Back to List */}
               <button
                 onClick={() => navigate('/sdm-dashboard/enquiry-list-page')}
-                className="group relative overflow-hidden bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl p-4 hover:from-gray-600 hover:to-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                className="group relative overflow-hidden bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl p-4 hover:from-gray-600 hover:to-gray-700 transition-all duration-200 shadow-sm hover:shadow-sm transform hover:-translate-y-1"
               >
                 <div className="flex items-center gap-3">
                   <div className="bg-white/20 p-2 rounded-lg">
@@ -503,7 +611,7 @@ const EnquiryDetailsPage = () => {
         {/* Escalation Modal */}
         {showEscalationModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <div className="bg-white rounded-2xl shadow-sm max-w-md w-full p-6">
               <div className="flex items-center gap-3 mb-4">
                 <FiAlertTriangle className="text-orange-600 h-6 w-6" />
                 <h3 className="text-xl font-semibold text-gray-800">Escalate Case</h3>
@@ -519,7 +627,7 @@ const EnquiryDetailsPage = () => {
                     onChange={(e) => setEscalatedTo(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                   >
-                    <option value="District Magistrate">District Magistrate</option>
+                    <option value="Collector">Collector</option>
                     <option value="Chief Medical Officer">Chief Medical Officer</option>
                     <option value="State Health Department">State Health Department</option>
                     <option value="Emergency Response Team">Emergency Response Team</option>

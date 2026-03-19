@@ -15,23 +15,27 @@ import SideBar from '../../components/Global/SideBar';
 import Header from '../../components/Global/Header';
 import { FaPlane } from 'react-icons/fa';
 
-const navigationLinks = [
-  { to: '/air-team', label: 'Dashboard', icon: <FiHome /> },
-  { to: '/air-team/ambulance-assignment-page', label: 'Flight Assignments', icon: <FiTruck /> },
-  { to: '/air-team/case-detail-page', label: 'Case Management', icon: <FiInfo /> },
-  { to: '/air-team/post-operation-page', label: 'Operation Reports', icon: <FiActivity /> },
-  { to: '/air-team/ambulance-management-page', label: 'Ambulance Management', icon: <FaPlane /> },
-  { to: '/air-team/tracker-page', label: 'Flight Tracker', icon: <FiMapPin /> },
-  { to: '/air-team/invoice-generation-page', label: 'Invoice Management', icon: <FiDollarSign /> },
-  { to: '/air-team/case-close-file', label: 'Case Closure', icon: <FiFileText /> },
-  { to: '/air-team/profile', label: 'My Profile', icon: <FiUser /> },
-];
+import { useLanguage } from '../../contexts/LanguageContext';
+
 const AirRequirementTeam = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
+
+  const navigationLinks = [
+    { to: '/air-team', label: t.dashboard, icon: <FiHome /> },
+    { to: '/air-team/ambulance-assignment-page', label: t.flightAssignments, icon: <FiTruck /> },
+    { to: '/air-team/case-detail-page', label: t.caseManagement, icon: <FiInfo /> },
+    { to: '/air-team/post-operation-page', label: t.operationReports, icon: <FiActivity /> },
+    { to: '/air-team/ambulance-management-page', label: t.ambulanceManagement, icon: <FaPlane /> },
+    { to: '/air-team/tracker-page', label: t.flightTracker, icon: <FiMapPin /> },
+    { to: '/air-team/invoice-generation-page', label: t.invoiceManagement, icon: <FiDollarSign /> },
+    { to: '/air-team/case-close-file', label: t.caseClosure, icon: <FiFileText /> },
+    { to: '/air-team/profile', label: t.myProfile, icon: <FiUser /> },
+  ];
   
   // Get real user information from localStorage
   const userName = localStorage.getItem('full_name') || localStorage.getItem('username') || 'Air Team User';
-  const userRole = 'Air Requirement Team';
+  const userRole = t.airRequirementTeam;
 
   const handleLogout = () => {
     localStorage.clear();
@@ -41,7 +45,7 @@ const AirRequirementTeam = () => {
   return (
     <div className="flex h-screen font-sans bg-gray-100">
       <SideBar
-        title="Air Requirement Team Dashboard"
+        title={t.airTeamDashboard}
         navigationLinks={navigationLinks}
         userName={userName}
         userRole={userRole}

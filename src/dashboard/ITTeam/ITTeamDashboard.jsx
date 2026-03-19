@@ -21,40 +21,43 @@ import {
   FiBarChart2
 } from 'react-icons/fi';
 
-const navigationLinks = [
-  { to: '/it-team', label: 'Dashboard', icon: <FiHome /> },
-  
-  // User & System Management
-  { to: '/it-team/all-users', label: 'User Management', icon: <FiUsers /> },
-  { to: '/it-team/system-logs', label: 'System Logs', icon: <FiCode /> },
-  { to: '/it-team/database-management', label: 'Database', icon: <FiDatabase /> },
-  { to: '/it-team/security-center', label: 'Security Center', icon: <FiShield /> },
-  { to: '/it-team/system-settings', label: 'System Settings', icon: <FiSettings /> },
-  
-  // Data Management
-  { to: '/it-team/district-management', label: 'District Management', icon: <FiMapPin /> },
-  { to: '/it-team/hospital-management', label: 'Hospital Management', icon: <FiMapPin /> },
-  { to: '/it-team/ambulance-management', label: 'Ambulance Fleet', icon: <FiTruck /> },
-  
-  // Operations Management
-  { to: '/it-team/enquiry-management', label: 'All Enquiries', icon: <FiFileText /> },
-  { to: '/it-team/flight-assignments', label: 'Flight Assignments', icon: <FiActivity /> },
-  { to: '/it-team/invoices-management', label: 'Invoice Management', icon: <FiDollarSign /> },
-  { to: '/it-team/case-escalations', label: 'Case Escalations', icon: <FiAlertTriangle /> },
-  { to: '/it-team/post-operations', label: 'Post Operations', icon: <FiClock /> },
-  
-  // Import/Export & Analytics
-  { to: '/it-team/data-import-export', label: 'Data Import/Export', icon: <FiUpload /> },
-  { to: '/it-team/analytics-reports', label: 'Analytics & Reports', icon: <FiBarChart2 /> },
-  { to: '/it-team/advanced-search', label: 'Advanced Search', icon: <FiSearch /> },
-];
+import { useLanguage } from './../../contexts/LanguageContext';
 
 const ITTeamDashboard = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
+
+  const navigationLinks = [
+    { to: '/it-team', label: t.dashboard, icon: <FiHome /> },
+    
+    // User & System Management
+    { to: '/it-team/all-users', label: t.userManagement, icon: <FiUsers /> },
+    { to: '/it-team/system-logs', label: t.systemLogs, icon: <FiCode /> },
+    { to: '/it-team/database-management', label: t.database, icon: <FiDatabase /> },
+    { to: '/it-team/security-center', label: t.securityCenter, icon: <FiShield /> },
+    { to: '/it-team/system-settings', label: t.systemSettings, icon: <FiSettings /> },
+    
+    // Data Management
+    { to: '/it-team/district-management', label: t.districtManagement, icon: <FiMapPin /> },
+    { to: '/it-team/hospital-management', label: t.hospitalManagement, icon: <FiMapPin /> },
+    { to: '/it-team/ambulance-management', label: t.ambulanceFleet, icon: <FiTruck /> },
+    
+    // Operations Management
+    { to: '/it-team/enquiry-management', label: t.allEnquiries, icon: <FiFileText /> },
+    { to: '/it-team/flight-assignments', label: t.flightAssignments, icon: <FiActivity /> },
+    { to: '/it-team/invoices-management', label: t.invoiceManagement, icon: <FiDollarSign /> },
+    { to: '/it-team/case-escalations', label: t.caseEscalations, icon: <FiAlertTriangle /> },
+    { to: '/it-team/post-operations', label: t.postOperations, icon: <FiClock /> },
+    
+    // Import/Export & Analytics
+    { to: '/it-team/data-import-export', label: t.dataImportExport, icon: <FiUpload /> },
+    { to: '/it-team/analytics-reports', label: t.analyticsReports, icon: <FiBarChart2 /> },
+    { to: '/it-team/advanced-search', label: t.advancedSearch, icon: <FiSearch /> },
+  ];
   
   // Get real user information from localStorage
   const userName = localStorage.getItem('full_name') || localStorage.getItem('username') || 'Support Admin';
-  const userRole = 'System Administrator';
+  const userRole = t.systemAdministrator;
 
   const handleLogout = () => {
     localStorage.clear();
@@ -64,7 +67,7 @@ const ITTeamDashboard = () => {
   return (
     <div className="flex h-screen font-sans bg-gray-100">
       <SideBar
-        title="IT Team Dashboard"
+        title={t.itTeamDashboard}
         navigationLinks={navigationLinks}
         userName={userName}
         userRole={userRole}

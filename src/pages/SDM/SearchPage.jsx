@@ -18,7 +18,7 @@ const SearchPage = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="bg-white rounded-lg shadow-lg">
+      <div className="bg-white rounded-lg shadow-sm">
         {/* Header */}
         <SearchHeader userRole="SDM" />
 

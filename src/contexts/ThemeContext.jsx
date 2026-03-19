@@ -11,38 +11,11 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState('light');
-
-  useEffect(() => {
-    // Check localStorage for saved theme
-    const savedTheme = localStorage.getItem('airAmbulanceTheme');
-    if (savedTheme) {
-      setTheme(savedTheme);
-    } else {
-      // Check system preference
-      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setTheme(systemPrefersDark ? 'dark' : 'light');
-    }
-  }, []);
-
-  useEffect(() => {
-    // Apply theme to document
-    document.documentElement.setAttribute('data-theme', theme);
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-    
-    // Save to localStorage
-    localStorage.setItem('airAmbulanceTheme', theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-  };
-
   const value = {
-    theme,
-    toggleTheme,
-    setTheme,
-    isDark: theme === 'dark'
+    theme: 'light',
+    toggleTheme: () => {},
+    setTheme: () => {},
+    isDark: false
   };
 
   return (

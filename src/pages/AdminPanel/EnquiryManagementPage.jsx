@@ -12,6 +12,7 @@ const EnquiryManagementPage = () => {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [districtFilter, setDistrictFilter] = useState('ALL');
   const [deleteLoading, setDeleteLoading] = useState(null);
+  const [enquiryToDelete, setEnquiryToDelete] = useState(null);
 
   // Fetch all enquiries
   const fetchEnquiries = async () => {
@@ -75,21 +76,20 @@ const EnquiryManagementPage = () => {
   }, [enquiries, searchTerm, statusFilter, districtFilter]);
 
   // Delete enquiry
-  const handleDeleteEnquiry = async (enquiryId) => {
-    if (!window.confirm('Are you sure you want to delete this enquiry? This action cannot be undone.')) {
-      return;
-    }
-
-    setDeleteLoading(enquiryId);
+  const handleDeleteEnquiry = async () => {
+    if (!enquiryToDelete) return;
+    
+    setDeleteLoading(enquiryToDelete);
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`${baseUrl}/api/enquiries/${enquiryId}`, {
+      await axios.delete(`${baseUrl}/api/enquiries/${enquiryToDelete}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       // Remove from local state
-      setEnquiries(prev => prev.filter(enquiry => enquiry.enquiry_id !== enquiryId));
+      setEnquiries(prev => prev.filter(enquiry => enquiry.enquiry_id !== enquiryToDelete));
       setError('');
+      setEnquiryToDelete(null);
     } catch (err) {
       console.error('Failed to delete enquiry:', err);
       setError('Failed to delete enquiry: ' + (err.response?.data?.message || err.message));
@@ -202,7 +202,7 @@ const EnquiryManagementPage = () => {
                   key={enquiry.enquiry_id}
                   enquiry={enquiry}
                   districts={districts}
-                  onDelete={handleDeleteEnquiry}
+                  onDelete={() => setEnquiryToDelete(enquiry.enquiry_id)}
                   deleteLoading={deleteLoading === enquiry.enquiry_id}
                 />
               ))}
@@ -223,6 +223,34 @@ const EnquiryManagementPage = () => {
             </div>
           )}
         </>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {enquiryToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Confirm Deletion</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete this enquiry? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setEnquiryToDelete(null)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                disabled={deleteLoading === enquiryToDelete}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteEnquiry}
+                disabled={deleteLoading === enquiryToDelete}
+                className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-md transition-colors flex items-center"
+              >
+                {deleteLoading === enquiryToDelete ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -271,7 +299,7 @@ const EnquiryCard = ({ enquiry, districts, onDelete, deleteLoading }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
+    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-sm transition-shadow duration-200">
       {/* Header with Status and Delete Button */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex flex-col gap-2">

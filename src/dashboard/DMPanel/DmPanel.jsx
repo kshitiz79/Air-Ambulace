@@ -4,23 +4,23 @@ import { FiHome, FiThumbsUp, FiFileText, FiAlertCircle, FiDollarSign, FiSend, Fi
 import SideBar from './../../components/Global/SideBar';
 import Header from './../../components/Global/Header';
 
-const navigationLinks = [
-  { to: '/dm-dashboard', label: 'Dashboard', icon: <FiHome /> },
-  // { to: '/dm-dashboard/approval-reject', label: 'Approval / Reject', icon: <FiThumbsUp /> },
-  { to: '/dm-dashboard/case-files', label: 'Case File', icon: <FiFileText /> },
-  { to: '/dm-dashboard/escalation-page', label: 'Escalation Page', icon: <FiAlertCircle /> },
-  // { to: '/dm-dashboard/financial-page', label: 'Financial Page', icon: <FiDollarSign /> },
-  // { to: '/dm-dashboard/order-release-page', label: 'Order Release', icon: <FiSend /> },
-  { to: '/dm-dashboard/search-page', label: 'Search Page', icon: <FiSearch /> },
-  { to: '/dm-dashboard/profile', label: 'Profile', icon: <FiUser /> },
-];
+import { useLanguage } from '../../contexts/LanguageContext';
 
-const DMDashboard = () => {
+const CollectorDashboard = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
+
+  const navigationLinks = [
+    { to: '/collector-dashboard', label: t.dashboard, icon: <FiHome /> },
+    { to: '/collector-dashboard/case-files', label: t.caseFile, icon: <FiFileText /> },
+    { to: '/collector-dashboard/escalation-page', label: t.escalationPage, icon: <FiAlertCircle /> },
+    { to: '/collector-dashboard/search-page', label: t.searchPage, icon: <FiSearch /> },
+    { to: '/collector-dashboard/profile', label: t.profile, icon: <FiUser /> },
+  ];
   
   // Get real user information from localStorage
-  const userName = localStorage.getItem('full_name') || localStorage.getItem('username') || 'DM User';
-  const userRole = 'District Magistrate';
+  const userName = localStorage.getItem('full_name') || localStorage.getItem('username') || 'Collector User';
+  const userRole = t.districtMagistrate;
 
   const handleLogout = () => {
     localStorage.clear();
@@ -30,7 +30,7 @@ const DMDashboard = () => {
   return (
     <div className="flex h-screen font-sans">
       <SideBar
-        title="DM Dashboard"
+        title={t.dmDashboard}
         navigationLinks={navigationLinks}
         userName={userName}
         userRole={userRole}
@@ -55,4 +55,4 @@ const DMDashboard = () => {
   );
 };
 
-export default DMDashboard;
+export default CollectorDashboard;

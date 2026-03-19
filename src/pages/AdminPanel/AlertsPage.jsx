@@ -26,7 +26,7 @@ const AlertsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center py-8">
-      <div className="w-full max-w-7xl bg-white rounded-lg shadow-lg p-6">
+      <div className="w-full max-w-7xl bg-white rounded-lg shadow-sm p-6">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Enquiry Alerts</h2>
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
         {loading ? (

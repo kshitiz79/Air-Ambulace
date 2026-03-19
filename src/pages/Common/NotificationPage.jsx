@@ -249,7 +249,7 @@ const NotificationPage = () => {
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <div className="flex justify-between items-start">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-sm">
                   <FiBell className="text-white" size={24} />
                 </div>
                 <div>
@@ -357,7 +357,7 @@ const NotificationPage = () => {
                   <p className="text-sm font-medium text-blue-700 mb-1">Total Notifications</p>
                   <p className="text-3xl font-bold text-blue-900">{pagination.total}</p>
                 </div>
-                <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center shadow-sm">
                   <FiBell className="text-white" size={20} />
                 </div>
               </div>
@@ -369,7 +369,7 @@ const NotificationPage = () => {
                   <p className="text-sm font-medium text-amber-700 mb-1">Unread</p>
                   <p className="text-3xl font-bold text-amber-900">{unreadCount}</p>
                 </div>
-                <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center shadow-sm">
                   <FiClock className="text-white" size={20} />
                 </div>
               </div>
@@ -381,7 +381,7 @@ const NotificationPage = () => {
                   <p className="text-sm font-medium text-emerald-700 mb-1">Read</p>
                   <p className="text-3xl font-bold text-emerald-900">{notifications.length - unreadCount}</p>
                 </div>
-                <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center shadow-sm">
                   <FiCheckCircle className="text-white" size={20} />
                 </div>
               </div>

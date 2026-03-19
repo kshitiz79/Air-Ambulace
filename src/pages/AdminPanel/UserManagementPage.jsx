@@ -47,6 +47,8 @@ const UserManagementPage = () => {
   const [editFormData, setEditFormData] = useState({});
   const [updateLoading, setUpdateLoading] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [userToToggle, setUserToToggle] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('list');
 
@@ -272,23 +274,43 @@ const UserManagementPage = () => {
   };
 
   // Handle delete user
-  const handleDeleteUser = async (userId) => {
-    if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
 
-    setDeletingId(userId);
+    setDeletingId(userToDelete);
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`${baseUrl}/api/users/${userId}`, {
+      await axios.delete(`${baseUrl}/api/users/${userToDelete}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       setSuccess('User deleted successfully!');
       fetchData();
+      setUserToDelete(null);
 
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to delete user');
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  // Handle toggle user status
+  const handleToggleStatus = async () => {
+    if (!userToToggle) return;
+    
+    const newStatus = userToToggle.status === 'active' ? 'inactive' : 'active';
+    try {
+      const token = localStorage.getItem('token');
+      // Pass the existing user fields alongside the updated status properly. The backend checks for duplicate emails and usernames, so omit them if we're not changing them or keep them identical.
+      await axios.put(`${baseUrl}/api/users/${userToToggle.user_id}`, { status: newStatus }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSuccess(`User login ${newStatus === 'active' ? 'enabled' : 'disabled'} successfully!`);
+      fetchData();
+      setUserToToggle(null);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update user status');
     }
   };
 
@@ -320,13 +342,14 @@ const UserManagementPage = () => {
   const getRoleColor = (role) => {
     const colors = {
       ADMIN: 'bg-red-100 text-red-800',
-      CMO: 'bg-blue-100 text-blue-800',
+      CMHO: 'bg-blue-100 text-blue-800',
       SDM: 'bg-green-100 text-green-800',
-      DM: 'bg-purple-100 text-purple-800',
+      COLLECTOR: 'bg-purple-100 text-purple-800',
       SERVICE_PROVIDER: 'bg-orange-100 text-orange-800',
       BENEFICIARY: 'bg-gray-100 text-gray-800',
       HOSPITAL: 'bg-pink-100 text-pink-800',
       SUPPORT: 'bg-yellow-100 text-yellow-800',
+      DME: 'bg-teal-100 text-teal-800',
     };
     return colors[role] || 'bg-gray-100 text-gray-800';
   };
@@ -347,9 +370,9 @@ const UserManagementPage = () => {
         data: dashboardStats.roleStats.map(r => r.count),
         backgroundColor: [
           'rgba(239, 68, 68, 0.8)',   // Red for ADMIN
-          'rgba(59, 130, 246, 0.8)',  // Blue for CMO
+          'rgba(59, 130, 246, 0.8)',  // Blue for CMHO
           'rgba(16, 185, 129, 0.8)',  // Green for SDM
-          'rgba(139, 92, 246, 0.8)',  // Purple for DM
+          'rgba(139, 92, 246, 0.8)',  // Purple for COLLECTOR
           'rgba(245, 158, 11, 0.8)',  // Orange for SERVICE_PROVIDER
           'rgba(107, 114, 128, 0.8)', // Gray for BENEFICIARY
           'rgba(236, 72, 153, 0.8)',  // Pink for HOSPITAL
@@ -400,7 +423,7 @@ const UserManagementPage = () => {
   }
 
   return (
-    <div className={`max-w-7xl mx-auto p-6 ${styles.pageBackground}`}>
+    <div className={`w-full min-w-0 mx-auto p-4 md:p-6 ${styles.pageBackground}`}>
       {/* Header */}
       <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} mb-6`}>
         <div className={`px-6 py-4 border-b ${styles.borderColor}`}>
@@ -476,7 +499,7 @@ const UserManagementPage = () => {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-sm p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-blue-100 text-sm font-medium">Total Users</p>
@@ -488,7 +511,7 @@ const UserManagementPage = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white">
+        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-sm p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 text-sm font-medium">Active Users</p>
@@ -500,7 +523,7 @@ const UserManagementPage = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-lg shadow-lg p-6 text-white">
+        <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-lg shadow-sm p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-red-100 text-sm font-medium">Inactive Users</p>
@@ -589,7 +612,7 @@ const UserManagementPage = () => {
                   className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
                 >
                   <option value="ALL">All Roles</option>
-                  {['ADMIN', 'CMO', 'SDM', 'DM', 'SERVICE_PROVIDER', 'BENEFICIARY', 'HOSPITAL', 'SUPPORT'].map(role => (
+                  {['ADMIN', 'CMHO', 'SDM', 'COLLECTOR', 'SERVICE_PROVIDER', 'BENEFICIARY', 'HOSPITAL', 'SUPPORT', 'DME'].map(role => (
                     <option key={role} value={role}>{role}</option>
                   ))}
                 </select>
@@ -638,13 +661,13 @@ const UserManagementPage = () => {
           </div>
 
           {/* User List */}
-          <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow}`}>
+          <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} w-full overflow-hidden`}>
             <div className={`px-6 py-4 border-b ${styles.borderColor}`}>
               <h2 className={`text-xl font-semibold ${styles.primaryText}`}>
                 User List ({filteredUsers.length})
               </h2>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto w-full">
               {filteredUsers.length === 0 ? (
                 <div className={`p-8 text-center ${styles.secondaryText}`}>
                   <FaUsers className="mx-auto text-4xl mb-4 text-gray-300" />
@@ -732,7 +755,14 @@ const UserManagementPage = () => {
                               Edit
                             </button>
                             <button
-                              onClick={() => handleDeleteUser(user.user_id)}
+                              onClick={() => setUserToToggle(user)}
+                              className={`${user.status === 'active' ? 'text-orange-600 hover:text-orange-900' : 'text-green-600 hover:text-green-900'}`}
+                            >
+                              <FaUserCog className="inline mr-1" />
+                              {user.status === 'active' ? 'Disable' : 'Enable'}
+                            </button>
+                            <button
+                              onClick={() => setUserToDelete(user.user_id)}
                               disabled={deletingId === user.user_id}
                               className="text-red-600 hover:text-red-900 disabled:opacity-50"
                             >
@@ -847,7 +877,7 @@ const UserManagementPage = () => {
                     required
                     className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
                   >
-                    {['BENEFICIARY', 'CMO', 'SDM', 'DM', 'ADMIN', 'SERVICE_PROVIDER', 'HOSPITAL', 'SUPPORT'].map((role) => (
+                    {['BENEFICIARY', 'CMHO', 'SDM', 'COLLECTOR', 'ADMIN', 'SERVICE_PROVIDER', 'HOSPITAL', 'SUPPORT', 'DME'].map((role) => (
                       <option key={role} value={role}>
                         {role}
                       </option>
@@ -911,6 +941,64 @@ const UserManagementPage = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {userToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className={`${styles.cardBackground} rounded-lg p-6 max-w-sm w-full shadow-xl border ${styles.borderColor}`}>
+            <h3 className={`text-lg font-semibold ${styles.primaryText} mb-4`}>Confirm Deletion</h3>
+            <p className={`${styles.secondaryText} mb-6`}>
+              Are you sure you want to delete this user? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setUserToDelete(null)}
+                className={`px-4 py-2 ${styles.secondaryText} ${styles.inputBackground} hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors`}
+                disabled={deletingId === userToDelete}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteUser}
+                disabled={deletingId === userToDelete}
+                className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-md transition-colors flex items-center"
+              >
+                {deletingId === userToDelete ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toggle Status Confirmation Modal */}
+      {userToToggle && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className={`${styles.cardBackground} rounded-lg p-6 max-w-sm w-full shadow-xl border ${styles.borderColor}`}>
+            <h3 className={`text-lg font-semibold ${styles.primaryText} mb-4`}>
+              Confirm {userToToggle.status === 'active' ? 'Disable' : 'Enable'}
+            </h3>
+            <p className={`${styles.secondaryText} mb-6`}>
+              Are you sure you want to {userToToggle.status === 'active' ? 'disable' : 'enable'} {userToToggle.full_name}'s account?
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setUserToToggle(null)}
+                className={`px-4 py-2 ${styles.secondaryText} ${styles.inputBackground} hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleToggleStatus}
+                className={`px-4 py-2 text-white rounded-md transition-colors flex items-center ${
+                  userToToggle.status === 'active' ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600 hover:bg-green-700'
+                }`}
+              >
+                {userToToggle.status === 'active' ? 'Disable' : 'Enable'}
+              </button>
+            </div>
           </div>
         </div>
       )}

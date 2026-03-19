@@ -19,7 +19,7 @@ const FinancialSanctionPage = () => {
     // Simulate financial sanction
     addNotification(`Financial sanction of ₹${formData.amount} approved for Enquiry ${enquiryId}`);
     alert(`Financial sanction approved for Enquiry ${enquiryId}`);
-    navigate('/dm');
+    navigate('/collector-dashboard');
   };
 
   return (

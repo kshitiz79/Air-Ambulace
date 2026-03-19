@@ -3,7 +3,7 @@ import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaIdCard } from 'react-icons/fa';
 
 const ProfileInformation = ({ user, isEditing, onInputChange }) => {
   return (
-    <div className="lg:col-span-2 bg-white rounded-lg shadow-lg">
+    <div className="lg:col-span-2 bg-white rounded-lg shadow-sm">
       <div className="px-6 py-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-800 flex items-center">
           <FaIdCard className="mr-2 text-green-600" />

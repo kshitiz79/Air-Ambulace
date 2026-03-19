@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useLanguage } from "../../contexts/LanguageContext.jsx";
 
 export default function EnquiryForm() {
   const [formData, setFormData] = useState({
@@ -16,25 +17,25 @@ export default function EnquiryForm() {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [language, setLanguage] = useState("en"); // English or Hindi
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   // Validation function
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.patientName.trim()) newErrors.patientName = "Patient Name is required";
-    if (!formData.ayushmanCard.match(/^\d{14}$/))
-      newErrors.ayushmanCard = "Ayushman Card Number must be 14 digits";
-    if (!formData.medicalCondition.trim()) newErrors.medicalCondition = "Medical Condition is required";
-    if (!formData.hospitalName.trim()) newErrors.hospitalName = "Hospital Name is required";
-    if (!formData.hospitalLocation.trim()) newErrors.hospitalLocation = "Hospital Location is required";
-    if (!formData.contactName.trim()) newErrors.contactName = "Contact Name is required";
-    if (!formData.contactPhone.match(/^\d{10}$/))
-      newErrors.contactPhone = "Contact Phone must be 10 digits";
-    if (!formData.contactEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))
-      newErrors.contactEmail = "Valid Email is required";
+    if (!formData.patientName.trim()) newErrors.patientName = `${t.patientName} ${t.requiredField}`;
+    if (!formData.ayushmanCard || !formData.ayushmanCard.match(/^\d{14}$/))
+      newErrors.ayushmanCard = t.ayushmanCardError || "Ayushman Card Number must be 14 digits";
+    if (!formData.medicalCondition.trim()) newErrors.medicalCondition = `${t.medicalCondition} ${t.requiredField}`;
+    if (!formData.hospitalName.trim()) newErrors.hospitalName = `${t.hospitalName} ${t.requiredField}`;
+    if (!formData.hospitalLocation.trim()) newErrors.hospitalLocation = `${t.hospitalLocation} ${t.requiredField}`;
+    if (!formData.contactName.trim()) newErrors.contactName = `${t.contactPersonName} ${t.requiredField}`;
+    if (!formData.contactPhone || !formData.contactPhone.match(/^\d{10}$/))
+      newErrors.contactPhone = t.contactPhoneError || "Contact Phone must be 10 digits";
+    if (!formData.contactEmail || !formData.contactEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))
+      newErrors.contactEmail = t.validEmailError || "Valid Email is required";
     if (formData.document && formData.document.size > 5 * 1024 * 1024)
-      newErrors.document = "File size must be less than 5MB";
+      newErrors.document = t.fileSizeError || "File size must be less than 5MB";
     return newErrors;
   };
 
@@ -95,51 +96,16 @@ export default function EnquiryForm() {
     }
   };
 
-  // Language toggle
-  const labels = {
-    en: {
-      title: "Enquiry Form",
-      patientName: "Patient Name",
-      ayushmanCard: "Ayushman Card Number",
-      medicalCondition: "Medical Condition",
-      hospitalName: "Hospital Name",
-      hospitalLocation: "Hospital Location",
-      contactName: "Contact Name",
-      contactPhone: "Contact Phone",
-      contactEmail: "Contact Email",
-      document: "Upload Document (Optional)",
-      submit: "Submit Enquiry",
-    },
-    hi: {
-      title: "पूछताछ प्रपत्र",
-      patientName: "रोगी का नाम",
-      ayushmanCard: "आयुष्मान कार्ड नंबर",
-      medicalCondition: "चिकित्सा स्थिति",
-      hospitalName: "अस्पताल का नाम",
-      hospitalLocation: "अस्पताल का स्थान",
-      contactName: "संपर्क व्यक्ति का नाम",
-      contactPhone: "संपर्क फोन नंबर",
-      contactEmail: "संपर्क ईमेल",
-      document: "दस्तावेज़ अपलोड करें (वैकल्पिक)",
-      submit: "पूछताछ सबमिट करें",
-    },
-  };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+    <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-sm">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">{labels[language].title}</h2>
-        <button
-          onClick={() => setLanguage(language === "en" ? "hi" : "en")}
-          className="text-blue-600 hover:underline"
-        >
-          {language === "en" ? "हिन्दी" : "English"}
-        </button>
+        <h2 className="text-xl font-semibold">{t.enquiryForm || "Enquiry Form"}</h2>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4" encType="multipart/form-data">
         <div>
           <label htmlFor="patientName" className="block text-sm font-medium">
-            {labels[language].patientName}
+            {t.patientName}
           </label>
           <input
             type="text"
@@ -147,7 +113,7 @@ export default function EnquiryForm() {
             name="patientName"
             value={formData.patientName}
             onChange={handleChange}
-            placeholder={labels[language].patientName}
+            placeholder={t.patientName}
             className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
             required
             aria-describedby={errors.patientName ? "patientName-error" : null}
@@ -160,7 +126,7 @@ export default function EnquiryForm() {
         </div>
         <div>
           <label htmlFor="ayushmanCard" className="block text-sm font-medium">
-            {labels[language].ayushmanCard}
+            {t.ayushmanCardNumber}
           </label>
           <input
             type="text"
@@ -168,7 +134,7 @@ export default function EnquiryForm() {
             name="ayushmanCard"
             value={formData.ayushmanCard}
             onChange={handleChange}
-            placeholder={labels[language].ayushmanCard}
+            placeholder={t.ayushmanCardNumber}
             className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
             required
             aria-describedby={errors.ayushmanCard ? "ayushmanCard-error" : null}
@@ -181,14 +147,14 @@ export default function EnquiryForm() {
         </div>
         <div>
           <label htmlFor="medicalCondition" className="block text-sm font-medium">
-            {labels[language].medicalCondition}
+            {t.medicalCondition}
           </label>
           <textarea
             id="medicalCondition"
             name="medicalCondition"
             value={formData.medicalCondition}
             onChange={handleChange}
-            placeholder={labels[language].medicalCondition}
+            placeholder={t.medicalCondition}
             className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
             rows="4"
             required
@@ -202,7 +168,7 @@ export default function EnquiryForm() {
         </div>
         <div>
           <label htmlFor="hospitalName" className="block text-sm font-medium">
-            {labels[language].hospitalName}
+            {t.hospitalName}
           </label>
           <input
             type="text"
@@ -210,7 +176,7 @@ export default function EnquiryForm() {
             name="hospitalName"
             value={formData.hospitalName}
             onChange={handleChange}
-            placeholder={labels[language].hospitalName}
+            placeholder={t.hospitalName}
             className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
             required
             aria-describedby={errors.hospitalName ? "hospitalName-error" : null}
@@ -223,7 +189,7 @@ export default function EnquiryForm() {
         </div>
         <div>
           <label htmlFor="hospitalLocation" className="block text-sm font-medium">
-            {labels[language].hospitalLocation}
+            {t.hospitalLocation}
           </label>
           <input
             type="text"
@@ -231,7 +197,7 @@ export default function EnquiryForm() {
             name="hospitalLocation"
             value={formData.hospitalLocation}
             onChange={handleChange}
-            placeholder={labels[language].hospitalLocation}
+            placeholder={t.hospitalLocation}
             className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
             required
             aria-describedby={errors.hospitalLocation ? "hospitalLocation-error" : null}
@@ -244,7 +210,7 @@ export default function EnquiryForm() {
         </div>
         <div>
           <label htmlFor="contactName" className="block text-sm font-medium">
-            {labels[language].contactName}
+            {t.contactPersonName}
           </label>
           <input
             type="text"
@@ -252,7 +218,7 @@ export default function EnquiryForm() {
             name="contactName"
             value={formData.contactName}
             onChange={handleChange}
-            placeholder={labels[language].contactName}
+            placeholder={t.contactPersonName}
             className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
             required
             aria-describedby={errors.contactName ? "contactName-error" : null}
@@ -265,7 +231,7 @@ export default function EnquiryForm() {
         </div>
         <div>
           <label htmlFor="contactPhone" className="block text-sm font-medium">
-            {labels[language].contactPhone}
+            {t.contactPhoneNumber}
           </label>
           <input
             type="tel"
@@ -273,7 +239,7 @@ export default function EnquiryForm() {
             name="contactPhone"
             value={formData.contactPhone}
             onChange={handleChange}
-            placeholder={labels[language].contactPhone}
+            placeholder={t.contactPhoneNumber}
             className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
             required
             aria-describedby={errors.contactPhone ? "contactPhone-error" : null}
@@ -286,7 +252,7 @@ export default function EnquiryForm() {
         </div>
         <div>
           <label htmlFor="contactEmail" className="block text-sm font-medium">
-            {labels[language].contactEmail}
+            {t.email}
           </label>
           <input
             type="email"
@@ -294,7 +260,7 @@ export default function EnquiryForm() {
             name="contactEmail"
             value={formData.contactEmail}
             onChange={handleChange}
-            placeholder={labels[language].contactEmail}
+            placeholder={t.email}
             className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
             required
             aria-describedby={errors.contactEmail ? "contactEmail-error" : null}
@@ -307,7 +273,7 @@ export default function EnquiryForm() {
         </div>
         <div>
           <label htmlFor="document" className="block text-sm font-medium">
-            {labels[language].document}
+            {t.uploadDocumentOptional}
           </label>
           <input
             type="file"
@@ -329,7 +295,7 @@ export default function EnquiryForm() {
           disabled={isSubmitting}
           className={`w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200`}
         >
-          {isSubmitting ? "Submitting..." : labels[language].submit}
+          {isSubmitting ? (t.submitting || "Submitting...") : (t.submitEnquiry || "Submit Enquiry")}
         </button>
       </form>
     </div>

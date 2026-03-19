@@ -43,7 +43,7 @@ const AllUsers = () => {
     const [refreshing, setRefreshing] = useState(false);
 
     const roles = [
-        'BENEFICIARY', 'CMO', 'SDM', 'DM', 'SERVICE_PROVIDER',
+        'BENEFICIARY', 'CMHO', 'SDM', 'COLLECTOR', 'SERVICE_PROVIDER',
         'ADMIN', 'HOSPITAL', 'SUPPORT'
     ];
 
@@ -236,9 +236,9 @@ const AllUsers = () => {
     const getRoleColor = (role) => {
         const colors = {
             BENEFICIARY: 'bg-blue-100 text-blue-800',
-            CMO: 'bg-green-100 text-green-800',
+            CMHO: 'bg-green-100 text-green-800',
             SDM: 'bg-yellow-100 text-yellow-800',
-            DM: 'bg-purple-100 text-purple-800',
+            COLLECTOR: 'bg-purple-100 text-purple-800',
             SERVICE_PROVIDER: 'bg-orange-100 text-orange-800',
             ADMIN: 'bg-red-100 text-red-800',
             HOSPITAL: 'bg-pink-100 text-pink-800',

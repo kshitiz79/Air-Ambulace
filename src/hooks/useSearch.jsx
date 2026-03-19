@@ -43,7 +43,7 @@ export const useSearch = (userRole = 'SDM') => {
 
       const token = localStorage.getItem('token');
       const endpoint =
-        userRole === 'DM'
+        (userRole === 'DM' || userRole === 'COLLECTOR')
           ? `${baseUrl}/api/cases/search?${queryParams.toString()}`
           : `${baseUrl}/api/enquiries/search?${queryParams.toString()}`;
 
@@ -53,7 +53,7 @@ export const useSearch = (userRole = 'SDM') => {
       setSearchResults(response.data.data || []);
     } catch (err) {
       console.error('Search error:', err);
-      const itemType = userRole === 'DM' ? 'cases' : 'enquiries';
+      const itemType = (userRole === 'DM' || userRole === 'COLLECTOR') ? 'cases' : 'enquiries';
       setError(
         `Failed to search ${itemType}: ${err.response?.data?.message || err.message}`
       );

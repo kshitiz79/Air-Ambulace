@@ -230,7 +230,7 @@ export const EnquiryListPage = () => {
             {filteredEnquiries.map((enquiry) => (
               <div
                 key={enquiry.enquiry_id}
-                className={`${styles.cardBackground} rounded-2xl ${styles.cardShadow} hover:shadow-xl transition-all duration-200 border-l-4 ${getPriorityColor(enquiry.status)}`}
+                className={`${styles.cardBackground} rounded-2xl ${styles.cardShadow} hover:shadow-sm transition-all duration-200 border-l-4 ${getPriorityColor(enquiry.status)}`}
               >
                 <div className="p-6">
                   {/* Header */}
@@ -342,11 +342,11 @@ export const EnquiryListPage = () => {
                     
                     {enquiry.status === 'PENDING' && (
                       <Link
-                        to={`/sdm-dashboard/enquiry-detail-page/query-to-cmo/${enquiry.enquiry_id}`}
+                        to={`/sdm-dashboard/enquiry-detail-page/query-to-cmho/${enquiry.enquiry_id}`}
                         className="flex items-center justify-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition shadow-md"
                       >
                         <FiClipboard className="h-4 w-4" />
-                        Query CMO
+                        Query CMHO
                       </Link>
                     )}
                   </div>

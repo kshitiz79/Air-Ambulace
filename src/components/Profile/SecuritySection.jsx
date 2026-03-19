@@ -13,7 +13,7 @@ const SecuritySection = ({
   onCancelPasswordChange
 }) => {
   return (
-    <div className="bg-white rounded-lg shadow-lg">
+    <div className="bg-white rounded-lg shadow-sm">
       <div className="px-6 py-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-800 flex items-center">
           <FaLock className="mr-2 text-red-600" />

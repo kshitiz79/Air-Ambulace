@@ -1,6 +1,7 @@
-import React from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const StatsCard = ({ title, value, icon, color, trend, trendValue }) => {
+  const { t } = useLanguage();
   const colorClasses = {
     blue: 'bg-blue-500 text-white',
     green: 'bg-green-500 text-white',
@@ -17,7 +18,7 @@ const StatsCard = ({ title, value, icon, color, trend, trendValue }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+    <div className="bg-white rounded-lg shadow-sm p-6 hover:shadow-sm transition-shadow duration-300">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
@@ -25,7 +26,7 @@ const StatsCard = ({ title, value, icon, color, trend, trendValue }) => {
           {trend && (
             <div className={`flex items-center mt-2 text-sm ${trendColors[trend]}`}>
               <span>{trendValue}</span>
-              <span className="ml-1">vs last month</span>
+              <span className="ml-1">{t.vsLastMonth || 'vs last month'}</span>
             </div>
           )}
         </div>

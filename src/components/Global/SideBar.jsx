@@ -1,8 +1,8 @@
-// components/Global/SideBar.jsx
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FiLogOut, FiChevronLeft, FiChevronRight, FiActivity } from 'react-icons/fi';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const SideBar = ({
   title = "Air Ambulance",
@@ -19,6 +19,7 @@ const SideBar = ({
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(collapsed);
   const { isDark } = useTheme();
+  const { t } = useLanguage();
 
   const handleToggle = () => {
     setIsCollapsed(!isCollapsed);
@@ -26,7 +27,7 @@ const SideBar = ({
   };
 
   return (
-    <aside className={`${isCollapsed ? 'w-20' : 'w-72'} flex flex-col shadow-2xl transition-all duration-300 ease-in-out relative ${
+    <aside className={`${isCollapsed ? 'w-20' : 'w-72'} shrink-0 flex flex-col shadow-sm transition-all duration-300 ease-in-out relative ${
       isDark 
         ? 'bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white' 
         : 'bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-800 border-r border-slate-200'
@@ -37,7 +38,7 @@ const SideBar = ({
       }`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-xl flex items-center justify-center shadow-sm">
               <FiActivity className="text-white text-xl" />
             </div>
             {!isCollapsed && (
@@ -51,7 +52,7 @@ const SideBar = ({
                 </h1>
                 <p className={`text-xs mt-1 ${
                   isDark ? 'text-slate-400' : 'text-slate-500'
-                }`}>Emergency Services</p>
+                }`}>{t.emergencyServices}</p>
               </div>
             )}
           </div>
@@ -80,7 +81,7 @@ const SideBar = ({
                     to={to}
                     className={`group flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 relative ${
                       isActive
-                        ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/25'
+                        ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-sm shadow-blue-500/25'
                         : isDark 
                           ? 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
                           : 'text-slate-600 hover:bg-slate-100 hover:text-slate-800'
@@ -116,7 +117,7 @@ const SideBar = ({
               <li className={`px-4 py-3 text-sm text-center ${
                 isDark ? 'text-slate-400' : 'text-slate-500'
               }`}>
-                {isCollapsed ? '...' : 'No navigation available'}
+                {isCollapsed ? '...' : t.noNavigation}
               </li>
             )}
           </ul>
@@ -133,7 +134,7 @@ const SideBar = ({
           }`}>
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-400 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                {realUserName.charAt(0).toUpperCase()}
+                {realUserName?.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
                 <p className={`text-sm font-semibold truncate ${
@@ -154,10 +155,10 @@ const SideBar = ({
           } ${
             isDark ? 'text-slate-300' : 'text-slate-600'
           }`}
-          title={isCollapsed ? 'Log Out' : ''}
+          title={isCollapsed ? t.logOut : ''}
         >
           <FiLogOut className="text-lg group-hover:scale-110 transition-transform" />
-          {!isCollapsed && <span className="text-sm font-medium">Log Out</span>}
+          {!isCollapsed && <span className="text-sm font-medium">{t.logOut}</span>}
         </button>
       </div>
     </aside>

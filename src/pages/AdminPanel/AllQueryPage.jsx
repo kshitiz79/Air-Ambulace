@@ -247,7 +247,7 @@ const AllQueryPage = () => {
 
   const getRoleColor = (role) => {
     const colors = {
-      'CMO': 'bg-blue-100 text-blue-800',
+      'CMHO': 'bg-blue-100 text-blue-800',
       'SDM': 'bg-purple-100 text-purple-800',
       'DM': 'bg-indigo-100 text-indigo-800',
       'ADMIN': 'bg-red-100 text-red-800',
@@ -259,7 +259,7 @@ const AllQueryPage = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow-lg p-8">
+        <div className="bg-white rounded-lg shadow-sm p-8">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded mb-6 w-64"></div>
             <div className="space-y-4">
@@ -353,7 +353,7 @@ const AllQueryPage = () => {
                   className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="ALL">All Roles</option>
-                  <option value="CMO">CMO</option>
+                  <option value="CMHO">CMHO</option>
                   <option value="SDM">SDM</option>
                   <option value="DM">DM</option>
                   <option value="ADMIN">Admin</option>
@@ -568,7 +568,7 @@ const AllQueryPage = () => {
       {/* Query Detail/Response Modal */}
       {selectedQuery && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-sm max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">

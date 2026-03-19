@@ -2,13 +2,23 @@ import React from 'react';
 import { Phone, Clock, Shield, Heart, MapPin, Users, CheckCircle, Star, User ,  ExternalLink  } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import WhatsAppChatbot from '../components/WhatsAppChatbot';
-;
+import { FaClock, FaPhoneAlt } from 'react-icons/fa';
 
 
-const Header = () => {
+
+import { useLanguage } from '../contexts/LanguageContext';
+
+const Header1 = () => {
   const navigate = useNavigate();
+  const { language, setLanguage, t } = useLanguage();
+  
   return (
-    <header className="bg-white shadow-lg border-b-2 border-blue-600 sticky top-0 z-50">
+
+<>
+
+
+    <div className='py-1 w-full bg-gradient-to-r from-orange-600 via-white to-[#2A9300]' >  </div>
+    <header className="bg-white shadow-sm border-b-2  sticky top-0 z-50">
       <div className="mx-auto px-3 sm:px-6 md:px-16 py-2 sm:py-4">
         <div className="flex items-center justify-between">
           {/* Logo Section */}
@@ -33,131 +43,222 @@ const Header = () => {
 
             {/* Title Text */}
             <div>
-              <h1 className="text-xs sm:text-sm md:text-xl font-bold text-gray-900">पीएमश्री एयर एम्बुलेंस</h1>
-              <p className="text-[10px] sm:text-xs md:text-sm text-blue-600 font-medium">मध्यप्रदेश शासन</p>
+              <h1 className="text-xs sm:text-sm md:text-xl font-bold text-gray-900">
+                  {t.pmShriAirAmbulance || 'PM Shri Air Ambulance'}
+                </h1>
+                <p className="text-[10px] sm:text-xs md:text-sm text-[#16306A] font-medium">
+                  {t.governmentOfMP || 'Government of Madhya Pradesh'}
+                </p>
             </div>
           </div>
 
-          {/* Navigation Menu - Hidden on mobile */}
-          <nav className="hidden lg:flex items-center space-x-8">
-            <a href="#home" className="text-gray-700 hover:text-red-600 font-medium transition-colors">Home</a>
-            <a href="#services" className="text-gray-700 hover:text-red-600 font-medium transition-colors">Services</a>
-            <a href="#booking" className="text-gray-700 hover:text-red-600 font-medium transition-colors">Book Now</a>
-            <a href="#contact" className="text-gray-700 hover:text-red-600 font-medium transition-colors">Contact</a>
-          </nav>
 
-          {/* Sign In Button and Emergency Contact */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            <a href="tel:+919870560022" className="hidden md:flex items-center bg-red-100 text-red-600 px-3 py-2 rounded-lg hover:bg-red-200 transition-colors">
-              <Phone size={16} className="mr-2" />
-              <span className="text-sm font-medium">Emergency</span>
-            </a>
+          {/* Right Section: Language Switcher, Emergency Contact, Sign In */}
+            <div className="flex items-center space-x-2 sm:space-x-5">
+              
+              {/* Language Switcher */}
+              <div className="flex items-center rounded-lg border px-2 py-1 bg-slate-50 border-slate-200">
+                <button
+                  onClick={() => setLanguage('en')}
+                  className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${
+                    language === 'en'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  EN
+                </button>
+                <button
+                  onClick={() => setLanguage('hi')}
+                  className={`px-2 py-0.5 rounded text-xs font-bold ${
+                    language === 'hi'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  हि
+                </button>
+              </div>
 
-            <button
-              onClick={() => navigate("/sign-in")}
-              className="flex items-center bg-red-600 text-white px-2 py-1.5 text-xs rounded-md hover:bg-red-700 transition-colors font-medium sm:px-4 sm:py-2 sm:text-sm md:px-5 md:py-3 md:rounded-lg"
-            >
-              <User size={14} className="mr-1 sm:mr-2 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Sign In</span>
-              <span className="sm:hidden">Login</span>
-            </button>
-          </div>
+              <div className="hidden md:flex items-center space-x-2">
+                <FaPhoneAlt className="text-blue-900 text-lg sm:text-2xl"/>
+                <p className="text-[10px] sm:text-sm text-blue-900 leading-tight">{t.tollFree || 'TOLLFREE'} <br/> <span className="text-blue-900 text-xs sm:text-xl font-bold"> 18002332004</span></p>
+              </div>
+
+              <button
+                onClick={() => navigate("/sign-in")}
+                className="flex items-center border border-blue-900 text-blue-900 px-4 sm:px-10 py-1 sm:py-2 text-[10px] sm:text-sm rounded-md hover:bg-blue-900 hover:text-white transition-colors font-medium"
+              >
+                <span>{t.signIn || 'Sign In'}</span>
+              </button>
+            </div>
+
+
+
+
+
+
+
+
+
         </div>
       </div>
     </header>
+
+
+
+    </>
   );
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const HeroSection = () => {
+  const { t } = useLanguage();
   return (
-    <div className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white overflow-hidden">
+    <div className="relative bg-[#011537] text-white overflow-hidden">
       <div className="absolute inset-0 bg-black opacity-20"></div>
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 md:py-16 lg:py-20">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 md:py-16 lg:py-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 md:gap-12 items-center">
+
+
+
+
           <div className="space-y-4 sm:space-y-6 md:space-y-8">
             {/* Logo Section */}
         
 
             <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 mb-4 sm:mb-6">
-              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23ffffff' stroke='%23dc2626' stroke-width='4'/%3E%3Cpath d='M30 50h40M50 30v40' stroke='%23dc2626' stroke-width='6'/%3E%3C/svg%3E" alt="Medical Cross" className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0" />
+
               <div>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold leading-tight">
-                  पीएमश्री एयर एम्बुलेंस सेवा
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[6rem] font-bold leading-tight">
+                  {t.pmShriAirAmbulance || 'PM Shri Air Ambulance Service'}
                 </h1>
-                <p className="text-sm sm:text-lg md:text-xl lg:text-2xl text-red-100 mt-1 sm:mt-2">आपातकालीन स्थिति की सहायता</p>
+                <p className="text-sm sm:text-lg md:text-xl lg:text-4xl text-red-100 mt-1 sm:mt-2">{t.emergencySituationHelp || 'Emergency Situation Help ...'}</p>
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/20">
-              <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-2 sm:mb-4 flex items-center">
-                <Heart className="mr-2 sm:mr-3 text-red-300" size={20} />
-                <span className="text-sm sm:text-base md:text-xl">Free Emergency Air Transport</span>
-              </h2>
-              <p className="text-sm sm:text-base md:text-lg text-red-100 leading-relaxed">
-                आयुष्मान कार्डधारकों के लिए राज्य के भीतर एवं बाहर के सरकारी व आयुष्मान सूची-बद्ध अस्पतालों में इलाज के लिए निःशुल्क हवाई परिवहन सुविधा।
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
-              <a href="tel:+919870560022" className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-full transition-all duration-300 transform hover:scale-105 flex items-center justify-center text-sm sm:text-base">
-                <Phone className="mr-2" size={18} />
-                Emergency: 9870560022
-              </a>
-              <div className="bg-white/20 backdrop-blur-sm py-3 sm:py-4 px-5 sm:px-6 rounded-full flex items-center justify-center text-sm sm:text-base">
-                <Clock className="mr-2 text-yellow-300" size={18} />
-                24×7 Available
+            <div className="bg-gradient-to-r from-[#4D6500] to-[#F19100] z-10 rounded-xl absolute w-[700px] sm:rounded-2xl p-4 sm:p-6 border border-white/20 relative flex flex-col md:flex-row items-center gap-4 overflow-hidden">
+              <div className="flex-1 relative z-10">
+                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-2 sm:mb-4 flex items-center">
+                  <Heart className="mr-2 sm:mr-3 text-red-300" size={20} />
+                  <span className="text-sm sm:text-base md:text-xl">{t.freeEmergencyAirTransport || 'Free Emergency Air Transport'}</span>
+                </h2>
+                <p className="text-sm sm:text-base md:text-lg text-red-100 leading-relaxed">
+                  {t.ayushmanCardDesc || 'Free air transport facility for treatment in government and Ayushman listed hospitals within and outside the state for Ayushman card holders.'}
+                </p>
+              </div>
+              <div className="w-1/2 md:w-4/12 flex justify-end right-0 -mb-16">
+                <img className="w-full h-auto object-contain" src="./Ayushman.png" alt="Ayushman Card" />
               </div>
             </div>
+
+          
           </div>
 
-          <div className="relative mt-6 lg:mt-0">
-         
+<div className="bg-white/10 backdrop-blur-sm border border-white/20 overflow-hidden rounded-lg relative">
 
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 border border-white/20">
-              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f8fafc'/%3E%3Cpath d='M50 150 L200 100 L350 150 L200 200 Z' fill='%23dc2626' opacity='0.8'/%3E%3Ccircle cx='200' cy='150' r='30' fill='%23ffffff'/%3E%3Cpath d='M190 150h20M200 140v20' stroke='%23dc2626' stroke-width='3'/%3E%3Ctext x='200' y='250' text-anchor='middle' fill='%23374151' font-size='16' font-weight='bold'%3EAir Ambulance Service%3C/text%3E%3C/svg%3E" alt="Air Ambulance" className="w-full h-48 sm:h-56 md:h-64 object-cover rounded-xl sm:rounded-2xl" />
-              <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-green-500 text-white px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-semibold flex items-center">
-                <CheckCircle size={12} className="mr-1" />
-                Operational
-              </div>
-            </div>
-          </div>
+  <div
+    className="h-[70vh] bg-top bg-cover"
+    style={{ backgroundImage: "url('/bg-image.png')" }}
+  ></div>
+
+  <div className="absolute top-4 right-4 animate-pulse">
+    
+    <p className="text-white text-md bg-green-500 px-3 py-1 rounded flex items-center gap-2">
+       <FaClock/>  
+ {t.support247 || '24×7 SUPPORT'}
+    </p>
+  </div>
+
+  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white px-4 py-2 rounded-xl flex items-center gap-5 animate-pulse">
+    <FaPhoneAlt className="text-orange-600 text-2xl"/>
+
+    <p className="text-sm text-orange-600">
+      {t.tollFree || 'TOLLFREE'} <br/>
+      <span className="text-blue-900 text-2xl font-bold">
+        18002332004
+      </span>
+    </p>
+  </div>
+
+</div>
+
         </div>
       </div>
     </div>
   );
 };
 
+
+
+
+
+
+
+
+
 const FeaturesSection = () => {
+  const { t } = useLanguage();
   const features = [
     {
       icon: <Shield className="w-8 h-8 text-blue-600" />,
-      title: "100% Free for Ayushman Cardholders",
-      description: "Complete free air ambulance service for all Ayushman card holders across Madhya Pradesh"
+      title: t.feature1Title || "100% Free for Ayushman Cardholders",
+      description: t.feature1Desc || "Complete free air ambulance service for all Ayushman card holders across Madhya Pradesh"
     },
     {
       icon: <Clock className="w-8 h-8 text-green-600" />,
-      title: "24/7 Emergency Response",
-      description: "Round-the-clock availability with rapid response times for critical medical emergencies"
+      title: t.feature2Title || "24/7 Emergency Response",
+      description: t.feature2Desc || "Round-the-clock availability with rapid response times for critical medical emergencies"
     },
     {
       icon: <Heart className="w-8 h-8 text-red-600" />,
-      title: "Advanced Medical Equipment",
-      description: "State-of-the-art life support systems and medical equipment in every aircraft"
+      title: t.feature3Title || "Advanced Medical Equipment",
+      description: t.feature3Desc || "State-of-the-art life support systems and medical equipment in every aircraft"
     },
     {
       icon: <Users className="w-8 h-8 text-purple-600" />,
-      title: "Expert Medical Team",
-      description: "Trained doctors with Fellowship in Aeromedical Sciences and skilled paramedics"
+      title: t.feature4Title || "Expert Medical Team",
+      description: t.feature4Desc || "Trained doctors with Fellowship in Aeromedical Sciences and skilled paramedics"
     },
     {
       icon: <MapPin className="w-8 h-8 text-orange-600" />,
-      title: "Statewide Coverage",
-      description: "Service available across all districts of Madhya Pradesh, including remote areas"
+      title: t.feature5Title || "Statewide Coverage",
+      description: t.feature5Desc || "Service available across all districts of Madhya Pradesh, including remote areas"
     },
     {
       icon: <Star className="w-8 h-8 text-yellow-600" />,
-      title: "Government Approved",
-      description: "Official government scheme launched by CM Shri Mohan Yadav on May 29, 2024"
+      title: t.feature6Title || "Government Approved",
+      description: t.feature6Desc || "Official government scheme launched by CM Shri Mohan Yadav on May 29, 2024"
     }
   ];
 
@@ -165,15 +266,15 @@ const FeaturesSection = () => {
     <div className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">सेवा की विशेषताएं</h2>
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">{t.serviceFeatures || 'Service Features'}</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Advanced air ambulance services with comprehensive medical care and government support
+            {t.serviceFeaturesDesc || 'Advanced air ambulance services with comprehensive medical care and government support'}
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
-            <div key={index} className="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-red-200">
+            <div key={index} className="bg-white rounded-xl p-8 shadow-sm hover:shadow-sm transition-all duration-300 border border-gray-100 hover:border-red-200">
               <div className="flex items-center mb-4">
                 {feature.icon}
                 <h3 className="text-xl font-semibold text-gray-900 ml-3">{feature.title}</h3>
@@ -188,26 +289,27 @@ const FeaturesSection = () => {
 };
 
 const BookingSection = () => {
+  const { t } = useLanguage();
   const steps = [
     {
       step: "1",
-      title: "Initial Contact",
-      description: "Call +91 9870560022 or visit official website for immediate assistance"
+      title: t.step1Title || "Initial Contact",
+      description: t.step1Desc || "Call 18002332004 or visit official website for immediate assistance"
     },
     {
       step: "2",
-      title: "Verification",
-      description: "Provide Ayushman Card details and patient information for eligibility verification"
+      title: t.step2Title || "Verification",
+      description: t.step2Desc || "Provide Ayushman Card details and patient information for eligibility verification"
     },
     {
       step: "3",
-      title: "Medical Assessment",
-      description: "Share detailed patient medical condition for appropriate medical preparations"
+      title: t.step3Title || "Medical Assessment",
+      description: t.step3Desc || "Share detailed patient medical condition for appropriate medical preparations"
     },
     {
       step: "4",
-      title: "Dispatch & Transport",
-      description: "Air ambulance dispatched to location with specialized medical team onboard"
+      title: t.step4Title || "Dispatch & Transport",
+      description: t.step4Desc || "Air ambulance dispatched to location with specialized medical team onboard"
     }
   ];
 
@@ -215,8 +317,8 @@ const BookingSection = () => {
     <div className="py-12 sm:py-16 md:py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-8 sm:mb-12 md:mb-16">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-4">How to Book Air Ambulance</h2>
-          <p className="text-base sm:text-lg md:text-xl text-gray-600">Simple 4-step process for emergency medical transport</p>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-4">{t.howToBook || 'How to Book Air Ambulance'}</h2>
+          <p className="text-base sm:text-lg md:text-xl text-gray-600">{t.howToBookDesc || 'Simple 4-step process for emergency medical transport'}</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
@@ -237,18 +339,14 @@ const BookingSection = () => {
         </div>
 
         <div className="mt-8 sm:mt-12 md:mt-16 bg-gradient-to-r from-red-600 to-red-700 rounded-xl sm:rounded-2xl p-6 sm:p-8 text-white text-center">
-          <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Emergency? Don't Wait!</h3>
+          <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">{t.emergencyDontWait || "Emergency? Don't Wait!"}</h3>
           <p className="text-sm sm:text-base md:text-lg mb-4 sm:mb-6 text-red-100">
-            In critical situations, every second counts. Contact us immediately for rapid response.
+            {t.emergencyDontWaitDesc || 'In critical situations, every second counts. Contact us immediately for rapid response.'}
           </p>
           <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-4">
-            <a href="tel:+919870560022" className="bg-white text-red-600 font-bold py-3 px-6 sm:px-8 rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center text-sm sm:text-base">
+            <a href="tel:18002332004" className="bg-white text-red-600 font-bold py-3 px-6 sm:px-8 rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center text-sm sm:text-base">
               <Phone className="mr-2" size={18} />
-              Call Now: 9870560022
-            </a>
-            <a href="tel:+919870500422" className="bg-red-800 text-white font-bold py-3 px-6 sm:px-8 rounded-full hover:bg-red-900 transition-colors flex items-center justify-center text-sm sm:text-base">
-              <Phone className="mr-2" size={18} />
-              Alternate: 9870500422
+              {t.callNow || 'Call Now'}: 18002332004
             </a>
           </div>
         </div>
@@ -257,119 +355,25 @@ const BookingSection = () => {
   );
 };
 
-const ContactSection = () => {
-  return (
-    <div className="py-20 bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid lg:grid-cols-2 gap-12">
-          <div>
-            <h2 className="text-4xl font-bold mb-8">संपर्क जानकारी</h2>
-            <div className="space-y-6">
-              <div className="flex items-start space-x-4">
-                <Phone className="w-6 h-6 text-red-400 mt-1 flex-shrink-0" />
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">Emergency Helpline</h3>
-                  <p className="text-gray-300">+91 9870560022 (Primary)</p>
-                  <p className="text-gray-300">+91 9870500422 (Secondary)</p>
-                  <p className="text-gray-300">+91 9319208927 (Alternate)</p>
-                </div>
-              </div>
 
-              <div className="flex items-start space-x-4">
-                <MapPin className="w-6 h-6 text-red-400 mt-1 flex-shrink-0" />
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">Service Area</h3>
-                  <p className="text-gray-300">All districts of Madhya Pradesh</p>
-                  <p className="text-gray-300">Base: Bhopal, Madhya Pradesh</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4">
-                <Clock className="w-6 h-6 text-red-400 mt-1 flex-shrink-0" />
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">Availability</h3>
-                  <p className="text-gray-300">24 hours, 7 days a week</p>
-                  <p className="text-gray-300">365 days emergency support</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-8 p-6 bg-red-600/20 rounded-xl border border-red-500/30">
-              <h3 className="text-lg font-semibold mb-3 text-red-300">Important Notice</h3>
-              <p className="text-sm text-gray-300">
-                For non-Ayushman cardholders, subsidized services are available.
-                Contact directly for more information about costs and procedures.
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10">
-            <h3 className="text-2xl font-semibold mb-6">Service Statistics</h3>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-red-400 mb-2">8+</div>
-                <div className="text-sm text-gray-300">Critical Patients Transferred</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-green-400 mb-2">24/7</div>
-                <div className="text-sm text-gray-300">Emergency Response</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-blue-400 mb-2">2</div>
-                <div className="text-sm text-gray-300">Aircraft Available</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-yellow-400 mb-2">100%</div>
-                <div className="text-sm text-gray-300">Success Rate</div>
-              </div>
-            </div>
-
-            <div className="mt-8">
-              <h4 className="text-lg font-semibold mb-4">Fleet Information</h4>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                  <span>Fixed-wing Aircraft</span>
-                  <span className="text-green-400">Available</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                  <span>Helicopter</span>
-                  <span className="text-green-400">Available</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const Footer = () => {
+  const { t } = useLanguage();
   return (
     <footer className="bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Company Info */}
+      <div className="max-w-7xl mx-auto px-6 py-6">
 
-
-
-          {/* Emergency Contacts */}
-      
-
-          {/* Service Hours */}
-        
-        </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-gray-800 mt-8 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+        <div className="border-t border-gray-800">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 pt-6">
             <div className="text-gray-400 text-sm">
-              © 2025 पीएमश्री एयर एम्बुलेंस सेवा. All rights reserved.
+              © 2025 {t.pmShriAirAmbulance || 'PM Shri Air Ambulance'}. {t.allRightsReserved || 'All rights reserved.'}
             </div>
             
             {/* Powered by RBSH */}
             <div className="flex items-center space-x-2">
-              <span className="text-gray-400 text-sm">Powered by</span>
+              <span className="text-gray-400 text-sm">{t.poweredBy || 'Powered by'}</span>
               <a 
                 href="https://rbshstudio.com/" 
                 target="_blank" 
@@ -391,11 +395,11 @@ const Footer = () => {
 const HomePage = () => {
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      <Header1 />
+
       <HeroSection />
       <FeaturesSection />
       <BookingSection />
-      <ContactSection />
       <Footer />
       <WhatsAppChatbot />
     </div>

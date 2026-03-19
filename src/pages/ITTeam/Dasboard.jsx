@@ -44,6 +44,7 @@ import {
 } from 'react-icons/fa';
 import { useThemeStyles } from '../../hooks/useThemeStyles';
 import baseUrl from '../../baseUrl/baseUrl';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 // Register Chart.js components
 ChartJS.register(
@@ -60,6 +61,7 @@ ChartJS.register(
 
 const ITTeamDashboard = () => {
   const styles = useThemeStyles();
+  const { language, t } = useLanguage();
   const [dashboardData, setDashboardData] = useState({
     totalEnquiries: 0,
     totalUsers: 0,
@@ -149,7 +151,7 @@ const ITTeamDashboard = () => {
       setError('');
     } catch (err) {
       console.error('Dashboard fetch error:', err);
-      setError('Failed to load dashboard data: ' + err.message);
+      setError((t.failedToLoadDashboard || 'Failed to load dashboard data') + ': ' + err.message);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -345,10 +347,10 @@ const ITTeamDashboard = () => {
             <div>
               <h1 className={`text-3xl font-bold ${styles.primaryText} flex items-center`}>
                 <FaHardHat className="mr-3 text-orange-600" />
-                IT Team Dashboard
+                {t.itTeamDashboard || 'IT Team Dashboard'}
               </h1>
               <p className={`${styles.secondaryText} mt-1`}>
-                System Administration & Technical Management
+                {t.itTeamDashboardDesc || 'System Administration & Technical Management'}
               </p>
             </div>
             <div className="flex space-x-3">
@@ -358,14 +360,14 @@ const ITTeamDashboard = () => {
                 className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
               >
                 <FaSyncAlt className={`mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-                {refreshing ? 'Refreshing...' : 'Refresh'}
+                {refreshing ? (t.refreshing || 'Refreshing...') : (t.refresh || 'Refresh')}
               </button>
               <Link
                 to="/it-team/system-settings"
                 className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
               >
                 <FaCog className="mr-2" />
-                Settings
+                {t.settings || 'Settings'}
               </Link>
             </div>
           </div>
@@ -382,11 +384,11 @@ const ITTeamDashboard = () => {
 
       {/* System Health Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white">
+        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-sm p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-100 text-sm font-medium">System Health</p>
-              <p className="text-2xl font-bold">{dashboardData.systemHealth}</p>
+              <p className="text-green-100 text-sm font-medium">{t.systemHealth || 'System Health'}</p>
+              <p className="text-2xl font-bold">{t[dashboardData.systemHealth.toLowerCase()] || dashboardData.systemHealth}</p>
             </div>
             <div className="bg-green-400 bg-opacity-30 rounded-full p-3">
               <FaShieldAlt className="text-2xl" />
@@ -394,14 +396,14 @@ const ITTeamDashboard = () => {
           </div>
           <div className="mt-4 flex items-center">
             <FaCheckCircle className="text-green-200 mr-1" />
-            <span className="text-green-100 text-sm">All systems operational</span>
+            <span className="text-green-100 text-sm">{t.allSystemsOperational || 'All systems operational'}</span>
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-sm p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-100 text-sm font-medium">Server Uptime</p>
+              <p className="text-blue-100 text-sm font-medium">{t.serverUptime || 'Server Uptime'}</p>
               <p className="text-2xl font-bold">{dashboardData.serverUptime}</p>
             </div>
             <div className="bg-blue-400 bg-opacity-30 rounded-full p-3">
@@ -410,14 +412,14 @@ const ITTeamDashboard = () => {
           </div>
           <div className="mt-4 flex items-center">
             <FaArrowUp className="text-blue-200 mr-1" />
-            <span className="text-blue-100 text-sm">Last 30 days</span>
+            <span className="text-blue-100 text-sm">{t.last30Days || 'Last 30 days'}</span>
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white">
+        <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-sm p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-100 text-sm font-medium">Database Size</p>
+              <p className="text-purple-100 text-sm font-medium">{t.databaseSize || 'Database Size'}</p>
               <p className="text-2xl font-bold">{dashboardData.databaseSize}</p>
             </div>
             <div className="bg-purple-400 bg-opacity-30 rounded-full p-3">
@@ -426,14 +428,14 @@ const ITTeamDashboard = () => {
           </div>
           <div className="mt-4 flex items-center">
             <FaArrowUp className="text-purple-200 mr-1" />
-            <span className="text-purple-100 text-sm">Growing steadily</span>
+            <span className="text-purple-100 text-sm">{t.growingSteadily || 'Growing steadily'}</span>
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg shadow-lg p-6 text-white">
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg shadow-sm p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-orange-100 text-sm font-medium">Active Connections</p>
+              <p className="text-orange-100 text-sm font-medium">{t.activeConnections || 'Active Connections'}</p>
               <p className="text-2xl font-bold">{dashboardData.activeConnections}</p>
             </div>
             <div className="bg-orange-400 bg-opacity-30 rounded-full p-3">
@@ -442,7 +444,7 @@ const ITTeamDashboard = () => {
           </div>
           <div className="mt-4 flex items-center">
             <FaEye className="text-orange-200 mr-1" />
-            <span className="text-orange-100 text-sm">Real-time users</span>
+            <span className="text-orange-100 text-sm">{t.realTimeUsers || 'Real-time users'}</span>
           </div>
         </div>
       </div>
@@ -452,7 +454,7 @@ const ITTeamDashboard = () => {
         <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-6`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`${styles.secondaryText} text-sm font-medium`}>Total Users</p>
+              <p className={`${styles.secondaryText} text-sm font-medium`}>{t.totalUsers || 'Total Users'}</p>
               <p className="text-2xl font-bold text-blue-600">{dashboardData.totalUsers}</p>
             </div>
             <div className="bg-blue-100 rounded-full p-3">
@@ -464,7 +466,7 @@ const ITTeamDashboard = () => {
         <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-6`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`${styles.secondaryText} text-sm font-medium`}>Error Logs</p>
+              <p className={`${styles.secondaryText} text-sm font-medium`}>{t.errorLogs || 'Error Logs'}</p>
               <p className="text-2xl font-bold text-red-600">{dashboardData.errorLogs}</p>
             </div>
             <div className="bg-red-100 rounded-full p-3">
@@ -476,7 +478,7 @@ const ITTeamDashboard = () => {
         <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-6`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`${styles.secondaryText} text-sm font-medium`}>Security Alerts</p>
+              <p className={`${styles.secondaryText} text-sm font-medium`}>{t.securityAlerts || 'Security Alerts'}</p>
               <p className="text-2xl font-bold text-yellow-600">{dashboardData.securityAlerts}</p>
             </div>
             <div className="bg-yellow-100 rounded-full p-3">
@@ -488,8 +490,8 @@ const ITTeamDashboard = () => {
         <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-6`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`${styles.secondaryText} text-sm font-medium`}>Backup Status</p>
-              <p className="text-lg font-bold text-green-600">{dashboardData.backupStatus}</p>
+              <p className={`${styles.secondaryText} text-sm font-medium`}>{t.backupStatus || 'Backup Status'}</p>
+              <p className="text-lg font-bold text-green-600">{t[dashboardData.backupStatus.toLowerCase()] || dashboardData.backupStatus}</p>
             </div>
             <div className="bg-green-100 rounded-full p-3">
               <FaCloudUploadAlt className="text-green-600 text-xl" />
@@ -505,7 +507,7 @@ const ITTeamDashboard = () => {
           <div className="flex items-center justify-between mb-4">
             <h2 className={`text-xl font-semibold ${styles.primaryText} flex items-center`}>
               <FaChartLine className="mr-2 text-blue-600" />
-              System Performance (Last 12 Hours)
+              {t.systemPerformanceLast12Hours || 'System Performance (Last 12 Hours)'}
             </h2>
           </div>
           <div className="h-64">
@@ -535,7 +537,7 @@ const ITTeamDashboard = () => {
           <div className="flex items-center justify-between mb-4">
             <h2 className={`text-xl font-semibold ${styles.primaryText} flex items-center`}>
               <FaUsers className="mr-2 text-purple-600" />
-              User Role Distribution
+              {t.userRoleDistribution || 'User Role Distribution'}
             </h2>
           </div>
           <div className="h-64">
@@ -562,7 +564,7 @@ const ITTeamDashboard = () => {
           <div className={`px-6 py-4 border-b ${styles.borderColor}`}>
             <h2 className={`text-xl font-semibold ${styles.primaryText} flex items-center`}>
               <FaCode className="mr-2 text-green-600" />
-              Recent System Logs
+              {t.recentSystemLogs || 'Recent System Logs'}
             </h2>
           </div>
           <div className="p-6">
@@ -589,7 +591,7 @@ const ITTeamDashboard = () => {
           <div className={`px-6 py-4 border-b ${styles.borderColor}`}>
             <h2 className={`text-xl font-semibold ${styles.primaryText} flex items-center`}>
               <FaShieldAlt className="mr-2 text-red-600" />
-              Security Events
+              {t.securityEvents || 'Security Events'}
             </h2>
           </div>
           <div className="p-6">
@@ -621,7 +623,7 @@ const ITTeamDashboard = () => {
       <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-6`}>
         <h2 className={`text-xl font-semibold ${styles.primaryText} mb-4 flex items-center`}>
           <FaTools className="mr-2 text-indigo-600" />
-          Quick Actions
+          {t.quickActions || 'Quick Actions'}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Link
@@ -630,8 +632,8 @@ const ITTeamDashboard = () => {
           >
             <FaUsers className="text-blue-600 text-2xl mr-3" />
             <div>
-              <p className="font-semibold text-blue-800">Manage Users</p>
-              <p className="text-sm text-blue-600">View & edit all users</p>
+              <p className="font-semibold text-blue-800">{t.manageUsers || 'Manage Users'}</p>
+              <p className="text-sm text-blue-600">{t.viewEditAllUsers || 'View & edit all users'}</p>
             </div>
           </Link>
           
@@ -641,8 +643,8 @@ const ITTeamDashboard = () => {
           >
             <FaCode className="text-green-600 text-2xl mr-3" />
             <div>
-              <p className="font-semibold text-green-800">System Logs</p>
-              <p className="text-sm text-green-600">View detailed logs</p>
+              <p className="font-semibold text-green-800">{t.systemLogs || 'System Logs'}</p>
+              <p className="text-sm text-green-600">{t.viewDetailedLogs || 'View detailed logs'}</p>
             </div>
           </Link>
           
@@ -652,8 +654,8 @@ const ITTeamDashboard = () => {
           >
             <FaDatabase className="text-purple-600 text-2xl mr-3" />
             <div>
-              <p className="font-semibold text-purple-800">Database</p>
-              <p className="text-sm text-purple-600">Manage database</p>
+              <p className="font-semibold text-purple-800">{t.database || 'Database'}</p>
+              <p className="text-sm text-purple-600">{t.manageDatabase || 'Manage database'}</p>
             </div>
           </Link>
           
@@ -663,8 +665,8 @@ const ITTeamDashboard = () => {
           >
             <FaShieldAlt className="text-red-600 text-2xl mr-3" />
             <div>
-              <p className="font-semibold text-red-800">Security Center</p>
-              <p className="text-sm text-red-600">Security management</p>
+              <p className="font-semibold text-red-800">{t.securityCenter || 'Security Center'}</p>
+              <p className="text-sm text-red-600">{t.securityManagement || 'Security management'}</p>
             </div>
           </Link>
         </div>
