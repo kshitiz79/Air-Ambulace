@@ -37,7 +37,7 @@ const EnquiryDetailsPage = () => {
   const [actionLoading, setActionLoading] = useState('');
   const [showEscalationModal, setShowEscalationModal] = useState(false);
   const [escalationReason, setEscalationReason] = useState('');
-  const [escalatedTo, setEscalatedTo] = useState('District Magistrate');
+  const [escalatedTo, setEscalatedTo] = useState('Collector');
   const [language, setLanguage] = useState('en');
 
   const labels = {

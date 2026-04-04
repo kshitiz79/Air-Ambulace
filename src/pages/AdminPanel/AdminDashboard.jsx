@@ -27,37 +27,41 @@ const AdminDashboard = () => {
     pending: 0, approved: 0, rejected: 0, escalated: 0, completed: 0, forwarded: 0, inProgress: 0,
     recent: [], recentUsers: [], monthly: [], userRoles: [], hospitalStats: [],
   });
-  const [filter, setFilter] = useState({ status: 'ALL', dateFrom: '', dateTo: '', district: 'ALL', hospital: 'ALL' });
+  const [filter, setFilter] = useState({ status: 'ALL', dateFrom: '', dateTo: '', district: 'ALL', hospital: 'ALL', ambulance: 'ALL' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [hospitals, setHospitals] = useState([]);
   const [districts, setDistricts] = useState([]);
+  const [ambulances, setAmbulances] = useState([]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
       const h = { Authorization: `Bearer ${token}` };
-      const [enqRes, usersRes, hospRes, distRes] = await Promise.all([
+      const [enqRes, usersRes, hospRes, distRes, ambRes] = await Promise.all([
         fetch(`${baseUrl}/api/enquiries`, { headers: h }),
         fetch(`${baseUrl}/api/users`, { headers: h }),
         fetch(`${baseUrl}/api/hospitals`, { headers: h }),
         fetch(`${baseUrl}/api/districts`, { headers: h }),
+        fetch(`${baseUrl}/api/ambulances`, { headers: h }),
       ]);
       if (!enqRes.ok) throw new Error('Failed to fetch enquiries');
       if (!usersRes.ok) throw new Error('Failed to fetch users');
 
-      const [enqData, usersData, hospData, distData] = await Promise.all([
+      const [enqData, usersData, hospData, distData, ambData] = await Promise.all([
         enqRes.json(), usersRes.json(),
         hospRes.ok ? hospRes.json() : { data: [] },
         distRes.ok ? distRes.json() : { data: [] },
+        ambRes.ok ? ambRes.json() : { data: [] },
       ]);
 
       const enquiries = enqData.data || [];
       const users = usersData.data || [];
       const hospList = hospData.data || [];
       const distList = distData.data || [];
+      const ambList = ambData.data || [];
 
       const hospitalMap = {};
       hospList.forEach(h => { hospitalMap[h.hospital_id] = h.name || h.hospital_name || `Hospital ${h.hospital_id}`; });
@@ -99,6 +103,7 @@ const AdminDashboard = () => {
       });
       setHospitals(hospList);
       setDistricts(distList);
+      setAmbulances(ambList);
       setError('');
     } catch (err) {
       setError(err.message);
@@ -117,10 +122,11 @@ const AdminDashboard = () => {
     const matchStatus = filter.status === 'ALL' || e.status === filter.status;
     const matchDistrict = filter.district === 'ALL' || e.district_id?.toString() === filter.district;
     const matchHospital = filter.hospital === 'ALL' || e.hospital_id?.toString() === filter.hospital;
+    const matchAmbulance = filter.ambulance === 'ALL' || e.ambulance_registration_number === filter.ambulance;
     let matchDate = true;
     if (filter.dateFrom) matchDate = matchDate && new Date(e.created_at) >= new Date(filter.dateFrom);
     if (filter.dateTo) matchDate = matchDate && new Date(e.created_at) <= new Date(filter.dateTo);
-    return matchStatus && matchDistrict && matchHospital && matchDate;
+    return matchStatus && matchDistrict && matchHospital && matchAmbulance && matchDate;
   });
 
   const formatDate = (d) => new Date(d).toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -170,13 +176,6 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      <DashboardHeader
-        title={t.adminDashboardTitle || 'Admin Dashboard'}
-        badgeLabel={t.systemAdministration || 'System Administration'}
-        onRefresh={handleRefresh}
-        refreshing={refreshing}
-        accentColor="blue"
-      />
 
       {/* Top 4 stat cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -218,7 +217,7 @@ const AdminDashboard = () => {
           <FaFilter className={`mr-2 ${styles.secondaryText}`} />
           <h2 className={`text-xl font-semibold ${styles.primaryText}`}>{t.filters || 'Filters'}</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <div>
             <label className={`block text-sm font-medium ${styles.secondaryText} mb-1`}>{t.status || 'Status'}</label>
             <select name="status" value={filter.status} onChange={handleFilterChange} className={`w-full p-2 border rounded-md ${styles.inputBackground}`}>
@@ -250,6 +249,15 @@ const AdminDashboard = () => {
               {hospitals.map(h => <option key={h.hospital_id} value={h.hospital_id}>{h.name || h.hospital_name}</option>)}
             </select>
           </div>
+          <div>
+            <label className={`block text-sm font-medium ${styles.secondaryText} mb-1`}>Ambulance</label>
+            <select name="ambulance" value={filter.ambulance} onChange={handleFilterChange} className={`w-full p-2 border rounded-md ${styles.inputBackground}`}>
+              <option value="ALL">All Ambulances</option>
+              {ambulances.map(a => (
+                <option key={a.ambulance_id} value={a.registration_number}>{a.registration_number}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -274,7 +282,7 @@ const AdminDashboard = () => {
             <table className="min-w-full">
               <thead className={styles.tableHeader}>
                 <tr>
-                  {[t.enquiryCode || 'Enquiry Code', t.patientName || 'Patient Name', t.status || 'Status', t.hospital || 'Hospital', t.district || 'District', t.createdDate || 'Created Date', t.actions || 'Actions'].map(h => (
+                  {[t.enquiryCode || 'Enquiry Code', t.patientName || 'Patient Name', t.status || 'Status', t.hospital || 'Hospital', t.district || 'District', 'Ambulance', t.createdDate || 'Created Date', t.actions || 'Actions'].map(h => (
                     <th key={h} className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>{h}</th>
                   ))}
                 </tr>
@@ -287,6 +295,11 @@ const AdminDashboard = () => {
                     <td className="px-6 py-4"><StatusBadge status={e.status} label={t[e.status?.toLowerCase()] || e.status} /></td>
                     <td className={`px-6 py-4 text-sm ${styles.primaryText}`}>{e.hospital?.name || e.hospital?.hospital_name || 'N/A'}</td>
                     <td className={`px-6 py-4 text-sm ${styles.primaryText}`}>{e.district?.district_name || 'N/A'}</td>
+                    <td className={`px-6 py-4 text-sm ${styles.primaryText}`}>
+                      {e.ambulance_registration_number
+                        ? <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-mono font-bold">{e.ambulance_registration_number}</span>
+                        : <span className="text-gray-400 text-xs">—</span>}
+                    </td>
                     <td className={`px-6 py-4 text-sm ${styles.primaryText}`}>{formatDate(e.created_at)}</td>
                     <td className="px-6 py-4 text-sm font-medium text-right">
                       <button className="text-blue-600 hover:text-blue-900">
@@ -309,13 +322,18 @@ const AdminDashboard = () => {
           </h2>
         </div>
         <div className="p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { to: '/admin/user-management', color: 'bg-blue-600 hover:bg-blue-700', icon: <FaUsers className="mr-2" />, label: t.manageUsers || 'Manage Users' },
               { to: '/admin/hospital-management', color: 'bg-green-600 hover:bg-green-700', icon: <FaHospital className="mr-2" />, label: t.manageHospitals || 'Manage Hospitals' },
               { to: '/admin/district-data-page', color: 'bg-purple-600 hover:bg-purple-700', icon: <FaMapMarkerAlt className="mr-2" />, label: t.manageDistricts || 'Manage Districts' },
               { to: '/admin/all-queries', color: 'bg-indigo-600 hover:bg-indigo-700', icon: <FaQuestionCircle className="mr-2" />, label: t.allQueries || 'All Queries' },
               { to: '/admin/export-page', color: 'bg-orange-600 hover:bg-orange-700', icon: <FaDownload className="mr-2" />, label: t.exportData || 'Export Data' },
+              { to: '/admin/referral-authority-management', color: 'bg-teal-600 hover:bg-teal-700', icon: <FaUsers className="mr-2" />, label: t.referralMaster || 'Referral Master' },
+              { to: '/admin/ambulance-master', color: 'bg-blue-700 hover:bg-blue-800', icon: <FaFileAlt className="mr-2" />, label: 'Ambulance Master' },
+              { to: '/admin/medical-condition-master', color: 'bg-red-600 hover:bg-red-700', icon: <FaExclamationTriangle className="mr-2" />, label: 'Medical Conditions' },
+              { to: '/admin/doctor-assignments', color: 'bg-teal-700 hover:bg-teal-800', icon: <FaUserShield className="mr-2" />, label: 'Doctor Assignments' },
+              { to: '/admin/ambulance-tracking', color: 'bg-orange-600 hover:bg-orange-700', icon: <FaFileAlt className="mr-2" />, label: 'Ambulance Tracking' },
             ].map(({ to, color, icon, label }) => (
               <Link key={to} to={to} className={`flex items-center justify-center px-6 py-4 ${color} text-white rounded-lg transition`}>
                 {icon}{label}

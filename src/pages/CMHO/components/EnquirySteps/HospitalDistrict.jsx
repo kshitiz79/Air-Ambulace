@@ -41,7 +41,7 @@ const HospitalDistrict = ({ formData, handleChange, language, labels, errors, ho
               {errors.hospital_id && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.hospital_id}</p>}
             </div>
             <div>
-              <label className="block text-[10px] font-black text-gray-400 mb-1 uppercase tracking-widest italic">{labels[language].district}</label>
+              <label className="block text-[10px] font-black text-gray-400 mb-1 uppercase tracking-widest italic">{labels[language].destinationDistrict}</label>
               <select
                 name="district_id"
                 value={formData.district_id}

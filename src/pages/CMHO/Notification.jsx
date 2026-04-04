@@ -1,9 +1,3 @@
-import React from 'react'
+import NotificationPage from '../Common/NotificationPage';
 
-const Notification = () => {
-  return (
-    <div>Notification</div>
-  )
-}
-
-export default Notification
+export default NotificationPage;

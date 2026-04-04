@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { FiHome, FiTruck, FiFileText, FiInfo, FiDollarSign, FiActivity, FiUsers, FiBarChart2, FiMessageSquare, FiBell, FiSettings, FiUser, FiList } from 'react-icons/fi';
-import { FaHospital } from 'react-icons/fa';
+import { FiHome, FiTruck, FiFileText, FiInfo, FiDollarSign, FiActivity, FiUsers, FiBarChart2, FiMessageSquare, FiBell, FiSettings, FiUser, FiList, FiDatabase } from 'react-icons/fi';
+import { FaHospital, FaAmbulance, FaHeartbeat, FaUserMd, FaWhatsapp } from 'react-icons/fa';
 import Sidebar from '../../components/Global/SideBar';
 import Header from '../../components/Global/Header';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -21,6 +21,12 @@ const AdminDashboard = () => {
     { to: '/admin/district-data-page', label: t.districtData, icon: <FiBarChart2 /> },
     { to: '/admin/hospital-management', label: t.hospitalData, icon: <FaHospital /> },
     { to: '/admin/all-queries', label: t.allQueries, icon: <FiList /> },
+    { to: '/admin/referral-authority-management', label: t.referralMaster || 'Referral Master', icon: <FiDatabase /> },
+    { to: '/admin/ambulance-master', label: 'Ambulance Master', icon: <FaAmbulance /> },
+    { to: '/admin/medical-condition-master', label: 'Medical Conditions', icon: <FaHeartbeat /> },
+    { to: '/admin/doctor-assignments', label: 'Doctor Assignments', icon: <FaUserMd /> },
+    { to: '/admin/ambulance-tracking', label: 'Ambulance Tracking', icon: <FaAmbulance /> },
+    { to: '/admin/whatsapp-config', label: 'WhatsApp Alerts', icon: <FaWhatsapp /> },
   ];
 
   // Get real user information from localStorage

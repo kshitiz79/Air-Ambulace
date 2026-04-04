@@ -7,6 +7,7 @@ import {
   FiEdit3,
   FiClipboard,
   FiBell,
+  FiTruck,
 } from 'react-icons/fi';
 import SideBar from './../../components/Global/SideBar';
 import Header from './../../components/Global/Header';
@@ -20,6 +21,7 @@ const CmhoDashboard = () => {
     { to: '/cmho-dashboard', label: t.dashboard, icon: <FiHome /> },
     { to: '/cmho-dashboard/enquiry-creation-page', label: t.enquiryCreation, icon: <FiEdit3 /> },
     { to: '/cmho-dashboard/escalate-case', label: t.escalateCase, icon: <FiSend /> },
+    { to: '/cmho-dashboard/ambulance-master', label: t.ambulanceFleet, icon: <FiTruck /> },
     { to: '/cmho-dashboard/beneficiary-detail-page', label: t.beneficiaryDetails, icon: <FiUser /> },
     // { to: '/cmho-dashboard/query-from-sdm', label: t.queriesFromSDM, icon: <FiBell /> },
     { to: '/cmho-dashboard/query-from-collector', label: t.queriesFromCollector, icon: <FiBell /> },

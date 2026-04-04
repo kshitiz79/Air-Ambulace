@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaEdit, FaTrash, FaPhoneAlt, FaEnvelope, FaHospital, FaUser, FaGlobe, FaSearch, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
+import { FaEdit, FaPhoneAlt, FaEnvelope, FaHospital, FaGlobe, FaSearch, FaCheckCircle, FaExclamationCircle, FaMapMarkerAlt } from 'react-icons/fa';
 import baseUrl from '../../baseUrl/baseUrl';
 import { useLanguage } from '../../contexts/LanguageContext';
 
@@ -10,7 +10,7 @@ const BeneficiaryEditPageList = () => {
   const [enquiries, setEnquiries] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isDeleting, setIsDeleting] = useState(null);
+
   const [activeTab, setActiveTab] = useState('FREE'); // 'FREE', 'PAID', 'ALL'
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -35,25 +35,6 @@ const BeneficiaryEditPageList = () => {
     fetchEnquiries();
   }, []);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm(t.confirmDelete || 'Are you sure you want to delete this enquiry?')) return;
-    setIsDeleting(id);
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${baseUrl}/api/enquiries/${id}`, { 
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || 'Error');
-      setEnquiries(prev => prev.filter(e => e.enquiry_id !== id));
-      alert(t.deleteSuccess || 'Deleted successfully');
-    } catch (e) {
-      setError((t.deleteError || 'Error deleting: ') + e.message);
-    } finally {
-      setIsDeleting(null);
-    }
-  };
 
   const handleEdit = (id) => navigate(`/cmho-dashboard/beneficiary-detail-page/${id}`);
 
@@ -183,22 +164,28 @@ const BeneficiaryEditPageList = () => {
                     <div className="p-6 md:p-8 flex-1">
                       <div className="flex flex-col md:flex-row md:items-start justify-between mb-4 gap-4">
                         <div>
-                          <div className="flex items-center gap-3 mb-2">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
                             <h2 className="text-xl font-bold text-gray-900">{e.patient_name || 'Unknown Patient'}</h2>
+                            {enq.district?.district_name && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 border border-orange-200">
+                                <FaMapMarkerAlt size={10} /> {enq.district.district_name}
+                              </span>
+                            )}
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${isItemPaid ? 'border-green-200 bg-green-50 text-green-700' : 'border-indigo-200 bg-indigo-50 text-indigo-700'}`}>
                               <FaCheckCircle className="mr-1.5" />
                               {isItemPaid ? 'Paid Transport' : 'Free Transport'}
                             </span>
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
-                              Status: {enq.status || 'PENDING'}
+                              {enq.status || 'PENDING'}
                             </span>
                           </div>
-                          <div className="text-sm text-gray-500 flex items-center gap-2">
-                            <FaPhoneAlt size={12} className="text-gray-400" /> {enq.contact_phone || 'N/A'} 
-                            <span className="text-gray-300">|</span> 
+                          <div className="text-sm text-gray-500 flex flex-wrap items-center gap-2">
+                            <span className="font-mono text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{enq.enquiry_code}</span>
+                            <span className="text-gray-300">|</span>
+                            <FaPhoneAlt size={12} className="text-gray-400" /> {enq.contact_phone || 'N/A'}
+                            <span className="text-gray-300">|</span>
                             <FaEnvelope size={12} className="text-gray-400" /> {enq.contact_email || 'N/A'}
-                          </div>
-                        </div>
+                          </div>                        </div>
                         
                         <div className="text-xs text-gray-500 flex items-center gap-1 shrink-0 bg-gray-50 px-3 py-1.5 rounded-md border border-gray-100">
                            Created: {enq.created_at ? new Date(enq.created_at).toLocaleDateString() : 'N/A'}
@@ -244,13 +231,6 @@ const BeneficiaryEditPageList = () => {
                           className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
                         >
                           <FaEdit className="mr-2" /> {t.edit || 'Edit or View Detail'}
-                        </button>
-                        <button
-                          onClick={() => handleDelete(enq.enquiry_id)}
-                          disabled={isDeleting === enq.enquiry_id}
-                          className="inline-flex items-center justify-center px-4 py-2 border border-red-200 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50"
-                        >
-                          <FaTrash className="mr-2" /> {isDeleting === enq.enquiry_id ? (t.deleting || 'Deleting...') : (t.delete || 'Delete')}
                         </button>
                       </div>
                     </div>

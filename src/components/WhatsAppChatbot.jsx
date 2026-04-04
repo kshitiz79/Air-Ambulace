@@ -43,7 +43,7 @@ const WhatsAppChatbot = () => {
   return (
     <>
       {/* Floating Chat Button */}
-      <div className="fixed bottom-6 right-6 z-[9999]">
+      <div className="fixed bottom-4 left-6 z-[9999]">
         {isOpen && (
           <div className="mb-4 bg-white rounded-2xl shadow-sm w-80 sm:w-96 animate-slideUp">
             {/* Header */}

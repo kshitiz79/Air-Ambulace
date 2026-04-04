@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { FiHome, FiThumbsUp, FiFileText, FiAlertCircle, FiDollarSign, FiSend, FiSearch, FiUser } from 'react-icons/fi';
+import { FiHome, FiThumbsUp, FiFileText, FiAlertCircle, FiDollarSign, FiSend, FiSearch, FiUser, FiMessageSquare } from 'react-icons/fi';
 import SideBar from './../../components/Global/SideBar';
 import Header from './../../components/Global/Header';
 
@@ -13,6 +13,7 @@ const CollectorDashboard = () => {
   const navigationLinks = [
     { to: '/collector-dashboard', label: t.dashboard, icon: <FiHome /> },
     { to: '/collector-dashboard/case-files', label: t.caseFile, icon: <FiFileText /> },
+    { to: '/collector-dashboard/all-queries', label: t.allQueries, icon: <FiMessageSquare /> },
     { to: '/collector-dashboard/escalation-page', label: t.escalationPage, icon: <FiAlertCircle /> },
     { to: '/collector-dashboard/search-page', label: t.searchPage, icon: <FiSearch /> },
     { to: '/collector-dashboard/profile', label: t.profile, icon: <FiUser /> },
@@ -30,7 +31,7 @@ const CollectorDashboard = () => {
   return (
     <div className="flex h-screen font-sans">
       <SideBar
-        title={t.dmDashboard}
+        title={t.collectorDashboard}
         navigationLinks={navigationLinks}
         userName={userName}
         userRole={userRole}

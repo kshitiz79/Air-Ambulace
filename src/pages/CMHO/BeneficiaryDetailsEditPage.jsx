@@ -63,7 +63,7 @@ const labels = {
     identityInfo: 'Identity Information',
     selectIdentityType: 'Select Identity Card Type',
     pleaseSelectIdentityType: 'Please select identity card type',
-    orProvideBothAadharPan: 'Or provide both Aadhar and PAN Card:',
+    orProvideBothAadharPan: 'If needed provide both Aadhar and PAN Card:',
     aadharPlaceholder: 'Enter 12-digit Aadhar Number',
     panPlaceholder: 'e.g., ABCDE1234F',
     identityFallback: 'Either select ABHA/PM JAY or provide both Aadhar and PAN card numbers',

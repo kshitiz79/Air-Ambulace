@@ -134,40 +134,47 @@ export default function EnquiryCreationPage() {
         if (!formData.gender) errs.gender = `${labels.gender} ${labels.required}`;
         if (!formData.address.trim()) errs.address = `${labels.address} ${labels.required}`;
         // Identity card validation
-        if (!formData.identity_card_type) {
-          errs.identity_card_type = labels.pleaseSelectIdentityType;
-        } else if (formData.identity_card_type === 'ABHA') {
-          if (!formData.ayushman_card_number) {
-            errs.ayushman_card_number = `${labels.abhaNumber} ${labels.required}`;
-          } else if (!/^\d{14}$/.test(formData.ayushman_card_number)) {
-            errs.ayushman_card_number = labels.idMustBe14Digits || 'ABHA Number must be exactly 14 digits';
+        if (formData.air_transport_type === 'Paid') {
+          if (!formData.aadhar_card_number) {
+            errs.aadhar_card_number = `${labels.aadharCard} ${labels.required}`;
+          } else if (!/^\d{12}$/.test(formData.aadhar_card_number)) {
+            errs.aadhar_card_number = labels.aadharMustBe12Digits || 'Aadhar number must be exactly 12 digits';
           }
-        } else if (formData.identity_card_type === 'PM_JAY') {
-          if (!formData.ayushman_card_number) {
-            errs.ayushman_card_number = `${labels.pmJayId} ${labels.required}`;
-          } else if (!/^\d{9}$/.test(formData.ayushman_card_number)) {
-            errs.ayushman_card_number = labels.idMustBe9Digits || 'PM JAY ID must be exactly 9 digits';
+        } else {
+          // Free service validation
+          if (!formData.identity_card_type) {
+            errs.identity_card_type = labels.pleaseSelectIdentityType;
+          } else if (formData.identity_card_type === 'ABHA') {
+            if (!formData.ayushman_card_number) {
+              errs.ayushman_card_number = `${labels.abhaNumber} ${labels.required}`;
+            } else if (!/^\d{14}$/.test(formData.ayushman_card_number)) {
+              errs.ayushman_card_number = labels.idMustBe14Digits || 'ABHA Number must be exactly 14 digits';
+            }
+          } else if (formData.identity_card_type === 'PM_JAY') {
+            if (!formData.ayushman_card_number) {
+              errs.ayushman_card_number = `${labels.pmJayId} ${labels.required}`;
+            } else if (!/^\d{9}$/.test(formData.ayushman_card_number)) {
+              errs.ayushman_card_number = labels.idMustBe9Digits || 'PM JAY ID must be exactly 9 digits';
+            }
+          }
+
+          // Alternative: Aadhar + PAN validation (if no ABHA/PM JAY)
+          if (!formData.identity_card_type && !formData.ayushman_card_number) {
+            if (!formData.aadhar_card_number && !formData.pan_card_number) {
+              errs.identity_fallback = labels.identityFallback;
+            } else {
+              if (formData.aadhar_card_number && !/^\d{12}$/.test(formData.aadhar_card_number)) {
+                errs.aadhar_card_number = labels.aadharMustBe12Digits || 'Aadhar number must be exactly 12 digits';
+              }
+              if (formData.pan_card_number && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.pan_card_number)) {
+                errs.pan_card_number = labels.invalidPanFormat || 'Invalid PAN format';
+              }
+            }
           }
         }
 
-        // Alternative: Aadhar + PAN validation (if no ABHA/PM JAY)
-        if (!formData.identity_card_type && !formData.ayushman_card_number) {
-          if (!formData.aadhar_card_number && !formData.pan_card_number) {
-            errs.identity_fallback = labels.identityFallback;
-          } else {
-            if (formData.aadhar_card_number && !/^\d{12}$/.test(formData.aadhar_card_number)) {
-              errs.aadhar_card_number = labels.aadharMustBe12Digits || 'Aadhar number must be exactly 12 digits';
-            }
-            if (formData.pan_card_number && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.pan_card_number)) {
-              errs.pan_card_number = labels.invalidPanFormat || 'Invalid PAN format';
-            }
-          }
-        }
         if (formData.pan_card_number && !/^[A-Z]{5}\d{4}[A-Z]$/.test(formData.pan_card_number)) {
           errs.pan_card_number = labels.panFormatHint || 'PAN card must follow format ABCDE1234F';
-        }
-        if (!formData.transportation_category) {
-          errs.transportation_category = `${labels.transportationCategory} is required`;
         }
         if (!formData.air_transport_type) {
           errs.air_transport_type = `${labels.airTransportType} is required`;
@@ -176,7 +183,7 @@ export default function EnquiryCreationPage() {
 
       case 1: // Contact Information
         if (!formData.contact_name.trim()) errs.contact_name = `${labels.contactName} ${labels.requiredField}`;
-        if (!/^\d{10}$/.test(formData.contact_phone)) errs.contact_phone = labels.contactPhone10Digits || 'Contact Phone must be 10 digits';
+        if (!/^[6-9]\d{9}$/.test(formData.contact_phone)) errs.contact_phone = labels.contactPhone10Digits || 'Invalid 10-digit phone number';
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contact_email)) {
           errs.contact_email = labels.validEmailRequired || 'Valid Email is required';
         }
@@ -184,12 +191,15 @@ export default function EnquiryCreationPage() {
 
       case 2: // Medical Details
         if (!formData.medical_condition.trim()) errs.medical_condition = `${labels.medicalCondition} ${labels.requiredField}`;
-        if (!formData.chief_complaint.trim()) errs.chief_complaint = labels.chiefComplaintRequired || 'Chief Complaint is required';
-        if (!formData.general_condition.trim()) errs.general_condition = labels.generalConditionRequired || 'General Condition is required';
+        if (formData.air_transport_type !== 'Paid') {
+          if (!formData.chief_complaint.trim()) errs.chief_complaint = labels.chiefComplaintRequired || 'Chief Complaint is required';
+          if (!formData.general_condition.trim()) errs.general_condition = labels.generalConditionRequired || 'General Condition is required';
+        }
         if (!formData.vitals) errs.vitals = labels.vitalsRequired || 'Vitals is required';
         break;
 
-      case 3: // Referral Details
+      case 3: // Referral Details — skip entirely for Paid
+        if (formData.air_transport_type === 'Paid') break;
         if (!formData.referring_physician_name.trim()) {
           errs.referring_physician_name = `${labels.referringPhysicianName} ${labels.requiredField}`;
         }
@@ -211,12 +221,13 @@ export default function EnquiryCreationPage() {
         break;
 
       case 4: // Transportation Details
-        if (formData.ambulance_contact && !/^\d{10,15}$/.test(formData.ambulance_contact)) {
-          errs.ambulance_contact = labels.contactPhone10Digits || 'Contact Phone must be 10 digits';
+        if (formData.ambulance_contact && !/^[6-9]\d{9,14}$/.test(formData.ambulance_contact)) {
+          errs.ambulance_contact = labels.contactPhone10Digits || 'Invalid contact number';
         }
         break;
 
-      case 5: // Documentation
+      case 5: // Documentation — skip for Paid
+        if (formData.air_transport_type === 'Paid') break;
         if (formData.documents.every(doc => !doc.file)) {
           errs.documents = `${labels.documents} ${labels.requiredField}`;
         } else {
@@ -264,88 +275,104 @@ export default function EnquiryCreationPage() {
     if (!formData.gender) errs.gender = `${labels.gender} ${labels.required}`;
     if (!formData.address.trim()) errs.address = `${labels.address} ${labels.required}`;
     // Identity card validation for final submission
-    if (!formData.identity_card_type) {
-      if (!formData.aadhar_card_number || !formData.pan_card_number) {
-        errs.identity_fallback = labels.identityFallback;
+    if (formData.air_transport_type === 'Paid') {
+      if (!formData.aadhar_card_number) {
+        errs.aadhar_card_number = 'Aadhar card is required';
+      } else if (!/^\d{12}$/.test(formData.aadhar_card_number)) {
+        errs.aadhar_card_number = 'Aadhar card must be 12 digits';
       }
-    } else if (formData.identity_card_type === 'ABHA') {
-      if (!formData.ayushman_card_number) {
-        errs.ayushman_card_number = `${labels.abhaNumber} ${labels.required}`;
-      } else if (!/^\d{14}$/.test(formData.ayushman_card_number)) {
-        errs.ayushman_card_number = 'ABHA Number must be exactly 14 digits';
+    } else {
+      if (!formData.identity_card_type) {
+        if (!formData.aadhar_card_number || !formData.pan_card_number) {
+          errs.identity_fallback = labels.identityFallback;
+        }
+      } else if (formData.identity_card_type === 'ABHA') {
+        if (!formData.ayushman_card_number) {
+          errs.ayushman_card_number = `${labels.abhaNumber} ${labels.required}`;
+        } else if (!/^\d{14}$/.test(formData.ayushman_card_number)) {
+          errs.ayushman_card_number = 'ABHA Number must be exactly 14 digits';
+        }
+      } else if (formData.identity_card_type === 'PM_JAY') {
+        if (!formData.ayushman_card_number) {
+          errs.ayushman_card_number = `${labels.pmJayId} ${labels.required}`;
+        } else if (!/^\d{9}$/.test(formData.ayushman_card_number)) {
+          errs.ayushman_card_number = 'PM JAY ID must be exactly 9 digits';
+        }
       }
-    } else if (formData.identity_card_type === 'PM_JAY') {
-      if (!formData.ayushman_card_number) {
-        errs.ayushman_card_number = `${labels.pmJayId} ${labels.required}`;
-      } else if (!/^\d{9}$/.test(formData.ayushman_card_number)) {
-        errs.ayushman_card_number = 'PM JAY ID must be exactly 9 digits';
-      }
-    }
 
-    // Validate Aadhar and PAN if provided as alternative
-    if (formData.aadhar_card_number && !/^\d{12}$/.test(formData.aadhar_card_number)) {
-      errs.aadhar_card_number = 'Aadhar card must be 12 digits';
-    }
-    if (formData.pan_card_number && !/^[A-Z]{5}\d{4}[A-Z]$/.test(formData.pan_card_number)) {
-      errs.pan_card_number = 'PAN card must follow format ABCDE1234F';
+      // Validate Aadhar and PAN if provided as alternative
+      if (formData.aadhar_card_number && !/^\d{12}$/.test(formData.aadhar_card_number)) {
+        errs.aadhar_card_number = 'Aadhar card must be 12 digits';
+      }
+      if (formData.pan_card_number && !/^[A-Z]{5}\d{4}[A-Z]$/.test(formData.pan_card_number)) {
+        errs.pan_card_number = 'PAN card must follow format ABCDE1234F';
+      }
     }
 
     // Step 1: Contact Information
     if (!formData.contact_name.trim()) errs.contact_name = `${labels.contactName} is required`;
-    if (!/^\d{10}$/.test(formData.contact_phone)) errs.contact_phone = `${labels.contactPhone} must be 10 digits`;
+    if (!/^[6-9]\d{9}$/.test(formData.contact_phone)) errs.contact_phone = `${labels.contactPhone} must be a valid 10-digit number`;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contact_email)) {
       errs.contact_email = `${labels.contactEmail} must be a valid email`;
     }
 
     // Step 2: Medical Details
     if (!formData.medical_condition.trim()) errs.medical_condition = `${labels.medicalCondition} is required`;
-    if (!formData.chief_complaint.trim()) errs.chief_complaint = `${labels.chiefComplaint} is required`;
-    if (!formData.general_condition.trim()) errs.general_condition = `${labels.generalCondition} is required`;
+    if (formData.air_transport_type !== 'Paid') {
+      if (!formData.chief_complaint.trim()) errs.chief_complaint = `${labels.chiefComplaint} is required`;
+      if (!formData.general_condition.trim()) errs.general_condition = `${labels.generalCondition} is required`;
+    }
     if (!formData.vitals) errs.vitals = `${labels.vitals} is required`;
 
-    // Step 3: Referral Details
-    if (!formData.referring_physician_name.trim()) {
-      errs.referring_physician_name = `${labels.referringPhysicianName} is required`;
-    }
-    if (!formData.referring_physician_designation.trim()) {
-      errs.referring_physician_designation = `${labels.referringPhysicianDesignation} is required`;
-    }
-    if (!formData.recommending_authority_name.trim()) {
-      errs.recommending_authority_name = `${labels.recommendingAuthorityName} is required`;
-    }
-    if (!formData.recommending_authority_designation.trim()) {
-      errs.recommending_authority_designation = `${labels.recommendingAuthorityDesignation} is required`;
-    }
-    if (!formData.approval_authority_name.trim()) {
-      errs.approval_authority_name = `${labels.approvalAuthorityName} is required`;
-    }
-    if (!formData.approval_authority_designation.trim()) {
-      errs.approval_authority_designation = `${labels.approvalAuthorityDesignation} is required`;
+    // Step 3: Referral Details — skip for Paid
+    if (formData.air_transport_type !== 'Paid') {
+      if (!formData.referring_physician_name.trim()) {
+        errs.referring_physician_name = `${labels.referringPhysicianName} is required`;
+      }
+      if (!formData.referring_physician_designation.trim()) {
+        errs.referring_physician_designation = `${labels.referringPhysicianDesignation} is required`;
+      }
+      if (!formData.recommending_authority_name.trim()) {
+        errs.recommending_authority_name = `${labels.recommendingAuthorityName} is required`;
+      }
+      if (!formData.recommending_authority_designation.trim()) {
+        errs.recommending_authority_designation = `${labels.recommendingAuthorityDesignation} is required`;
+      }
+      if (!formData.approval_authority_name.trim()) {
+        errs.approval_authority_name = `${labels.approvalAuthorityName} is required`;
+      }
+      if (!formData.approval_authority_designation.trim()) {
+        errs.approval_authority_designation = `${labels.approvalAuthorityDesignation} is required`;
+      }
     }
 
-    // Step 4: Transportation Details
-    if (!formData.transportation_category) {
-      errs.transportation_category = `${labels.transportationCategory} is required`;
+    // Step 4: Transportation Details — skip for Paid
+    if (formData.air_transport_type !== 'Paid') {
+      if (!formData.transportation_category) {
+        errs.transportation_category = `${labels.transportationCategory} is required`;
+      }
+      if (formData.ambulance_contact && !/^[6-9]\d{9,14}$/.test(formData.ambulance_contact)) {
+        errs.ambulance_contact = `${labels.ambulanceContact} must be a valid 10-15 digit number`;
+      }
     }
     if (!formData.air_transport_type) {
       errs.air_transport_type = `${labels.airTransportType} is required`;
     }
-    if (formData.ambulance_contact && !/^\d{10,15}$/.test(formData.ambulance_contact)) {
-      errs.ambulance_contact = `${labels.ambulanceContact} must be 10-15 digits`;
-    }
 
-    // Step 5: Documentation
-    if (formData.documents.every(doc => !doc.file)) {
-      errs.documents = `${labels.documents} is required`;
-    } else {
-      formData.documents.forEach((doc, idx) => {
-        if (doc.file && !doc.type) {
-          errs[`document_${idx}_type`] = 'Document type is required for each uploaded file';
-        }
-        if (doc.file && !['image/jpeg', 'image/png', 'application/pdf'].includes(doc.file.type)) {
-          errs[`document_${idx}`] = 'Only JPEG, PNG, or PDF files are allowed';
-        }
-      });
+    // Step 5: Documentation — skip for Paid
+    if (formData.air_transport_type !== 'Paid') {
+      if (formData.documents.every(doc => !doc.file)) {
+        errs.documents = `${labels.documents} is required`;
+      } else {
+        formData.documents.forEach((doc, idx) => {
+          if (doc.file && !doc.type) {
+            errs[`document_${idx}_type`] = 'Document type is required for each uploaded file';
+          }
+          if (doc.file && !['image/jpeg', 'image/png', 'application/pdf'].includes(doc.file.type)) {
+            errs[`document_${idx}`] = 'Only JPEG, PNG, or PDF files are allowed';
+          }
+        });
+      }
     }
 
     // Step 6: Hospital & District
@@ -370,6 +397,8 @@ export default function EnquiryCreationPage() {
       setFormData({ ...formData, documents: docs });
     } else if (type === 'checkbox') {
       setFormData({ ...formData, [name]: checked });
+    } else if (name === 'MULTI_UPDATE_REFERRAL') {
+      setFormData({ ...formData, ...value });
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -389,6 +418,9 @@ export default function EnquiryCreationPage() {
     setFormError('');
 
     const payload = new FormData();
+    // ENUM fields that must not be sent as empty string (DB will reject '')
+    const enumFields = ['identity_card_type', 'transportation_category', 'gender', 'vitals', 'air_transport_type'];
+
     Object.keys(formData).forEach((key) => {
       // Skip file fields as they are handled separately or specially
       if (key === 'documents' || key === 'emergency_proof') {
@@ -397,6 +429,9 @@ export default function EnquiryCreationPage() {
       
       if (key === 'bed_availability_confirmed' || key === 'als_ambulance_arranged') {
         payload.append(key, formData[key] ? '1' : '0');
+      } else if (enumFields.includes(key) && !formData[key]) {
+        // Don't append empty ENUM values — backend will treat missing as null
+        return;
       } else {
         payload.append(key, formData[key]);
       }
@@ -442,7 +477,8 @@ export default function EnquiryCreationPage() {
       }
 
       if (!res.ok) {
-        throw new Error(data.message || 'Failed to submit enquiry');
+        const errMsg = data.error || data.message || 'Failed to submit enquiry';
+        throw new Error(errMsg);
       }
 
       // If escalation is requested, create escalation
@@ -567,34 +603,50 @@ export default function EnquiryCreationPage() {
       {/* Enterprise Horizontal Stepper */}
       <div className="mb-4 overflow-x-auto pb-1 scrollbar-hide">
         <div className="flex items-center justify-between min-w-[800px] px-2">
-          {steps.map((lab, i) => (
-            <React.Fragment key={i}>
-              <div 
-                className={`flex flex-col items-center group cursor-pointer transition-all duration-300 ${i <= step ? 'opacity-100' : 'opacity-60'}`}
-                onClick={() => i < step ? setStep(i) : null}
-              >
-                <div className={`
-                  w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all duration-500 relative z-10
-                  ${i === step 
-                    ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-50 scale-105' 
-                    : i < step 
-                      ? 'bg-green-500 text-white shadow-sm' 
-                      : 'bg-white text-gray-500 border border-dashed border-gray-300'}
-                `}>
-                  {i < step ? '✓' : i + 1}
+          {steps.map((lab, i) => {
+            const isPaid = formData.air_transport_type === 'Paid';
+            const skippedForPaid = isPaid && (i === 3 || i === 4 || i === 5);
+            const isActive = i === step;
+            const isDone = i < step && !skippedForPaid;
+            return (
+              <React.Fragment key={i}>
+                <div
+                  className={`flex flex-col items-center group transition-all duration-300 ${
+                    skippedForPaid ? 'opacity-30 cursor-not-allowed' : isActive || isDone ? 'opacity-100 cursor-pointer' : 'opacity-60 cursor-default'
+                  }`}
+                  onClick={() => !skippedForPaid && i < step ? setStep(i) : null}
+                  title={skippedForPaid ? 'Not required for Paid Seva' : ''}
+                >
+                  <div className={`
+                    w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all duration-500 relative z-10
+                    ${skippedForPaid
+                      ? 'bg-gray-200 text-gray-400 border border-dashed border-gray-300 line-through'
+                      : isActive
+                        ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-50 scale-105'
+                        : isDone
+                          ? 'bg-green-500 text-white shadow-sm'
+                          : 'bg-white text-gray-500 border border-dashed border-gray-300'}
+                  `}>
+                    {skippedForPaid ? '—' : isDone ? '✓' : i + 1}
+                  </div>
+                  <span className={`
+                    mt-1 text-[7px] font-black uppercase tracking-widest text-center max-w-[70px] transition-colors
+                    ${skippedForPaid ? 'text-gray-300 line-through' : isActive ? 'text-blue-700' : isDone ? 'text-green-600' : 'text-gray-500'}
+                  `}>
+                    {lab}
+                  </span>
+                  {skippedForPaid && (
+                    <span className="text-[6px] text-gray-300 uppercase font-bold mt-0.5">N/A</span>
+                  )}
                 </div>
-                <span className={`
-                  mt-1 text-[7px] font-black uppercase tracking-widest text-center max-w-[70px] transition-colors
-                  ${i === step ? 'text-blue-700' : i < step ? 'text-green-600' : 'text-gray-500'}
-                `}>
-                  {lab}
-                </span>
-              </div>
-              {i < steps.length - 1 && (
-                <div className={`flex-1 h-[1px] mx-1 rounded-full transition-all duration-700 ${i < step ? 'bg-green-400' : 'bg-gray-200'}`}></div>
-              )}
-            </React.Fragment>
-          ))}
+                {i < steps.length - 1 && (
+                  <div className={`flex-1 h-[1px] mx-1 rounded-full transition-all duration-700 ${
+                    skippedForPaid || (isPaid && i >= 2 && i <= 4) ? 'bg-gray-100' : i < step ? 'bg-green-400' : 'bg-gray-200'
+                  }`}></div>
+                )}
+              </React.Fragment>
+            );
+          })}
         </div>
       </div>
 
@@ -620,7 +672,14 @@ export default function EnquiryCreationPage() {
               {step > 0 ? (
                 <button
                   type="button"
-                  onClick={() => setStep(step - 1)}
+                  onClick={() => {
+                    // Skip steps 3 (Referral), 4 (Transportation), 5 (Docs) for Paid seva
+                    const prevStep = formData.air_transport_type === 'Paid' && step === 6 ? 2
+                      : formData.air_transport_type === 'Paid' && step === 5 ? 2
+                      : formData.air_transport_type === 'Paid' && step === 4 ? 2
+                      : step - 1;
+                    setStep(prevStep);
+                  }}
                   className="flex items-center px-4 py-2 bg-gray-50 text-gray-500 font-black text-[9px] uppercase tracking-widest rounded-lg hover:bg-gray-100 transition-all border border-gray-100 group"
                 >
                   <span className="mr-1 group-hover:-translate-x-1 transition-transform">←</span>
@@ -636,13 +695,17 @@ export default function EnquiryCreationPage() {
                   onClick={() => {
                     const errs = validateCurrentStep(step);
                     if (Object.keys(errs).length === 0) {
-                      setStep(step + 1);
+                      // Skip steps 3 (Referral), 4 (Transportation), 5 (Docs) for Paid seva
+                      const nextStep = formData.air_transport_type === 'Paid' && step === 2 ? 6
+                        : formData.air_transport_type === 'Paid' && step === 3 ? 6
+                        : formData.air_transport_type === 'Paid' && step === 4 ? 6
+                        : step + 1;
+                      setStep(nextStep);
                       setErrors({});
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     } else {
                       setErrors(errs);
                       setFormError(labels.pleaseFillAll);
-                      // Visual warning
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                   }}

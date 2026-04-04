@@ -33,7 +33,7 @@ const SDMDashboard = () => {
     { title: t.reviewEnquiries || 'Review Enquiries', description: t.reviewPendingEnquiries || 'Review pending enquiries', icon: <FaEye className="text-blue-600" />, to: '/sdm-dashboard/enquiry-detail-page', color: 'border-blue-200 hover:border-blue-400 hover:bg-blue-50' },
     { title: t.searchCases || 'Search Cases', description: t.searchAndFilterCases || 'Search and filter cases', icon: <FaSearch className="text-green-600" />, to: '/sdm-dashboard/search-page', color: 'border-green-200 hover:border-green-400 hover:bg-green-50' },
     { title: t.queryToCMHO || 'Query to CMHO', description: t.sendQueriesToCMHO || 'Send queries to CMHO', icon: <FaEdit className="text-yellow-600" />, to: '/sdm-dashboard/enquiry-detail-page', color: 'border-yellow-200 hover:border-yellow-400 hover:bg-yellow-50' },
-    { title: t.forwardToDM || 'Forward to DM', description: t.forwardCasesToDM || 'Forward cases to DM', icon: <FaArrowRight className="text-purple-600" />, to: '/sdm-dashboard/enquiry-detail-page', color: 'border-purple-200 hover:border-purple-400 hover:bg-purple-50' },
+    { title: t.forwardToCollector || 'Forward to Collector', description: t.forwardCasesToCollector || 'Forward cases to Collector', icon: <FaArrowRight className="text-purple-600" />, to: '/sdm-dashboard/enquiry-detail-page', color: 'border-purple-200 hover:border-purple-400 hover:bg-purple-50' },
   ];
 
   const fetchData = async () => {
@@ -137,7 +137,7 @@ const SDMDashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <GradientStatCard label={t.forwardedToDM || 'Forwarded to DM'} value={data.forwarded} subLabel={t.casesSentToDM || 'Cases sent to District Magistrate'} icon={<FaArrowRight />} from="from-purple-500" to="to-purple-600" />
+        <GradientStatCard label={t.forwardedToCollector || 'Forwarded to Collector'} value={data.forwarded} subLabel={t.casesSentToCollector || 'Cases sent to Collector'} icon={<FaArrowRight />} from="from-purple-500" to="to-purple-600" />
         <GradientStatCard label={t.queryToCMHO || 'Query to CMHO'} value={data.queryCount} subLabel={t.queriesSentToCMHO || 'Queries sent to CMHO'} icon={<FaEdit />} from="from-indigo-500" to="to-indigo-600" />
       </div>
 

@@ -19,9 +19,14 @@ import {
   FaUserTie,
   FaUserCheck,
   FaUserCog,
-  FaSearch
+  FaSearch,
+  FaUpload,
+  FaFileExcel,
+  FaDownload
 } from 'react-icons/fa';
 import { Bar, Doughnut } from 'react-chartjs-2';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import { useThemeStyles } from '../../hooks/useThemeStyles';
 import baseUrl from '../../baseUrl/baseUrl';
 
@@ -314,6 +319,142 @@ const UserManagementPage = () => {
     }
   };
 
+  // Handle bulk upload
+  const handleBulkUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const reader = new FileReader();
+      
+      reader.onload = async (event) => {
+        try {
+          const extension = file.name.split('.').pop().toLowerCase();
+          if (extension === 'csv') {
+            await workbook.csv.read(new Response(event.target.result).body);
+          } else {
+            await workbook.xlsx.load(event.target.result);
+          }
+
+          const worksheet = workbook.worksheets[0] || workbook.getWorksheet(1);
+          const usersToUpload = [];
+          
+          worksheet.eachRow((row, rowNumber) => {
+            if (rowNumber > 1) { // Skip header
+              const username = row.getCell(1).value?.toString() || row.getCell(1).value?.result?.toString();
+              const full_name = row.getCell(2).value?.toString() || row.getCell(2).value?.result?.toString();
+              const email = row.getCell(3).value?.toString() || row.getCell(3).value?.result?.toString();
+              const phone = row.getCell(4).value?.toString() || row.getCell(4).value?.result?.toString();
+              const role = row.getCell(5).value?.toString()?.toUpperCase() || row.getCell(5).value?.result?.toString()?.toUpperCase();
+              const districtName = row.getCell(6).value?.toString() || row.getCell(6).value?.result?.toString();
+
+              if (username && full_name && email && role) {
+                const district = districts.find(d => 
+                  d.district_name.toLowerCase() === districtName?.toLowerCase() ||
+                  d.district_id.toString() === districtName
+                );
+
+                usersToUpload.push({
+                  username,
+                  full_name,
+                  email,
+                  phone: phone || '',
+                  role,
+                  district_id: district ? district.district_id : null
+                });
+              }
+            }
+          });
+          
+          if (usersToUpload.length === 0) throw new Error('No valid data found in file');
+          
+          const token = localStorage.getItem('token');
+          const response = await axios.post(`${baseUrl}/api/auth/create-user-bulk`, usersToUpload, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          
+          if (response.data.results?.failed?.length > 0) {
+            const failMsgs = response.data.results.failed.map(f => `${f.username}: ${f.reason}`).join(', ');
+            setError(`Partial success. Failed to create some users: ${failMsgs}`);
+          }
+          
+          setSuccess(`${response.data.message || 'Bulk users created successfully!'}`);
+          fetchData();
+          setActiveTab('list');
+        } catch (err) {
+          setError('Processing error: ' + err.message);
+        } finally {
+          setLoading(false);
+          e.target.value = ''; // Reset input
+        }
+      };
+      
+      reader.readAsArrayBuffer(file);
+    } catch (err) {
+      setError('File error: ' + err.message);
+      setLoading(false);
+    }
+  };
+
+  const downloadSampleTemplate = async (format) => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Users Template');
+    
+    // Define headers
+    worksheet.columns = [
+      { header: 'Username*', key: 'username', width: 20 },
+      { header: 'Full Name*', key: 'full_name', width: 25 },
+      { header: 'Email*', key: 'email', width: 30 },
+      { header: 'Phone', key: 'phone', width: 15 },
+      { header: 'Role*', key: 'role', width: 20 },
+      { header: 'District Name/ID', key: 'district', width: 20 },
+    ];
+    
+    // Add some sample data
+    worksheet.addRow({
+      username: 'john_doe',
+      full_name: 'John Doe',
+      email: 'john@example.com',
+      phone: '9876543210',
+      role: 'CMHO',
+      district: districts[0]?.district_name || 'Bhopal'
+    });
+
+    // Add role instructions
+    worksheet.addRow({});
+    worksheet.addRow(['* Required fields']);
+    worksheet.addRow(['Roles: ADMIN, CMHO, SDM, COLLECTOR, SERVICE_PROVIDER, BENEFICIARY, HOSPITAL, SUPPORT, DME']);
+
+    try {
+      if (format === 'xlsx') {
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        saveAs(blob, 'User_Upload_Template.xlsx');
+      } else {
+        try {
+          const buffer = await workbook.csv.writeBuffer();
+          const blob = new Blob([buffer], { type: 'text/csv;charset=utf-8' });
+          saveAs(blob, 'User_Upload_Template.csv');
+        } catch (csvErr) {
+          console.warn('CSV buffer failed, manual fallback', csvErr);
+          const headers = ['Username*', 'Full Name*', 'Email*', 'Phone', 'Role*', 'District Name/ID'];
+          const sample = ['john_doe', 'John Doe', 'john@example.com', '9876543210', 'CMHO', districts[0]?.district_name || 'Bhopal'];
+          const csvLines = [headers.join(','), sample.join(',')];
+          const blob = new Blob([csvLines.join('\n')], { type: 'text/csv;charset=utf-8' });
+          saveAs(blob, 'User_Upload_Template.csv');
+        }
+      }
+    } catch (err) {
+      console.error('Download error:', err);
+      setError('Failed to download template: ' + err.message);
+    }
+  };
+
   // Handle cancel edit
   const handleCancelEdit = () => {
     setEditingUser(null);
@@ -476,6 +617,16 @@ const UserManagementPage = () => {
             >
               <FaChartBar className="inline mr-2" />
               Analytics
+            </button>
+            <button
+              onClick={() => setActiveTab('bulk')}
+              className={`px-4 py-2 font-medium text-sm rounded-t-lg transition ${activeTab === 'bulk'
+                ? 'bg-blue-600 text-white'
+                : `${styles.secondaryText} hover:${styles.primaryText} hover:bg-gray-100`
+                }`}
+            >
+              <FaUpload className="inline mr-2" />
+              Bulk Upload
             </button>
           </div>
         </div>
@@ -945,7 +1096,77 @@ const UserManagementPage = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {activeTab === 'bulk' && (
+        <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow}`}>
+          <div className={`px-6 py-4 border-b ${styles.borderColor}`}>
+            <h2 className={`text-xl font-semibold ${styles.primaryText} flex items-center`}>
+              <FaUpload className="mr-2 text-blue-600" />
+              Bulk Upload Users
+            </h2>
+          </div>
+          <div className="p-8">
+            <div className={`border-2 border-dashed ${styles.borderColor} rounded-xl p-10 text-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer relative`}>
+              <input 
+                type="file" 
+                accept=".xlsx, .xls, .csv" 
+                className="absolute inset-0 opacity-0 cursor-pointer"
+                onChange={handleBulkUpload}
+                disabled={loading}
+              />
+              <FaFileExcel className="mx-auto text-5xl text-green-600 mb-4" />
+              <h3 className={`text-lg font-bold ${styles.primaryText}`}>Click to upload or drag and drop</h3>
+              <p className={`${styles.secondaryText} text-sm mt-2`}>Supports .xlsx, .xls and .csv formats</p>
+              
+              <div className="mt-8 flex flex-col md:flex-row items-center justify-center gap-4 relative z-50">
+                <button 
+                  type="button"
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    console.log('Download Excel clicked');
+                    downloadSampleTemplate('xlsx'); 
+                  }}
+                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition shadow-sm hover:shadow-md"
+                >
+                  <FaDownload className="mr-2" />
+                  Download Sample Excel
+                </button>
+                <button 
+                  type="button"
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    console.log('Download CSV clicked');
+                    downloadSampleTemplate('csv'); 
+                  }}
+                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition shadow-sm hover:shadow-md"
+                >
+                  <FaDownload className="mr-2" />
+                  Download Sample CSV
+                </button>
+              </div>
+
+              <div className="mt-8 max-w-2xl mx-auto">
+                <div className="text-left text-xs bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
+                  <p className="font-bold text-blue-800 dark:text-blue-300 mb-2 uppercase tracking-wider flex items-center">
+                    <FaExclamationTriangle className="mr-2" />
+                    Format Requirements:
+                  </p>
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 list-disc list-inside text-blue-700 dark:text-blue-400">
+                    <li>Column 1: Username* (Unique)</li>
+                    <li>Column 2: Full Name*</li>
+                    <li>Column 3: Email* (Unique)</li>
+                    <li>Column 4: Phone (Digits only)</li>
+                    <li>Column 5: Role* (ADMIN, CMHO, etc.)</li>
+                    <li>Column 6: District Name or ID</li>
+                  </ul>
+                  <p className="mt- 3 text-[10px] italic text-blue-600 dark:text-blue-500">
+                    * Default password for all bulk uploaded users will be: <strong>AirAmbulance@123</strong>. They will be required to change it on first login.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {userToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className={`${styles.cardBackground} rounded-lg p-6 max-w-sm w-full shadow-xl border ${styles.borderColor}`}>

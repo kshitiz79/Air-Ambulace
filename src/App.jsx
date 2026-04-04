@@ -71,6 +71,12 @@ import SystemPerformancePage from "./pages/AdminPanel/SystemPerformancePage";
 import UserManagementPage from "./pages/AdminPanel/UserManagementPage";
 import EnquiryManagementPage from "./pages/AdminPanel/EnquiryManagementPage";
 import AllQueryPage from "./pages/AdminPanel/AllQueryPage";
+import ReferralAuthorityManagement from "./pages/AdminPanel/ReferralAuthorityManagement";
+import AmbulanceMaster from "./pages/AdminPanel/AmbulanceMaster";
+import MedicalConditionMaster from "./pages/AdminPanel/MedicalConditionMaster";
+import DoctorAssignmentPage from "./pages/AdminPanel/DoctorAssignmentPage";
+import AmbulanceAssignmentTracking from "./pages/AdminPanel/AmbulanceAssignmentTracking";
+import WhatsAppConfigPage from "./pages/AdminPanel/WhatsAppConfigPage";
 
 
 import EnquiryListPage from "./pages/SDM/EnquiryListPage";
@@ -93,6 +99,7 @@ import QueryFromCollector from "./pages/CMHO/QueryFromCollector";
 import SDMProfile from "./pages/SDM/Profile";
 import DMProfile from "./pages/DM/Profile";
 import CollectorQueryToCmhoPage from "./pages/DM/CollectorQueryToCmhoPage";
+import CollectorQueryListPage from "./pages/DM/CollectorQueryListPage";
 
 // DME Dashboard imports
 import DmePanel from "./dashboard/DMEPanel/DmePanel";
@@ -149,9 +156,12 @@ function App() {
       return <Navigate to="/sign-in?expired=true" />;
     }
 
-    if (roleRequired && role !== roleRequired) {
-      console.log(`Redirecting to /: Role mismatch (stored: ${role}, required: ${roleRequired})`);
-      return <Navigate to="/" />;
+    if (roleRequired) {
+      const allowedRoles = Array.isArray(roleRequired) ? roleRequired : [roleRequired];
+      if (!allowedRoles.includes(role)) {
+        console.log(`Redirecting to /: Role mismatch (stored: ${role}, allowed: ${allowedRoles})`);
+        return <Navigate to="/" />;
+      }
     }
 
     return children;
@@ -193,6 +203,7 @@ function App() {
           <Route path="escalate-case" element={<EscalateCase />} />
           {/* <Route path="query-from-sdm" element={<QueryFromSDM />} /> */}
           <Route path="query-from-collector" element={<QueryFromCollector />} />
+          <Route path="ambulance-master" element={<AmbulanceMaster />} />
           <Route path="notification" element={<NotificationPage />} />
           <Route path="profile" element={<Profile />} />
         </Route>
@@ -227,6 +238,7 @@ function App() {
           <Route path="approval-reject" element={<ApprovalANDRejectionPage />} />
           <Route path="case-file/:enquiryId" element={<CaseFileViewPage />} />
           <Route path="query-to-cmho/:enquiryId" element={<CollectorQueryToCmhoPage />} />
+          <Route path="all-queries" element={<CollectorQueryListPage />} />
           <Route path="case-files" element={<CaseFileListPage />} />
           <Route path="escalation-page" element={<EscalationPage />} />
           <Route path="financial-page" element={<FinancialSanctionPage />} />
@@ -248,6 +260,12 @@ function App() {
           <Route path="enquiry-management" element={<EnquiryManagementPage />} />
           <Route path="hospital-management" element={<CreateHospital />} />
           <Route path="all-queries" element={<AllQueryPage />} />
+          <Route path="referral-authority-management" element={<ReferralAuthorityManagement />} />
+          <Route path="ambulance-master" element={<AmbulanceMaster />} />
+          <Route path="medical-condition-master" element={<MedicalConditionMaster />} />
+          <Route path="doctor-assignments" element={<DoctorAssignmentPage />} />
+          <Route path="ambulance-tracking" element={<AmbulanceAssignmentTracking />} />
+          <Route path="whatsapp-config" element={<WhatsAppConfigPage />} />
           <Route path="notification" element={<NotificationPage />} />
         </Route>
 

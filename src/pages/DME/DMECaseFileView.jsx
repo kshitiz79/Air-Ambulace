@@ -46,12 +46,15 @@ const DMECaseFileView = () => {
       setActionStatus(`${t.processing} ${action === 'APPROVE' ? t.approve : t.reject}...`);
       const response = await fetch(`${baseUrl}/api/enquiries/${enquiryId}/approve-reject`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({ action }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || `Failed to ${action.toLowerCase()}`);
-      setEnquiry({ ...enquiry, status: action === 'APPROVE' ? 'APPROVED' : 'REJECTED' });
+      setEnquiry(data.data);
       setActionStatus(t.caseFileUpdated);
     } catch (err) {
       setActionStatus(t.failedToUpdate + ': ' + err.message);
@@ -93,7 +96,19 @@ const DMECaseFileView = () => {
     <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-          <h1 className="text-3xl font-bold text-gray-900">{t.caseFile} #{enquiryId}</h1>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">{t.caseFile} #{enquiryId}</h1>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="font-mono text-sm text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-100">
+                {enquiry.enquiry_code}
+              </span>
+              {enquiry.district?.district_name && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 border border-orange-200">
+                  📍 {enquiry.district.district_name}
+                </span>
+              )}
+            </div>
+          </div>
           <span className={`px-4 py-2 text-sm font-medium rounded-full ring-1 ring-inset ${statusStyles[enquiry.status] || 'bg-gray-100 text-gray-800'}`}>
             {t[enquiry.status?.toLowerCase()] || enquiry.status}
           </span>
@@ -146,7 +161,48 @@ const DMECaseFileView = () => {
           </Card>
         </div>
 
-        <Card title={t.documents} icon={FiFileText}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <Card title={t.verificationStatus || 'Verification Status'} icon={FiCheckCircle}>
+            <div className="space-y-6 py-2">
+              <div className="flex items-start gap-4">
+                <div className={`mt-1 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${['COLLECTOR_APPROVED', 'APPROVED'].includes(enquiry.status) ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100' : 'bg-slate-200 text-slate-400'}`}>
+                  <FiCheckCircle size={14} />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-800 tracking-tight">
+                    {enquiry.transportation_category === 'Out of State' ? 'Not Required (Direct DME)' : (t.step1Collector || 'Step 1: Collector Approval')}
+                  </p>
+                  {['COLLECTOR_APPROVED', 'APPROVED'].includes(enquiry.status) ? (
+                    <div className="flex flex-col mt-1">
+                      <span className="text-[10px] text-emerald-600 font-black uppercase tracking-widest italic">{t.collectorApproved || 'Approved by Collector'}</span>
+                      <span className="text-xs font-bold text-slate-900 mt-0.5">{enquiry.collector_name || 'Assigned Collector'}</span>
+                    </div>
+                  ) : (
+                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1 italic">{enquiry.transportation_category === 'Out of State' ? 'DME Jurisdiction' : 'Pending Verification'}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className={`mt-1 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${enquiry.dme_name ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-100' : 'bg-slate-200 text-slate-400'}`}>
+                  <FiCheckCircle size={14} />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-800 tracking-tight">{t.step2DME || 'Step 2: DME Approval'}</p>
+                  {enquiry.dme_name ? (
+                    <div className="flex flex-col mt-1">
+                      <span className="text-[10px] text-indigo-600 font-black uppercase tracking-widest italic">{t.dmeApproved || 'Sanctioned by DME'}</span>
+                      <span className="text-xs font-bold text-slate-900 mt-0.5">{enquiry.dme_name}</span>
+                    </div>
+                  ) : (
+                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1 italic">Waiting for DME Final Sanction</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <Card title={t.documents} icon={FiFileText}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {enquiry.documents?.length > 0 ? enquiry.documents.map((doc) => (
               <div key={doc.document_id} className="bg-teal-50 p-4 rounded-xl shadow-sm hover:shadow-md transition">
@@ -159,16 +215,38 @@ const DMECaseFileView = () => {
             )) : <p className="text-gray-500">{t.noDocuments}.</p>}
           </div>
         </Card>
+        </div>
 
         <div className="mt-8 flex flex-wrap justify-between gap-4">
           <button onClick={() => handleApproveReject('APPROVE')}
-            disabled={enquiry.status === 'APPROVED' || enquiry.status === 'REJECTED'}
-            className={`flex items-center gap-2 px-5 py-3 rounded-lg transition shadow-md ${enquiry.status === 'APPROVED' ? 'bg-gray-400 cursor-not-allowed text-gray-200' : 'bg-green-600 hover:bg-green-700 text-white'}`}>
+            disabled={
+              (enquiry.status === 'APPROVED' && enquiry.dme_name) || 
+              enquiry.status === 'REJECTED' || 
+              (enquiry.transportation_category !== 'Out of State' && enquiry.status !== 'COLLECTOR_APPROVED' && enquiry.status !== 'APPROVED')
+            }
+            className={`flex items-center gap-2 px-5 py-3 rounded-lg transition shadow-md ${
+              ((enquiry.status === 'APPROVED' && enquiry.dme_name) || 
+               enquiry.status === 'REJECTED' || 
+               (enquiry.transportation_category !== 'Out of State' && enquiry.status !== 'COLLECTOR_APPROVED' && enquiry.status !== 'APPROVED')) 
+              ? 'bg-slate-300 cursor-not-allowed text-slate-500' 
+              : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+            }`}>
             <FiCheckCircle className="h-5 w-5" /> {t.approve}
           </button>
+          
           <button onClick={() => handleApproveReject('REJECT')}
-            disabled={enquiry.status === 'APPROVED' || enquiry.status === 'REJECTED'}
-            className={`flex items-center gap-2 px-5 py-3 rounded-lg transition shadow-md ${enquiry.status === 'REJECTED' ? 'bg-gray-400 cursor-not-allowed text-gray-200' : 'bg-red-600 hover:bg-red-700 text-white'}`}>
+            disabled={
+              (enquiry.status === 'APPROVED' && enquiry.dme_name) || 
+              enquiry.status === 'REJECTED' || 
+              (enquiry.transportation_category !== 'Out of State' && enquiry.status !== 'COLLECTOR_APPROVED' && enquiry.status !== 'APPROVED')
+            }
+            className={`flex items-center gap-2 px-5 py-3 rounded-lg transition shadow-md ${
+              ((enquiry.status === 'APPROVED' && enquiry.dme_name) || 
+               enquiry.status === 'REJECTED' || 
+               (enquiry.transportation_category !== 'Out of State' && enquiry.status !== 'COLLECTOR_APPROVED' && enquiry.status !== 'APPROVED')) 
+              ? 'bg-slate-300 cursor-not-allowed text-slate-500' 
+              : 'bg-red-600 hover:bg-red-700 text-white'
+            }`}>
             <FiCheckCircle className="h-5 w-5" /> {t.reject}
           </button>
           <Link to={`/dme-dashboard/query-to-cmho/${enquiryId}`}

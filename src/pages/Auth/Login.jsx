@@ -6,6 +6,7 @@ import { AuthContext } from '../../Context/AuthContext.jsx';
 import { useTheme } from '../../contexts/ThemeContext.jsx';
 import { useThemeStyles } from '../../hooks/useThemeStyles.js';
 import { useLanguage } from '../../contexts/LanguageContext.jsx';
+import ForceChangePasswordModal from '../../components/Common/ForceChangePasswordModal.jsx';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -20,6 +21,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [timer, setTimer] = useState(60);
+  const [pendingRedirect, setPendingRedirect] = useState(null); // route to go after forced change
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useContext(AuthContext);
@@ -84,23 +86,30 @@ const Login = () => {
       localStorage.setItem('token', data.token);
       localStorage.setItem('role', data.role.toUpperCase());
       localStorage.setItem('district_id', data.district_id ?? '');
+      localStorage.setItem('district_name', data.district_name ?? '');
       localStorage.setItem('userId', data.userId);
       localStorage.setItem('user_id', data.userId);
       localStorage.setItem('full_name', data.full_name || data.username || 'User');
       localStorage.setItem('username', data.username || '');
       localStorage.setItem('email', data.email || '');
 
-      switch (data.role.toUpperCase()) {
-        case 'BENEFICIARY': navigate('/user', { replace: true }); break;
-        case 'CMHO': navigate('/cmho-dashboard', { replace: true }); break;
-        case 'SDM': navigate('/sdm-dashboard', { replace: true }); break;
-        case 'ADMIN': navigate('/admin', { replace: true }); break;
-        case 'COLLECTOR': navigate('/collector-dashboard', { replace: true }); break;
-        case 'SERVICE_PROVIDER': navigate('/air-team', { replace: true }); break;
-        case 'SUPPORT': navigate('/it-team', { replace: true }); break;
-        case 'HOSPITAL': navigate('/hospital-dashboard', { replace: true }); break;
-        case 'DME': navigate('/dme-dashboard', { replace: true }); break;
-        default: setErrorMessage('Role not recognized. Please contact support.'); break;
+      const roleRoutes = {
+        BENEFICIARY: '/user', CMHO: '/cmho-dashboard', SDM: '/sdm-dashboard',
+        ADMIN: '/admin', COLLECTOR: '/collector-dashboard', SERVICE_PROVIDER: '/air-team',
+        SUPPORT: '/it-team', HOSPITAL: '/hospital-dashboard', DME: '/dme-dashboard',
+      };
+      const destination = roleRoutes[data.role.toUpperCase()];
+
+      if (data.must_change_password) {
+        // Store destination, show modal — don't navigate yet
+        setPendingRedirect(destination || '/');
+        return;
+      }
+
+      if (destination) {
+        navigate(destination, { replace: true });
+      } else {
+        setErrorMessage('Role not recognized. Please contact support.');
       }
     } catch (err) {
       setErrorMessage('Server error. Please try again later.');
@@ -231,9 +240,19 @@ const Login = () => {
   return (
 <div
   className="relative min-h-screen bg-center bg-cover"
-  style={{ backgroundImage: `url('/bg-image.png')` }}
+  style={{ backgroundImage: `url('/bg-image2.png')` }}
 >
   <div className="absolute inset-0 bg-black/20"></div>
+
+  {/* Force password change modal — shown before navigating to dashboard */}
+  {pendingRedirect && (
+    <ForceChangePasswordModal
+      onSuccess={() => {
+        setPendingRedirect(null);
+        navigate(pendingRedirect, { replace: true });
+      }}
+    />
+  )}
 
   <div className="relative z-10 flex items-center justify-start h-screen px-10">
     

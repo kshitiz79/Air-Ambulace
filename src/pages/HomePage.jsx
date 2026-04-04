@@ -3,10 +3,26 @@ import { Phone, Clock, Shield, Heart, MapPin, Users, CheckCircle, Star, User ,  
 import { useNavigate } from "react-router-dom";
 import WhatsAppChatbot from '../components/WhatsAppChatbot';
 import { FaClock, FaPhoneAlt } from 'react-icons/fa';
-
-
-
 import { useLanguage } from '../contexts/LanguageContext';
+
+// Blinking yellow→red phone number component
+const BlinkNumber = ({ children, className = '' }) => (
+  <span
+    className={`inline-block font-black animate-blink-yr ${className}`}
+    style={{ animationDuration: '0.9s' }}
+  >
+    {children}
+  </span>
+);
+
+// Inject keyframes once
+const blinkStyle = `
+  @keyframes blinkYR {
+    0%, 100% { color: #FACC15; }   /* yellow-400 */
+    50%       { color: #DC2626; }   /* red-600    */
+  }
+  .animate-blink-yr { animation: blinkYR 0.9s step-start infinite; }
+`;
 
 const Header1 = () => {
   const navigate = useNavigate();
@@ -80,14 +96,22 @@ const Header1 = () => {
                 </button>
               </div>
 
-              <div className="hidden md:flex items-center space-x-2">
-                <FaPhoneAlt className="text-blue-900 text-lg sm:text-2xl"/>
-                <p className="text-[10px] sm:text-sm text-blue-900 leading-tight">{t.tollFree || 'TOLLFREE'} <br/> <span className="text-blue-900 text-xs sm:text-xl font-bold"> 18002332004</span></p>
+              {/* Toll Free - Hidden on Mobile */}
+              <div className="hidden lg:flex items-center space-x-2 border-r pr-4 border-slate-200">
+                <FaPhoneAlt className="text-blue-900 text-sm"/>
+                <div className="leading-tight">
+                  <p className="text-[10px] text-blue-900 font-medium uppercase">{t.tollFree || 'TOLL FREE'}</p>
+                  <p className="text-sm text-blue-900 font-bold">
+                    <a href="tel:18002332004"><BlinkNumber>1800 233 2004</BlinkNumber></a>
+                    {' / '}
+                    <a href="tel:919319208927"><BlinkNumber>93192 08927</BlinkNumber></a>
+                  </p>
+                </div>
               </div>
 
               <button
                 onClick={() => navigate("/sign-in")}
-                className="flex items-center border border-blue-900 text-blue-900 px-4 sm:px-10 py-1 sm:py-2 text-[10px] sm:text-sm rounded-md hover:bg-blue-900 hover:text-white transition-colors font-medium"
+                className="flex items-center bg-blue-900 text-white px-3 sm:px-6 py-1.5 sm:py-2 text-[11px] sm:text-sm rounded-lg hover:bg-blue-800 transition-all font-bold shadow-md shadow-blue-100"
               >
                 <span>{t.signIn || 'Sign In'}</span>
               </button>
@@ -145,73 +169,128 @@ const Header1 = () => {
 const HeroSection = () => {
   const { t } = useLanguage();
   return (
-    <div className="relative bg-[#011537] text-white overflow-hidden">
+<div className="relative min-h-[75vh] bg-[#011537] text-white overflow-hidden">
       <div className="absolute inset-0 bg-black opacity-20"></div>
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 md:py-16 lg:py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 md:gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 md:gap-12 items-stretch">
 
 
 
 
-          <div className="space-y-4 sm:space-y-6 md:space-y-8">
-            {/* Logo Section */}
-        
 
-            <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 mb-4 sm:mb-6">
+<div className="space-y-10 relative z-10  flex flex-col justify-center ">
 
-              <div>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[6rem] font-bold leading-tight">
-                  {t.pmShriAirAmbulance || 'PM Shri Air Ambulance Service'}
-                </h1>
-                <p className="text-sm sm:text-lg md:text-xl lg:text-4xl text-red-100 mt-1 sm:mt-2">{t.emergencySituationHelp || 'Emergency Situation Help ...'}</p>
-              </div>
-            </div>
+{/* Leaders Section */}
+<div className="relative flex items-end gap-8 justify-end  bg-gradient-to-r from-orange-500 via-orange-300 to-white/90 border border-white/20 rounded-xl">
 
-            <div className="bg-gradient-to-r from-[#4D6500] to-[#F19100] z-10 rounded-xl absolute w-[700px] sm:rounded-2xl p-4 sm:p-6 border border-white/20 relative flex flex-col md:flex-row items-center gap-4 overflow-hidden">
-              <div className="flex-1 relative z-10">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-2 sm:mb-4 flex items-center">
-                  <Heart className="mr-2 sm:mr-3 text-red-300" size={20} />
-                  <span className="text-sm sm:text-base md:text-xl">{t.freeEmergencyAirTransport || 'Free Emergency Air Transport'}</span>
-                </h2>
-                <p className="text-sm sm:text-base md:text-lg text-red-100 leading-relaxed">
-                  {t.ayushmanCardDesc || 'Free air transport facility for treatment in government and Ayushman listed hospitals within and outside the state for Ayushman card holders.'}
-                </p>
-              </div>
-              <div className="w-1/2 md:w-4/12 flex justify-end right-0 -mb-16">
-                <img className="w-full h-auto object-contain" src="./Ayushman.png" alt="Ayushman Card" />
-              </div>
-            </div>
+  {/* Background Accent */}
+<div className="absolute -inset-4 bg-gradient-to-r from-orange-400/10 via-transparent to-green-500/30 rounded-xl blur-2xl opacity-70"></div>
 
-          
-          </div>
+  {/* PM (Primary Focus) */}
 
-<div className="bg-white/10 backdrop-blur-sm border border-white/20 overflow-hidden rounded-lg relative">
 
-  <div
-    className="h-[70vh] bg-top bg-cover"
-    style={{ backgroundImage: "url('/bg-image.png')" }}
-  ></div>
 
-  <div className="absolute top-4 right-4 animate-pulse">
-    
-    <p className="text-white text-md bg-green-500 px-3 py-1 rounded flex items-center gap-2">
-       <FaClock/>  
- {t.support247 || '24×7 SUPPORT'}
-    </p>
+  <div className="relative z-10 group">
+    <div className="relative">
+      <div className="absolute inset-0 bg-blue-500 blur-2xl opacity-20 group-hover:opacity-40 transition duration-300"></div>
+      <img
+        src="/pm.png"
+        alt="PM Narendra Modi"
+        className="relative h-36 sm:h-44 md:h-72 w-auto object-contain rounded-xl shadow-xl "
+      />
+    </div>
   </div>
 
-  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white px-4 py-2 rounded-xl flex items-center gap-5 animate-pulse">
-    <FaPhoneAlt className="text-orange-600 text-2xl"/>
 
-    <p className="text-sm text-orange-600">
-      {t.tollFree || 'TOLLFREE'} <br/>
-      <span className="text-blue-900 text-2xl font-bold">
-        18002332004
-      </span>
-    </p>
+    <div className="relative z-10 group -ml-4 md:-ml-6">
+    <div className="relative">
+      <div className="absolute inset-0 bg-orange-500 blur-2xl opacity-20 group-hover:opacity-40 transition duration-300"></div>
+      <img
+        src="/cmmp.png"
+        alt="CM Mohan Yadav"
+        className="relative h-32 sm:h-40 md:h-64 w-auto object-contain rounded-xl shadow-lg  "
+      />
+    </div>
+  </div>
+  
+  {/* CM (Secondary) */}
+
+
+</div>
+  {/* Promo Card */}
+  <div className="relative overflow-hidden rounded-2xl p-6  bg-gradient-to-r from-[#4D6500] to-[#F19100] border border-white/20 shadow-xl group transition">
+
+    {/* Glow Effect */}
+    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-500 bg-white/10"></div>
+
+    <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
+
+      {/* Text Content */}
+      <div className="flex-1 text-white">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-3 flex items-center">
+
+          {t.freeEmergencyAirTransport || "Free Air Transport"}
+        </h2>
+
+        <p className="text-sm sm:text-base text-white/90 leading-relaxed">
+          {t.ayushmanCardDesc ||
+            "Free air transport facility for treatment in Ayushman listed hospitals for eligible card holders."}
+        </p>
+      </div>
+
+      {/* Image */}
+      <div className="w-1/2 sm:w-1/3 md:w-36 lg:w-44 flex-shrink-0 transition-transform duration-300 group-hover:scale-105">
+        <img
+          src="./Ayushman.png"
+          alt="Ayushman Card"
+          className="w-full h-auto object-contain drop-shadow-lg"
+        />
+      </div>
+
+    </div>
   </div>
 
 </div>
+
+          {/* Right Column: Visual Component */}
+      {/* Right Column: Visual Component */}
+<div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-3xl h-full">
+  <div
+    className="h-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] lg:min-h-[500px] bg-center bg-cover"
+    style={{ backgroundImage: "url('/bg-image2.png')" }}
+  >
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+            </div>
+
+            {/* Support Badge */}
+            <div className="absolute top-4 right-4">
+              <div className="bg-green-600/90 backdrop-blur-md text-white text-xs sm:text-sm px-4 py-2 rounded-full flex items-center gap-2 font-bold shadow-lg border border-green-400/30">
+                <FaClock className="animate-pulse" />
+                {t.support247 || '24×7 SUPPORT'}
+              </div>
+            </div>
+
+            {/* Phone Badge */}
+            <div className="absolute bottom-6 left-1/2 w-[calc(100%-2rem)] max-w-xs -translate-x-1/2 bg-white/95 backdrop-blur-md shadow-2xl px-6 py-4 rounded-3xl flex items-center gap-4 border border-blue-50/50">
+              <div className="bg-blue-900 p-3 rounded-2xl text-white shadow-lg shadow-blue-100">
+                <FaPhoneAlt className="text-lg"/>
+              </div>
+              <div className="leading-tight">
+                <p className="text-[10px] tracking-widest text-blue-600 font-black uppercase mb-1">
+                  {t.tollFree || 'TOLL FREE'}
+                </p>
+                <p className="text-base sm:text-lg font-black text-blue-950">
+                  <a href="tel:18002332004"><BlinkNumber>1800 233 2004</BlinkNumber></a>
+                </p>
+                <p className="text-xs text-slate-500 font-bold">
+                  <a href="tel:919319208927"><BlinkNumber>+91 93192 08927</BlinkNumber></a>
+                </p>
+              </div>
+            </div>
+
+
+            
+          </div>
 
         </div>
       </div>
@@ -294,7 +373,7 @@ const BookingSection = () => {
     {
       step: "1",
       title: t.step1Title || "Initial Contact",
-      description: t.step1Desc || "Call 18002332004 or visit official website for immediate assistance"
+      description: t.step1Desc || <span>Call <BlinkNumber>18002332004</BlinkNumber> or email airambulance@flyolaindia.com for immediate assistance</span>
     },
     {
       step: "2",
@@ -338,18 +417,49 @@ const BookingSection = () => {
           ))}
         </div>
 
-        <div className="mt-8 sm:mt-12 md:mt-16 bg-gradient-to-r from-red-600 to-red-700 rounded-xl sm:rounded-2xl p-6 sm:p-8 text-white text-center">
-          <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">{t.emergencyDontWait || "Emergency? Don't Wait!"}</h3>
-          <p className="text-sm sm:text-base md:text-lg mb-4 sm:mb-6 text-red-100">
-            {t.emergencyDontWaitDesc || 'In critical situations, every second counts. Contact us immediately for rapid response.'}
-          </p>
-          <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-4">
-            <a href="tel:18002332004" className="bg-white text-red-600 font-bold py-3 px-6 sm:px-8 rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center text-sm sm:text-base">
-              <Phone className="mr-2" size={18} />
-              {t.callNow || 'Call Now'}: 18002332004
-            </a>
-          </div>
-        </div>
+<div className="mt-10 sm:mt-14 md:mt-16 bg-gradient-to-r from-red-600 via-red-600 to-red-700 rounded-2xl p-6 sm:p-8 text-white text-center shadow-xl relative overflow-hidden">
+
+  {/* Glow Effect */}
+  <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+
+  <h3 className="relative text-2xl sm:text-3xl font-bold mb-3 sm:mb-4 tracking-wide">
+    {t.emergencyDontWait || "Emergency? Don't Wait!"}
+  </h3>
+
+  <p className="relative text-sm sm:text-base md:text-lg mb-5 sm:mb-7 text-red-100 max-w-2xl mx-auto">
+    {t.emergencyDontWaitDesc || 
+      'In critical situations, every second counts. Contact us immediately for rapid response.'}
+  </p>
+
+  <div className="relative flex flex-col sm:flex-row flex-wrap justify-center gap-4">
+
+    {/* 📞 Call Button */}
+    <a
+      href="tel:18002332004"
+      className="bg-white text-red-600 font-semibold py-3 px-6 sm:px-8 rounded-full hover:bg-gray-100 transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base shadow-md hover:scale-105"
+    >
+      <Phone size={18} />
+      {t.callNow || 'Call Now'}
+    </a>
+
+    {/* 💬 WhatsApp Button */}
+    <a
+      href="https://wa.me/919319208927?text=Hello%20I%20need%20air%20ambulance%20assistance"
+      target="_blank"
+      className="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 sm:px-8 rounded-full transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base shadow-md hover:scale-105"
+    >
+      💬 WhatsApp Now
+    </a>
+
+  </div>
+
+  {/* 📢 Extra Trust Line */}
+  <p className="relative mt-5 text-xs sm:text-sm text-red-200">
+    24/7 Emergency Support • Fast Response • Trusted Service
+  </p>
+
+</div>
+        
       </div>
     </div>
   );
@@ -358,32 +468,128 @@ const BookingSection = () => {
 
 
 const Footer = () => {
-  const { t } = useLanguage();
-  return (
-    <footer className="bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto px-6 py-6">
+  const { t, language } = useLanguage();
+  
+  const bannerImg = language === 'hi' ? '/AIRhindi.jpg' : '/AIR_English))).jpg';
 
+  return (
+    <footer className="bg-white text-gray-800">
+      {/* Top Banner Image Section */}
+      <div className="w-full border-t-4 border-blue-600">
+        <img 
+          src={bannerImg} 
+          alt="PM Shri Air Ambulance Banner" 
+          className="w-full h-auto object-cover"
+        />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-8 pb-8 border-b border-gray-200">
+          {/* Logo & Description */}
+          <div className="col-span-1 md:col-span-1">
+            <div className="flex items-center gap-4 mb-6">
+              <img 
+                src="/download.png" 
+                alt="MP Government Logo" 
+                className="h-16 w-16 object-contain"
+              />
+              <div className="flex flex-col">
+                <h3 className="text-xl font-bold text-blue-900 leading-tight">
+                  {t.pmShriAirAmbulance}
+                </h3>
+                <h4 className="text-lg font-semibold text-blue-800">
+                  {t.governmentOfMP}
+                </h4>
+              </div>
+            </div>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              {t.footerDesc}
+            </p>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 mb-6">{t.quickLinks}</h3>
+            <ul className="space-y-4 text-gray-600 text-sm">
+              <li>
+                <a href="#about" className="hover:text-blue-600 transition-colors border-b border-transparent hover:border-blue-600 pb-0.5">
+                  {t.aboutTheScheme}
+                </a>
+              </li>
+              <li>
+                <a href="#eligibility" className="hover:text-blue-600 transition-colors border-b border-transparent hover:border-blue-600 pb-0.5">
+                  {t.eligibilityCriteria}
+                </a>
+              </li>
+              <li>
+                <a href="#steps" className="hover:text-blue-600 transition-colors border-b border-transparent hover:border-blue-600 pb-0.5">
+                  {t.howItWorks}
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Government Portals */}
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 mb-6">{t.governmentPortals}</h3>
+            <ul className="space-y-4 text-gray-600 text-sm">
+              <li>
+                <a href="https://mp.gov.in/" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors border-b border-transparent hover:border-blue-600 pb-0.5">
+                  {t.mpGovernment}
+                </a>
+              </li>
+              <li>
+                <a href="https://health.mp.gov.in/" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors border-b border-transparent hover:border-blue-600 pb-0.5">
+                  {t.mpHealthDept}
+                </a>
+              </li>
+              <li>
+                <a href="https://pmjay.gov.in/" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors border-b border-transparent hover:border-blue-600 pb-0.5">
+                  {t.ayushmanBharat}
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Contact Us */}
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 mb-6">{t.contactUs}</h3>
+            <div className="space-y-4 text-sm">
+              <div>
+                <p className="text-gray-500 mb-2 font-medium">{t.tollFreeEmergency}</p>
+                <div className="inline-block bg-red-600 text-white px-6 py-2.5 rounded-full font-bold text-lg shadow-md">
+                  <a href="tel:18002332004" className="hover:text-red-50">1800 233 2004</a>
+                </div>
+              </div>
+              <div className="pt-2">
+                <p className="text-gray-500 mb-1 font-medium">{t.email}</p>
+                <a href="mailto:airambulance@flyolaindia.com" className="text-blue-600 hover:text-blue-800 font-medium break-all border-b border-blue-600/30 hover:border-blue-600 transition-all">
+                  airambulance@flyolaindia.com
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-gray-800">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 pt-6">
-            <div className="text-gray-400 text-sm">
-              © 2025 {t.pmShriAirAmbulance || 'PM Shri Air Ambulance'}. {t.allRightsReserved || 'All rights reserved.'}
-            </div>
-            
-            {/* Powered by RBSH */}
-            <div className="flex items-center space-x-2">
-              <span className="text-gray-400 text-sm">{t.poweredBy || 'Powered by'}</span>
-              <a 
-                href="https://rbshstudio.com/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center space-x-1 text-blue-400 hover:text-blue-300 transition-colors"
-              >
-                <span className="font-semibold">RBSH Studio</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6 pt-4">
+          <div className="text-gray-500 text-xs text-center md:text-left leading-relaxed">
+            <p className="mb-1 italic">
+              © 2025 {t.pmShriAirAmbulance}. {t.allRightsReserved}
+            </p>
+            <p>{t.operatedBy}</p>
+          </div>
+          
+          <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg border border-gray-100 shadow-sm">
+            <span className="text-gray-500 text-xs font-medium">{t.poweredBy}</span>
+            <a 
+              href="https://rbshstudio.com/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-gray-800 hover:text-blue-700 transition-colors flex items-center gap-1"
+            >
+              <span className="font-bold text-sm tracking-tight text-gray-700">RBSH <span className="text-blue-600">Studio</span></span>
+            </a>
           </div>
         </div>
       </div>
@@ -395,6 +601,7 @@ const Footer = () => {
 const HomePage = () => {
   return (
     <div className="min-h-screen bg-white">
+      <style>{blinkStyle}</style>
       <Header1 />
 
       <HeroSection />

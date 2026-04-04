@@ -16,6 +16,8 @@ import { useLanguage } from '../../contexts/LanguageContext';
 const statusStyles = {
   PENDING: 'bg-yellow-100 text-yellow-800 ring-yellow-500/20',
   APPROVED: 'bg-green-100 text-green-800 ring-green-500/20',
+  COLLECTOR_APPROVED: 'bg-emerald-100 text-emerald-800 ring-emerald-500/20',
+  DME_APPROVED: 'bg-indigo-100 text-indigo-800 ring-indigo-500/20',
   REJECTED: 'bg-red-100 text-red-800 ring-red-500/20',
   FORWARDED: 'bg-purple-100 text-purple-800 ring-purple-500/20',
   ESCALATED: 'bg-blue-100 text-blue-800 ring-blue-500/20',
@@ -61,7 +63,10 @@ const CaseFileViewPage = () => {
       setActionStatus(`${t.processing} ${action === 'APPROVE' ? t.approve : t.reject}...`);
       const response = await fetch(`${baseUrl}/api/enquiries/${enquiryId}/approve-reject`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({ action }),
       });
       const data = await response.json();
@@ -119,14 +124,23 @@ const CaseFileViewPage = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div className="flex flex-col">
             <h1 className="text-3xl font-bold text-gray-900">{t.caseFile} #{enquiryId}</h1>
-         
+            <div className="flex items-center gap-2 mt-1">
+              <span className="font-mono text-sm text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                {enquiry.enquiry_code}
+              </span>
+              {enquiry.district?.district_name && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 border border-orange-200">
+                  📍 {enquiry.district.district_name}
+                </span>
+              )}
+            </div>
           </div>
           <span
             className={`px-4 py-2 text-sm font-medium rounded-full ring-1 ring-inset ${
               statusStyles[enquiry.status] || 'bg-gray-100 text-gray-800'
             }`}
           >
-            {t[enquiry.status.toLowerCase()] || enquiry.status}
+            {t[enquiry.status.toLowerCase()] || enquiry.status.replace(/_/g, ' ')}
           </span>
         </div>
         <div className=''>
@@ -234,9 +248,9 @@ const CaseFileViewPage = () => {
         <div className="mt-8 flex flex-wrap justify-between gap-4">
           <button
             onClick={() => handleApproveReject('APPROVE')}
-            disabled={enquiry.status === 'APPROVED' || enquiry.status === 'REJECTED' || actionStatus.includes('Processing')}
+            disabled={['APPROVED', 'REJECTED', 'COLLECTOR_APPROVED', 'DME_APPROVED'].includes(enquiry.status) || actionStatus.includes('Processing')}
             className={`flex items-center gap-2 px-5 py-3 rounded-lg transition shadow-md ${
-              enquiry.status === 'APPROVED' || actionStatus.includes('Processing')
+              ['APPROVED', 'REJECTED', 'COLLECTOR_APPROVED', 'DME_APPROVED'].includes(enquiry.status) || actionStatus.includes('Processing')
                 ? 'bg-gray-400 cursor-not-allowed text-gray-200'
                 : 'bg-green-600 hover:bg-green-700 text-white'
             }`}
@@ -247,9 +261,9 @@ const CaseFileViewPage = () => {
           </button>
           <button
             onClick={() => handleApproveReject('REJECT')}
-            disabled={enquiry.status === 'APPROVED' || enquiry.status === 'REJECTED' || actionStatus.includes('Processing')}
+            disabled={['APPROVED', 'REJECTED', 'COLLECTOR_APPROVED', 'DME_APPROVED'].includes(enquiry.status) || actionStatus.includes('Processing')}
             className={`flex items-center gap-2 px-5 py-3 rounded-lg transition shadow-md ${
-              enquiry.status === 'REJECTED' || actionStatus.includes('Processing')
+              ['APPROVED', 'REJECTED', 'COLLECTOR_APPROVED', 'DME_APPROVED'].includes(enquiry.status) || actionStatus.includes('Processing')
                 ? 'bg-gray-400 cursor-not-allowed text-gray-200'
                 : 'bg-red-600 hover:bg-red-700 text-white'
             }`}

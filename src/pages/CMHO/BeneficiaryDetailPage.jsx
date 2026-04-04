@@ -198,9 +198,16 @@ const BeneficiaryDetailPage = () => {
               <div className="h-6 w-px bg-gray-300"></div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-800">{labels[language].title}</h1>
-                <p className="text-sm text-gray-600">
-                  {labels[language].enquiryCode}: {enquiry?.enquiry_code || 'N/A'}
-                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-sm text-gray-600">
+                    {labels[language].enquiryCode}: <span className="font-mono text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">{enquiry?.enquiry_code || 'N/A'}</span>
+                  </p>
+                  {enquiry?.district?.district_name && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 border border-orange-200">
+                      <FaMapMarkerAlt size={10} /> {enquiry.district.district_name}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex items-center space-x-3">

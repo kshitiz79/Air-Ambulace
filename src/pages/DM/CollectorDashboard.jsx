@@ -135,7 +135,7 @@ const CollectorDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <DashboardHeader title="Collector Dashboard" badgeLabel="District Magistrate / Collector" onRefresh={handleRefresh} refreshing={refreshing} accentColor="green" />
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <GradientStatCard label={t.totalCases || 'Total Cases'} value={dashboardData.totalCases} subLabel={t.allTimeTotal || 'All time total'} icon={<FaFileAlt />} from="from-blue-500" to="to-blue-600" />

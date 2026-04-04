@@ -1,443 +1,254 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  FaCode, 
-  FaSearch, 
-  FaFilter, 
-  FaDownload, 
-  FaSyncAlt,
-  FaExclamationTriangle,
-  FaInfoCircle,
-  FaCheckCircle,
-  FaTimesCircle,
-  FaCalendarAlt,
-  FaClock,
-  FaServer,
-  FaDatabase,
-  FaShieldAlt
+import React, { useState, useEffect, useCallback } from 'react';
+import { clsx } from 'clsx';
+import {
+  FaCode, FaSearch, FaDownload, FaSyncAlt, FaExclamationTriangle,
+  FaInfoCircle, FaCheckCircle, FaTimesCircle, FaClock, FaServer,
+  FaDatabase, FaShieldAlt, FaUser, FaFilter,
 } from 'react-icons/fa';
 import { useThemeStyles } from '../../hooks/useThemeStyles';
 import baseUrl from '../../baseUrl/baseUrl';
 
+const ACTION_COLORS = {
+  CREATE: 'bg-green-100 text-green-800',
+  UPDATE: 'bg-blue-100 text-blue-800',
+  DELETE: 'bg-red-100 text-red-800',
+  VIEW: 'bg-gray-100 text-gray-700',
+  LOGIN: 'bg-teal-100 text-teal-800',
+  LOGIN_FAILED: 'bg-red-100 text-red-800',
+  LOGOUT: 'bg-gray-100 text-gray-700',
+  EXPORT: 'bg-purple-100 text-purple-800',
+  UPLOAD: 'bg-yellow-100 text-yellow-800',
+};
+
+const STATUS_COLORS = {
+  SUCCESS: 'bg-green-100 text-green-800',
+  FAILED: 'bg-red-100 text-red-800',
+  WARNING: 'bg-yellow-100 text-yellow-800',
+};
+
+const ACTIONS = ['ALL', 'CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGIN_FAILED', 'LOGOUT', 'EXPORT', 'UPLOAD'];
+const STATUSES = ['ALL', 'SUCCESS', 'FAILED', 'WARNING'];
+const ROLES = ['ALL', 'ADMIN', 'CMHO', 'SDM', 'COLLECTOR', 'DME', 'SERVICE_PROVIDER', 'HOSPITAL', 'SUPPORT'];
+
 const SystemLogs = () => {
   const styles = useThemeStyles();
   const [logs, setLogs] = useState([]);
-  const [filteredLogs, setFilteredLogs] = useState([]);
+  const [stats, setStats] = useState({ total: 0, success: 0, failed: 0, logins: 0, loginFailed: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLevel, setSelectedLevel] = useState('ALL');
-  const [selectedSource, setSelectedSource] = useState('ALL');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [logsPerPage] = useState(50);
   const [refreshing, setRefreshing] = useState(false);
 
-  const logLevels = ['INFO', 'WARNING', 'ERROR', 'SUCCESS', 'DEBUG'];
-  const logSources = ['System', 'Database', 'API', 'Authentication', 'Security', 'Backup'];
+  const [search, setSearch] = useState('');
+  const [action, setAction] = useState('ALL');
+  const [status, setStatus] = useState('ALL');
+  const [role, setRole] = useState('ALL');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const LIMIT = 50;
 
-  // Generate mock system logs
-  const generateSystemLogs = () => {
-    const messages = [
-      'User authentication successful',
-      'Database backup completed',
-      'System performance optimized',
-      'Security scan completed',
-      'API endpoint response time improved',
-      'Cache cleared successfully',
-      'SSL certificate renewed',
-      'Server restart completed',
-      'Database connection established',
-      'User session expired',
-      'File upload completed',
-      'Email notification sent',
-      'Password reset requested',
-      'Login attempt failed',
-      'System maintenance started',
-      'Backup verification completed',
-      'Security alert triggered',
-      'Database query optimized',
-      'API rate limit exceeded',
-      'User account locked'
-    ];
+  const token = localStorage.getItem('token');
+  const headers = { Authorization: `Bearer ${token}` };
 
-    return Array.from({ length: 200 }, (_, i) => ({
-      id: i + 1,
-      level: logLevels[Math.floor(Math.random() * logLevels.length)],
-      message: messages[Math.floor(Math.random() * messages.length)],
-      source: logSources[Math.floor(Math.random() * logSources.length)],
-      timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-      user_id: Math.random() > 0.5 ? Math.floor(Math.random() * 100) + 1 : null,
-      ip_address: `192.168.1.${Math.floor(Math.random() * 255)}`,
-      details: `Additional details for log entry ${i + 1}`
-    }));
-  };
-
-  // Fetch logs data
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async (p = 1) => {
     try {
       setLoading(true);
-      // In a real application, this would fetch from an API
-      // For now, we'll generate mock data
-      const mockLogs = generateSystemLogs();
-      setLogs(mockLogs);
+      const params = new URLSearchParams({ page: p, limit: LIMIT });
+      if (search) params.set('search', search);
+      if (action !== 'ALL') params.set('action', action);
+      if (status !== 'ALL') params.set('status', status);
+      if (role !== 'ALL') params.set('role', role);
+      if (dateFrom) params.set('dateFrom', dateFrom);
+      if (dateTo) params.set('dateTo', dateTo);
+
+      const res = await fetch(`${baseUrl}/api/activity-logs?${params}`, { headers });
+      if (!res.ok) throw new Error('Failed to fetch logs');
+      const data = await res.json();
+      setLogs(data.data || []);
+      setTotal(data.total || 0);
+      setTotalPages(data.totalPages || 1);
       setError('');
     } catch (err) {
-      console.error('Logs fetch error:', err);
-      setError('Failed to load logs: ' + err.message);
+      setError(err.message);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [search, action, status, role, dateFrom, dateTo]);
 
-  // Filter logs
-  useEffect(() => {
-    let filtered = logs.filter(log => {
-      const matchesSearch = 
-        log.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.source?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.details?.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchesLevel = selectedLevel === 'ALL' || log.level === selectedLevel;
-      const matchesSource = selectedSource === 'ALL' || log.source === selectedSource;
-
-      let matchesDateRange = true;
-      if (dateFrom || dateTo) {
-        const logDate = new Date(log.timestamp);
-        if (dateFrom) {
-          matchesDateRange = matchesDateRange && logDate >= new Date(dateFrom);
-        }
-        if (dateTo) {
-          matchesDateRange = matchesDateRange && logDate <= new Date(dateTo);
-        }
-      }
-
-      return matchesSearch && matchesLevel && matchesSource && matchesDateRange;
-    });
-
-    // Sort by timestamp (newest first)
-    filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-    setFilteredLogs(filtered);
-    setCurrentPage(1);
-  }, [logs, searchTerm, selectedLevel, selectedSource, dateFrom, dateTo]);
-
-  useEffect(() => {
-    fetchLogs();
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch(`${baseUrl}/api/activity-logs/stats`, { headers });
+      if (!res.ok) return;
+      const data = await res.json();
+      const { actionStats = [], statusStats = [] } = data.data || {};
+      const get = (arr, key, field) => parseInt(arr.find(x => x[field] === key)?.count || 0);
+      setStats({
+        total: statusStats.reduce((s, x) => s + parseInt(x.count), 0),
+        success: get(statusStats, 'SUCCESS', 'status'),
+        failed: get(statusStats, 'FAILED', 'status'),
+        logins: get(actionStats, 'LOGIN', 'action'),
+        loginFailed: get(actionStats, 'LOGIN_FAILED', 'action'),
+      });
+    } catch {}
   }, []);
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchLogs();
-  };
+  useEffect(() => { fetchLogs(1); fetchStats(); }, []);
 
-  const getCurrentPageLogs = () => {
-    const indexOfLastLog = currentPage * logsPerPage;
-    const indexOfFirstLog = indexOfLastLog - logsPerPage;
-    return filteredLogs.slice(indexOfFirstLog, indexOfLastLog);
-  };
+  const handleSearch = () => { setPage(1); fetchLogs(1); };
+  const handleRefresh = () => { setRefreshing(true); fetchLogs(page); fetchStats(); };
 
-  const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
+  const formatDate = (d) => new Date(d).toLocaleString('en-IN', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-  const getLevelColor = (level) => {
-    const colors = {
-      INFO: 'bg-blue-100 text-blue-800',
-      WARNING: 'bg-yellow-100 text-yellow-800',
-      ERROR: 'bg-red-100 text-red-800',
-      SUCCESS: 'bg-green-100 text-green-800',
-      DEBUG: 'bg-purple-100 text-purple-800',
-    };
-    return colors[level] || 'bg-gray-100 text-gray-800';
-  };
-
-  const getLevelIcon = (level) => {
-    const icons = {
-      INFO: <FaInfoCircle />,
-      WARNING: <FaExclamationTriangle />,
-      ERROR: <FaTimesCircle />,
-      SUCCESS: <FaCheckCircle />,
-      DEBUG: <FaCode />,
-    };
-    return icons[level] || <FaInfoCircle />;
-  };
-
-  const getSourceIcon = (source) => {
-    const icons = {
-      System: <FaServer />,
-      Database: <FaDatabase />,
-      API: <FaCode />,
-      Authentication: <FaShieldAlt />,
-      Security: <FaShieldAlt />,
-      Backup: <FaDatabase />,
-    };
-    return icons[source] || <FaServer />;
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString('en-IN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    });
-  };
-
-  const exportLogs = () => {
-    const csvContent = [
-      ['Timestamp', 'Level', 'Source', 'Message', 'IP Address', 'User ID', 'Details'].join(','),
-      ...filteredLogs.map(log => [
-        log.timestamp,
-        log.level,
-        log.source,
-        `"${log.message}"`,
-        log.ip_address,
-        log.user_id || '',
-        `"${log.details}"`
-      ].join(','))
+  const exportCSV = () => {
+    const csv = [
+      ['Timestamp', 'Action', 'Resource', 'Resource ID', 'Username', 'Full Name', 'Role', 'Status', 'IP Address', 'Description'].join(','),
+      ...logs.map(l => [l.created_at, l.action, l.resource, l.resource_id || '', l.username || '', l.full_name || '', l.role || '', l.status, l.ip_address || '', `"${(l.description || '').replace(/"/g, "'")}"`].join(',')),
     ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `system-logs-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `activity-logs-${new Date().toISOString().split('T')[0]}.csv`; a.click();
+    URL.revokeObjectURL(url);
   };
-
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto p-6">
-        <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-8`}>
-          <div className="animate-pulse">
-            <div className={`h-8 ${styles.loadingShimmer} rounded mb-6`}></div>
-            <div className="space-y-4">
-              {[...Array(10)].map((_, i) => (
-                <div key={i} className={`h-12 ${styles.loadingShimmer} rounded`}></div>
-              ))}
-            </div>
-          </div>
-          <p className={`text-center ${styles.secondaryText} mt-4`}>Loading system logs...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className={`max-w-7xl mx-auto p-6 ${styles.pageBackground}`}>
+    <div className={`max-w-6xl p-6 ${styles.pageBackground}`}>
       {/* Header */}
-      <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} mb-6`}>
-        <div className={`px-6 py-4 border-b ${styles.borderColor}`}>
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className={`text-3xl font-bold ${styles.primaryText} flex items-center`}>
-                <FaCode className="mr-3 text-green-600" />
-                System Logs
-              </h1>
-              <p className={`${styles.secondaryText} mt-1`}>
-                Monitor and analyze system activity and events
-              </p>
-            </div>
-            <div className="flex space-x-3">
-              <button
-                onClick={handleRefresh}
-                disabled={refreshing}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-              >
-                <FaSyncAlt className={`mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-                {refreshing ? 'Refreshing...' : 'Refresh'}
-              </button>
-              <button
-                onClick={exportLogs}
-                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-              >
-                <FaDownload className="mr-2" />
-                Export CSV
-              </button>
-            </div>
+      <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} mb-6 px-6 py-4`}>
+        <div className={clsx('flex', 'justify-between', 'items-center')}>
+          <div>
+            <h1 className={`text-3xl font-bold ${styles.primaryText} flex items-center`}>
+              <FaCode className={clsx('mr-3', 'text-green-600')} /> System Activity Logs
+            </h1>
+            <p className={`${styles.secondaryText} mt-1`}>Real-time tracking of all user actions across every dashboard</p>
+          </div>
+          <div className={clsx('flex', 'space-x-3')}>
+            <button onClick={handleRefresh} disabled={refreshing} className={clsx('flex', 'items-center', 'px-4', 'py-2', 'bg-blue-600', 'text-white', 'rounded-lg', 'hover:bg-blue-700', 'transition', 'disabled:opacity-50')}>
+              <FaSyncAlt className={`mr-2 ${refreshing ? 'animate-spin' : ''}`} /> Refresh
+            </button>
+            <button onClick={exportCSV} className={clsx('flex', 'items-center', 'px-4', 'py-2', 'bg-green-600', 'text-white', 'rounded-lg', 'hover:bg-green-700', 'transition')}>
+              <FaDownload className="mr-2" /> Export CSV
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Error Alert */}
-      {error && (
-        <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg border border-red-200 flex items-center">
-          <FaExclamationTriangle className="mr-2" />
-          {error}
-        </div>
-      )}
+      {error && <div className={clsx('mb-4', 'p-4', 'bg-red-100', 'text-red-700', 'rounded-lg', 'flex', 'items-center')}><FaExclamationTriangle className="mr-2" />{error}</div>}
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
-        {logLevels.map(level => (
-          <div key={level} className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-6`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className={`${styles.secondaryText} text-sm font-medium`}>{level}</p>
-                <p className="text-2xl font-bold text-gray-700">
-                  {logs.filter(log => log.level === level).length}
-                </p>
-              </div>
-              <div className={`p-3 rounded-full ${getLevelColor(level)}`}>
-                {getLevelIcon(level)}
-              </div>
+      {/* Stats */}
+      <div className={clsx('grid', 'grid-cols-2', 'md:grid-cols-5', 'gap-4', 'mb-6')}>
+        {[
+          { label: 'Total Logs', value: stats.total, color: 'from-blue-500 to-blue-600', icon: <FaDatabase /> },
+          { label: 'Successful', value: stats.success, color: 'from-green-500 to-green-600', icon: <FaCheckCircle /> },
+          { label: 'Failed', value: stats.failed, color: 'from-red-500 to-red-600', icon: <FaTimesCircle /> },
+          { label: 'Logins', value: stats.logins, color: 'from-teal-500 to-teal-600', icon: <FaUser /> },
+          { label: 'Failed Logins', value: stats.loginFailed, color: 'from-orange-500 to-orange-600', icon: <FaShieldAlt /> },
+        ].map(s => (
+          <div key={s.label} className={`bg-gradient-to-r ${s.color} rounded-lg p-4 text-white`}>
+            <div className={clsx('flex', 'items-center', 'justify-between')}>
+              <div><p className={clsx('text-white/80', 'text-xs', 'font-medium')}>{s.label}</p><p className={clsx('text-2xl', 'font-bold')}>{s.value}</p></div>
+              <div className={clsx('bg-white/20', 'rounded-full', 'p-2', 'text-lg')}>{s.icon}</div>
             </div>
           </div>
         ))}
       </div>
 
       {/* Filters */}
-      <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-6 mb-6`}>
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-          <div className="md:col-span-2">
-            <label className={`block text-sm font-medium ${styles.secondaryText} mb-1`}>Search Logs</label>
-            <div className="relative">
-              <FaSearch className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${styles.secondaryText}`} />
-              <input
-                type="text"
-                placeholder="Search messages, sources, or details..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
-              />
-            </div>
+      <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-4 mb-6`}>
+        <div className={clsx('grid', 'grid-cols-1', 'md:grid-cols-7', 'gap-3')}>
+          <div className={clsx('md:col-span-2', 'relative')}>
+            <FaSearch className={clsx('absolute', 'left-3', 'top-1/2', '-translate-y-1/2', 'text-gray-400')} />
+            <input type="text" placeholder="Search username, IP, description..." value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSearch()} className={`w-full pl-9 pr-3 py-2 border rounded-md text-sm ${styles.inputBackground}`} />
           </div>
-
-          <div>
-            <label className={`block text-sm font-medium ${styles.secondaryText} mb-1`}>Level</label>
-            <select
-              value={selectedLevel}
-              onChange={(e) => setSelectedLevel(e.target.value)}
-              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
-            >
-              <option value="ALL">All Levels</option>
-              {logLevels.map(level => (
-                <option key={level} value={level}>{level}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className={`block text-sm font-medium ${styles.secondaryText} mb-1`}>Source</label>
-            <select
-              value={selectedSource}
-              onChange={(e) => setSelectedSource(e.target.value)}
-              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
-            >
-              <option value="ALL">All Sources</option>
-              {logSources.map(source => (
-                <option key={source} value={source}>{source}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className={`block text-sm font-medium ${styles.secondaryText} mb-1`}>From Date</label>
-            <input
-              type="datetime-local"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
-            />
-          </div>
-
-          <div>
-            <label className={`block text-sm font-medium ${styles.secondaryText} mb-1`}>To Date</label>
-            <input
-              type="datetime-local"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
-            />
-          </div>
+          <select value={action} onChange={e => setAction(e.target.value)} className={`p-2 border rounded-md text-sm ${styles.inputBackground}`}>
+            {ACTIONS.map(a => <option key={a} value={a}>{a === 'ALL' ? 'All Actions' : a}</option>)}
+          </select>
+          <select value={status} onChange={e => setStatus(e.target.value)} className={`p-2 border rounded-md text-sm ${styles.inputBackground}`}>
+            {STATUSES.map(s => <option key={s} value={s}>{s === 'ALL' ? 'All Status' : s}</option>)}
+          </select>
+          <select value={role} onChange={e => setRole(e.target.value)} className={`p-2 border rounded-md text-sm ${styles.inputBackground}`}>
+            {ROLES.map(r => <option key={r} value={r}>{r === 'ALL' ? 'All Roles' : r}</option>)}
+          </select>
+          <input type="datetime-local" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className={`p-2 border rounded-md text-sm ${styles.inputBackground}`} />
+          <button onClick={handleSearch} className={clsx('flex', 'items-center', 'justify-center', 'px-4', 'py-2', 'bg-blue-600', 'text-white', 'rounded-md', 'text-sm', 'hover:bg-blue-700', 'transition')}>
+            <FaFilter className="mr-1" /> Apply
+          </button>
         </div>
       </div>
 
-      {/* Logs Table */}
+      {/* Table */}
       <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow}`}>
-        <div className={`px-6 py-4 border-b ${styles.borderColor}`}>
-          <h2 className={`text-xl font-semibold ${styles.primaryText}`}>
-            System Logs ({filteredLogs.length})
-          </h2>
+        <div className={`px-6 py-4 border-b ${styles.borderColor} flex items-center justify-between`}>
+          <h2 className={`text-lg font-semibold ${styles.primaryText}`}>Activity Logs ({total.toLocaleString()})</h2>
+          <span className={`text-sm ${styles.secondaryText}`}>Page {page} of {totalPages}</span>
         </div>
 
-        <div className="overflow-x-auto">
-          {getCurrentPageLogs().length === 0 ? (
+        <div className={clsx('overflow-x-auto', 'w-full')}>
+          {loading ? (
+            <div className={clsx('p-8', 'text-center')}>
+              <div className={clsx('animate-spin', 'w-8', 'h-8', 'border-4', 'border-blue-600', 'border-t-transparent', 'rounded-full', 'mx-auto', 'mb-3')}></div>
+              <p className={styles.secondaryText}>Loading logs...</p>
+            </div>
+          ) : logs.length === 0 ? (
             <div className={`p-8 text-center ${styles.secondaryText}`}>
-              <FaCode className="mx-auto text-4xl mb-4 text-gray-300" />
+              <FaCode className={clsx('mx-auto', 'text-4xl', 'mb-3', 'text-gray-300')} />
               <p>No logs found matching the current filters.</p>
             </div>
           ) : (
             <table className="min-w-full">
               <thead className={styles.tableHeader}>
                 <tr>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>
-                    Timestamp
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>
-                    Level
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>
-                    Source
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>
-                    Message
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>
-                    IP Address
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>
-                    User ID
-                  </th>
+                  {['Timestamp', 'User', 'Role', 'Action', 'Resource', 'Status', 'IP Address', 'Description'].map(h => (
+                    <th key={h} className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody className={`${styles.tableBody} divide-y ${styles.borderColor}`}>
-                {getCurrentPageLogs().map((log) => (
-                  <tr key={log.id} className={styles.tableRow}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <FaClock className="mr-2 text-gray-400" />
-                        <span className={`text-sm ${styles.primaryText}`}>
-                          {formatDate(log.timestamp)}
-                        </span>
+                {logs.map(log => (
+                  <tr key={log.log_id} className={styles.tableRow}>
+                    <td className={clsx('px-4', 'py-3', 'whitespace-nowrap')}>
+                      <div className={clsx('flex', 'items-center', 'text-xs')}>
+                        <FaClock className={clsx('mr-1', 'text-gray-400')} />
+                        <span className={styles.secondaryText}>{formatDate(log.created_at)}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getLevelColor(log.level)}`}>
-                        {getLevelIcon(log.level)}
-                        <span className="ml-1">{log.level}</span>
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        {getSourceIcon(log.source)}
-                        <span className={`ml-2 text-sm ${styles.primaryText}`}>
-                          {log.source}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className={`text-sm ${styles.primaryText}`}>
-                        {log.message}
-                      </div>
-                      {log.details && (
-                        <div className={`text-xs ${styles.secondaryText} mt-1`}>
-                          {log.details}
+                    <td className={clsx('px-4', 'py-3', 'whitespace-nowrap')}>
+                      <div className={clsx('flex', 'items-center')}>
+                        <div className={clsx('w-7', 'h-7', 'rounded-full', 'bg-blue-100', 'flex', 'items-center', 'justify-center', 'mr-2')}>
+                          <FaUser className={clsx('text-blue-600', 'text-xs')} />
                         </div>
-                      )}
+                        <div>
+                          <p className={`text-sm font-medium ${styles.primaryText}`}>{log.username || 'System'}</p>
+                          {log.full_name && <p className={`text-xs ${styles.secondaryText}`}>{log.full_name}</p>}
+                        </div>
+                      </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`text-sm ${styles.secondaryText}`}>
-                        {log.ip_address}
+                    <td className={clsx('px-4', 'py-3', 'whitespace-nowrap')}>
+                      <span className={clsx('text-xs', 'font-medium', 'text-gray-600', 'bg-gray-100', 'px-2', 'py-1', 'rounded')}>{log.role || '—'}</span>
+                    </td>
+                    <td className={clsx('px-4', 'py-3', 'whitespace-nowrap')}>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${ACTION_COLORS[log.action] || 'bg-gray-100 text-gray-700'}`}>
+                        {log.action || log.event_type}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`text-sm ${styles.secondaryText}`}>
-                        {log.user_id || 'System'}
+                    <td className={clsx('px-4', 'py-3', 'whitespace-nowrap')}>
+                      <div>
+                        <span className={`text-sm ${styles.primaryText}`}>{log.resource || '—'}</span>
+                        {log.resource_id && <span className={`text-xs ${styles.secondaryText} ml-1`}>#{log.resource_id}</span>}
+                      </div>
+                    </td>
+                    <td className={clsx('px-4', 'py-3', 'whitespace-nowrap')}>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${STATUS_COLORS[log.status] || 'bg-gray-100 text-gray-700'}`}>
+                        {log.status}
                       </span>
+                    </td>
+                    <td className={clsx('px-4', 'py-3', 'whitespace-nowrap')}>
+                      <span className={`text-xs font-mono ${styles.secondaryText}`}>{log.ip_address || '—'}</span>
+                    </td>
+                    <td className={clsx('px-4', 'py-3', 'max-w-xs')}>
+                      <p className={`text-xs ${styles.secondaryText} truncate`} title={log.description}>{log.description || '—'}</p>
                     </td>
                   </tr>
                 ))}
@@ -448,43 +259,17 @@ const SystemLogs = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className={`px-6 py-4 border-t ${styles.borderColor}`}>
-            <div className="flex items-center justify-between">
-              <div className={`text-sm ${styles.secondaryText}`}>
-                Showing {((currentPage - 1) * logsPerPage) + 1} to {Math.min(currentPage * logsPerPage, filteredLogs.length)} of {filteredLogs.length} logs
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition"
-                >
-                  Previous
-                </button>
-                {[...Array(Math.min(5, totalPages))].map((_, i) => {
-                  const page = i + 1;
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-1 border rounded-md transition ${
-                        currentPage === page 
-                          ? 'bg-blue-600 text-white border-blue-600' 
-                          : 'hover:bg-gray-50'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  );
-                })}
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition"
-                >
-                  Next
-                </button>
-              </div>
+          <div className={`px-6 py-4 border-t ${styles.borderColor} flex items-center justify-between`}>
+            <span className={`text-sm ${styles.secondaryText}`}>Showing {((page - 1) * LIMIT) + 1}–{Math.min(page * LIMIT, total)} of {total}</span>
+            <div className={clsx('flex', 'space-x-2')}>
+              <button onClick={() => { const p = Math.max(page - 1, 1); setPage(p); fetchLogs(p); }} disabled={page === 1} className={clsx('px-3', 'py-1', 'border', 'rounded-md', 'text-sm', 'disabled:opacity-50', 'hover:bg-gray-50', 'transition')}>Prev</button>
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const p = Math.max(1, Math.min(page - 2, totalPages - 4)) + i;
+                return (
+                  <button key={p} onClick={() => { setPage(p); fetchLogs(p); }} className={`px-3 py-1 border rounded-md text-sm transition ${page === p ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-gray-50'}`}>{p}</button>
+                );
+              })}
+              <button onClick={() => { const p = Math.min(page + 1, totalPages); setPage(p); fetchLogs(p); }} disabled={page === totalPages} className={clsx('px-3', 'py-1', 'border', 'rounded-md', 'text-sm', 'disabled:opacity-50', 'hover:bg-gray-50', 'transition')}>Next</button>
             </div>
           </div>
         )}

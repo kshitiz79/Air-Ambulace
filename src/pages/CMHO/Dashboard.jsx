@@ -32,9 +32,9 @@ const Dashboard = () => {
 
   const quickActions = [
     { title: t.createEnquiry || 'Create Enquiry', description: t.createNewEnquiry || 'Create a new enquiry', icon: <FaEdit className="text-blue-600" />, to: '/cmho-dashboard/enquiry-creation-page', color: 'border-blue-200 hover:border-blue-400 hover:bg-blue-50' },
-    { title: t.viewEnquiries || 'View Enquiries', description: t.viewAllEnquiries || 'View all enquiries', icon: <FaEye className="text-green-600" />, to: '/cmho-dashboard/beneficiary-edit-page-list', color: 'border-green-200 hover:border-green-400 hover:bg-green-50' },
-    { title: t.searchCases || 'Search Cases', description: t.searchAndFilter || 'Search and filter cases', icon: <FaSearch className="text-yellow-600" />, to: '/cmho-dashboard/search-page', color: 'border-yellow-200 hover:border-yellow-400 hover:bg-yellow-50' },
-    { title: t.hospitals || 'Hospitals', description: t.viewHospitals || 'View hospital data', icon: <FaHospital className="text-purple-600" />, to: '/cmho-dashboard/hospital-page', color: 'border-purple-200 hover:border-purple-400 hover:bg-purple-50' },
+    { title: t.viewEnquiries || 'View Enquiries', description: t.viewAllEnquiries || 'View all enquiries', icon: <FaEye className="text-green-600" />, to: '/cmho-dashboard/beneficiary-detail-page', color: 'border-green-200 hover:border-green-400 hover:bg-green-50' },
+    { title: t.escalateCase || 'Escalate Case', description: t.escalateToHigher || 'Escalate a case to higher authority', icon: <FaExclamationTriangle className="text-yellow-600" />, to: '/cmho-dashboard/escalate-case', color: 'border-yellow-200 hover:border-yellow-400 hover:bg-yellow-50' },
+    { title: t.queriesFromCollector || 'Collector Queries', description: t.viewCollectorQueries || 'View queries from Collector', icon: <FaCalendarAlt className="text-purple-600" />, to: '/cmho-dashboard/query-from-collector', color: 'border-purple-200 hover:border-purple-400 hover:bg-purple-50' },
   ];
 
   const fetchData = async () => {

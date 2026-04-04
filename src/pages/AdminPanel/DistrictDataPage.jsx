@@ -17,8 +17,13 @@ import {
   FaExclamationTriangle,
   FaChartBar,
   FaHospital,
-  FaUsers
+  FaUsers,
+  FaUpload,
+  FaFileExcel,
+  FaDownload
 } from 'react-icons/fa';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import { useThemeStyles } from '../../hooks/useThemeStyles';
 import baseUrl from '../../baseUrl/baseUrl';
@@ -30,6 +35,7 @@ const CreateDistrict = () => {
     post_office_name: '',
     pincode: '',
     state: 'Madhya Pradesh',
+    division: '',
   });
   
   const [districts, setDistricts] = useState([]);
@@ -193,6 +199,7 @@ const CreateDistrict = () => {
         post_office_name: '',
         pincode: '',
         state: 'Madhya Pradesh',
+        division: '',
       });
       
       fetchData();
@@ -212,6 +219,7 @@ const CreateDistrict = () => {
       post_office_name: district.post_office_name || '',
       pincode: district.pincode || '',
       state: district.state || 'Madhya Pradesh',
+      division: district.division || '',
     });
     setActiveTab('create');
   };
@@ -235,6 +243,7 @@ const CreateDistrict = () => {
         post_office_name: '',
         pincode: '',
         state: 'Madhya Pradesh',
+        division: '',
       });
       
       fetchData();
@@ -267,6 +276,59 @@ const CreateDistrict = () => {
     }
   };
 
+  const downloadSampleTemplate = async (format) => {
+    setLoading(true);
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Districts Template');
+      
+      // Define headers
+      worksheet.columns = [
+        { header: 'District Name*', key: 'district_name', width: 20 },
+        { header: 'Post Office Name', key: 'post_office_name', width: 25 },
+        { header: 'Pincode', key: 'pincode', width: 15 },
+        { header: 'State', key: 'state', width: 20 },
+      ];
+      
+      // Add some sample data
+      worksheet.addRow({
+        district_name: 'Bhopal',
+        post_office_name: 'Bhopal H.O',
+        pincode: '462001',
+        state: 'Madhya Pradesh'
+      });
+  
+      // Add instructions
+      worksheet.addRow({});
+      worksheet.addRow(['* Required fields']);
+  
+      if (format === 'xlsx') {
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        saveAs(blob, `District_Upload_Template_${new Date().getTime()}.xlsx`);
+      } else {
+        try {
+          const buffer = await workbook.csv.writeBuffer();
+          const blob = new Blob([buffer], { type: 'text/csv;charset=utf-8' });
+          saveAs(blob, `District_Upload_Template_${new Date().getTime()}.csv`);
+        } catch (csvErr) {
+          console.warn('CSV buffer failed, manual fallback', csvErr);
+          const headers = ['District Name*', 'Post Office Name', 'Pincode', 'State'];
+          const sample = ['Bhopal', 'Bhopal H.O', '462001', 'Madhya Pradesh'];
+          const csvLines = [headers.join(','), sample.join(',')];
+          const blob = new Blob([csvLines.join('\n')], { type: 'text/csv;charset=utf-8' });
+          saveAs(blob, `District_Upload_Template_${new Date().getTime()}.csv`);
+        }
+      }
+      setSuccess(`Sample ${format.toUpperCase()} template downloaded successfully!`);
+    } catch (err) {
+      console.error('Download error:', err);
+      setError('Failed to download template: ' + (err.message || 'Unknown error'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const cancelEdit = () => {
     setEditingDistrict(null);
     setFormData({
@@ -274,6 +336,7 @@ const CreateDistrict = () => {
       post_office_name: '',
       pincode: '',
       state: 'Madhya Pradesh',
+      division: '',
     });
     setError('');
     setSuccess('');
@@ -399,6 +462,16 @@ const CreateDistrict = () => {
             >
               <FaChartBar className="inline mr-2" />
               Analytics
+            </button>
+            <button
+              onClick={() => setActiveTab('bulk')}
+              className={`px-4 py-2 font-medium text-sm rounded-t-lg transition ${activeTab === 'bulk'
+                ? 'bg-blue-600 text-white'
+                : `${styles.secondaryText} hover:${styles.primaryText} hover:bg-gray-100`
+                }`}
+            >
+              <FaUpload className="inline mr-2" />
+              Bulk Upload
             </button>
           </div>
         </div>
@@ -575,6 +648,9 @@ const CreateDistrict = () => {
                         District Name
                       </th>
                       <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>
+                        Division
+                      </th>
+                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>
                         State
                       </th>
                       <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>
@@ -607,6 +683,11 @@ const CreateDistrict = () => {
                                 </div>
                               </div>
                             </div>
+                          </td>
+                          <td className={`px-6 py-4 whitespace-nowrap text-sm ${styles.primaryText}`}>
+                            {district.division
+                              ? <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-semibold">{district.division}</span>
+                              : <span className="text-gray-400 text-xs italic">—</span>}
                           </td>
                           <td className={`px-6 py-4 whitespace-nowrap text-sm ${styles.primaryText}`}>
                             <div className="flex items-center">
@@ -710,6 +791,27 @@ const CreateDistrict = () => {
 
                 <div>
                   <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
+                    Division
+                  </label>
+                  <select
+                    name="division"
+                    value={formData.division}
+                    onChange={handleChange}
+                    className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
+                  >
+                    <option value="">-- Select Division --</option>
+                    {[
+                      'Bhopal', 'Indore', 'Gwalior', 'Jabalpur', 'Rewa',
+                      'Sagar', 'Ujjain', 'Chambal', 'Narmadapuram', 'Shahdol',
+                    ].map(div => (
+                      <option key={div} value={div}>{div}</option>
+                    ))}
+                  </select>
+                  <p className={`text-xs mt-1 ${styles.secondaryText}`}>Each division contains 5–6 districts</p>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
                     Post Office Name
                   </label>
                   <input
@@ -758,6 +860,132 @@ const CreateDistrict = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'bulk' && (
+        <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow}`}>
+          <div className={`px-6 py-4 border-b ${styles.borderColor}`}>
+            <h2 className={`text-xl font-semibold ${styles.primaryText} flex items-center`}>
+              <FaUpload className="mr-2 text-blue-600" />
+              Bulk Upload Districts
+            </h2>
+          </div>
+          <div className="p-8">
+            <div className={`border-2 border-dashed ${styles.borderColor} rounded-xl p-10 text-center hover:bg-gray-50 transition-colors cursor-pointer relative`}>
+              <input 
+                type="file" 
+                accept=".xlsx, .xls, .csv" 
+                className="absolute inset-0 opacity-0 cursor-pointer"
+                onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  
+                  setLoading(true);
+                  setError('');
+                  setSuccess('');
+                  
+                  try {
+                    const workbook = new ExcelJS.Workbook();
+                    const reader = new FileReader();
+                    const extension = file.name.split('.').pop().toLowerCase();
+                    
+                    reader.onload = async (event) => {
+                      try {
+                        if (extension === 'csv') {
+                          await workbook.csv.read(new Response(event.target.result).body);
+                        } else {
+                          await workbook.xlsx.load(event.target.result);
+                        }
+
+                        const worksheet = workbook.worksheets[0];
+                        const districtsToUpload = [];
+                        
+                        // Expected Cols: District Name, Post Office Name, Pincode, State
+                        worksheet.eachRow((row, rowNumber) => {
+                          if (rowNumber > 1) {
+                            const district_name = row.getCell(1).value?.toString() || row.getCell(1).value?.result?.toString();
+                            if (district_name) {
+                              districtsToUpload.push({
+                                district_name: district_name,
+                                post_office_name: row.getCell(2).value?.toString() || row.getCell(2).value?.result?.toString() || '',
+                                pincode: row.getCell(3).value?.toString() || row.getCell(3).value?.result?.toString() || '',
+                                state: row.getCell(4).value?.toString() || row.getCell(4).value?.result?.toString() || 'Madhya Pradesh',
+                              });
+                            }
+                          }
+                        });
+                        
+                        if (districtsToUpload.length === 0) throw new Error('No valid data found in file');
+                        
+                        const token = localStorage.getItem('token');
+                        const response = await axios.post(`${baseUrl}/api/districts/bulk`, districtsToUpload, {
+                          headers: { Authorization: `Bearer ${token}` },
+                        });
+                        
+                        setSuccess(`${response.data.message || 'Data uploaded successfully!'}`);
+                        fetchData();
+                        setActiveTab('list');
+                      } catch (err) {
+                        console.error('Processing error:', err);
+                        setError('Processing error: ' + err.message);
+                      } finally {
+                        setLoading(false);
+                        e.target.value = ''; // Reset input
+                      }
+                    };
+                    
+                    reader.readAsArrayBuffer(file);
+                  } catch (err) {
+                    setError('File error: ' + err.message);
+                    setLoading(false);
+                  }
+                }}
+              />
+              <FaFileExcel className="mx-auto text-5xl text-green-600 mb-4" />
+              <h3 className={`text-lg font-bold ${styles.primaryText}`}>Click to upload or drag and drop</h3>
+              <p className={`${styles.secondaryText} text-sm mt-2`}>Supports .xlsx, .xls and .csv formats</p>
+              <div className="mt-8 flex flex-col md:flex-row items-center justify-center gap-4 relative z-50">
+                <button 
+                  type="button"
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    downloadSampleTemplate('xlsx'); 
+                  }}
+                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition shadow-sm hover:shadow-md"
+                >
+                  <FaDownload className="mr-2" />
+                  Download Sample Excel
+                </button>
+                <button 
+                  type="button"
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    downloadSampleTemplate('csv'); 
+                  }}
+                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition shadow-sm hover:shadow-md"
+                >
+                  <FaDownload className="mr-2" />
+                  Download Sample CSV
+                </button>
+              </div>
+
+              <div className="mt-8 flex justify-center gap-4">
+                <div className="text-left text-xs bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
+                  <p className="font-bold text-blue-800 dark:text-blue-300 mb-2 uppercase tracking-wider flex items-center">
+                    <FaExclamationTriangle className="mr-2" />
+                    Expected Format:
+                  </p>
+                  <ul className="list-disc list-inside text-blue-700 dark:text-blue-400 space-y-1">
+                    <li>Column 1: District Name* (Required)</li>
+                    <li>Column 2: Post Office Name</li>
+                    <li>Column 3: Pincode</li>
+                    <li>Column 4: State (Defaults to Madhya Pradesh)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

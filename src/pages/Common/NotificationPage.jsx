@@ -238,176 +238,139 @@ const NotificationPage = () => {
       )
     }
   ];
-
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-8">
-          {/* Professional Header */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <div className="flex justify-between items-start">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-sm">
-                  <FiBell className="text-white" size={24} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="space-y-4">
+          {/* Professional Header - Compact */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm shrink-0">
+                  <FiBell className="text-white" size={20} />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-slate-900">Notifications</h1>
-                  <p className="text-slate-600 mt-1">Stay updated with system alerts and messages</p>
+                  <h1 className="text-xl font-bold text-slate-900 leading-tight">Notifications</h1>
                   {unreadCount > 0 && (
-                    <div className="flex items-center space-x-2 mt-2">
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm text-red-600 font-medium">
-                        {unreadCount} unread notification{unreadCount > 1 ? 's' : ''}
+                    <div className="flex items-center space-x-1.5 mt-0.5">
+                      <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></div>
+                      <span className="text-xs text-red-600 font-medium">
+                        {unreadCount} unread
                       </span>
                     </div>
                   )}
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
                 <button
                   onClick={markAllAsRead}
                   disabled={unreadCount === 0}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${unreadCount > 0
+                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-sm transition-all ${unreadCount > 0
                       ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
-                      : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                      : 'bg-slate-50 text-slate-400 cursor-not-allowed border border-slate-200'
                     }`}
                 >
-                  <FiCheckCircle size={16} />
+                  <FiCheckCircle size={14} />
                   <span>Mark All Read</span>
                 </button>
                 <button
                   onClick={fetchNotifications}
                   disabled={loading}
-                  className="flex items-center space-x-2 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors disabled:opacity-50"
+                  className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-700 text-white rounded-lg text-sm hover:bg-slate-800 transition-colors disabled:opacity-50"
                 >
-                  <FiRefreshCw className={`${loading ? 'animate-spin' : ''}`} size={16} />
+                  <FiRefreshCw className={`${loading ? 'animate-spin' : ''}`} size={14} />
                   <span>Refresh</span>
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Professional Filters */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                <FiFilter className="text-slate-600" size={16} />
+          {/* Compact Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600">
+                  <FiBell size={16} />
+                </div>
+                <span className="text-xs font-semibold text-slate-500">Total</span>
               </div>
-              <h2 className="text-lg font-semibold text-slate-900">Filter & Search</h2>
+              <p className="text-lg font-bold text-slate-900">{pagination.total}</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Search Notifications
-                </label>
-                <div className="relative">
-                  <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
+            <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center text-amber-600">
+                  <FiClock size={16} />
+                </div>
+                <span className="text-xs font-semibold text-slate-500">Unread</span>
+              </div>
+              <p className="text-lg font-bold text-slate-900">{unreadCount}</p>
+            </div>
+
+            <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600">
+                  <FiCheckCircle size={16} />
+                </div>
+                <span className="text-xs font-semibold text-slate-500">Read</span>
+              </div>
+              <p className="text-lg font-bold text-slate-900">{notifications.length - unreadCount}</p>
+            </div>
+          </div>
+
+          {/* Compact Search & Filters */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-3">
+             <div className="flex flex-col md:flex-row items-center gap-3">
+                <div className="relative flex-1 w-full">
+                  <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={14} />
                   <input
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    placeholder="Search messages, enquiry codes..."
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    placeholder="Search codes, names..."
                   />
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Filter by Status
-                </label>
-                <select
-                  value={filter}
-                  onChange={(e) => {
-                    setFilter(e.target.value);
-                    setPagination(prev => ({ ...prev, page: 1 }));
-                  }}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                >
-                  <option value="all">📋 All Notifications</option>
-                  <option value="unread">🔴 Unread Only</option>
-                  <option value="read">✅ Read Only</option>
-                </select>
-              </div>
+                <div className="w-full md:w-48">
+                  <select
+                    value={filter}
+                    onChange={(e) => {
+                      setFilter(e.target.value);
+                      setPagination(prev => ({ ...prev, page: 1 }));
+                    }}
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-white"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="unread">Unread Only</option>
+                    <option value="read">Read Only</option>
+                  </select>
+                </div>
 
-              <div className="flex items-end">
                 <button
                   onClick={() => {
                     setSearchTerm('');
                     setFilter('all');
                     setPagination(prev => ({ ...prev, page: 1 }));
                   }}
-                  className="w-full px-4 py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors flex items-center justify-center space-x-2"
+                  className="px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors flex items-center space-x-1.5 whitespace-nowrap"
                 >
-                  <FiRefreshCw size={16} />
-                  <span>Clear Filters</span>
+                  <FiRefreshCw size={14} />
+                  <span>Reset</span>
                 </button>
-              </div>
-            </div>
+                
+                <div className="hidden md:block h-6 w-px bg-slate-200 mx-1"></div>
+                
+                <p className="text-[11px] text-slate-500 font-medium whitespace-nowrap">
+                  Showing {filteredNotifications.length} of {pagination.total}
+                </p>
+             </div>
           </div>
 
-          {/* Professional Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-blue-700 mb-1">Total Notifications</p>
-                  <p className="text-3xl font-bold text-blue-900">{pagination.total}</p>
-                </div>
-                <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center shadow-sm">
-                  <FiBell className="text-white" size={20} />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-6 rounded-xl border border-amber-200 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-amber-700 mb-1">Unread</p>
-                  <p className="text-3xl font-bold text-amber-900">{unreadCount}</p>
-                </div>
-                <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center shadow-sm">
-                  <FiClock className="text-white" size={20} />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-6 rounded-xl border border-emerald-200 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-emerald-700 mb-1">Read</p>
-                  <p className="text-3xl font-bold text-emerald-900">{notifications.length - unreadCount}</p>
-                </div>
-                <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center shadow-sm">
-                  <FiCheckCircle className="text-white" size={20} />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Results Summary */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-slate-600">
-                Showing <span className="font-semibold text-slate-900">{filteredNotifications.length}</span> of <span className="font-semibold text-slate-900">{pagination.total}</span> notifications
-              </p>
-              {searchTerm && (
-                <div className="flex items-center space-x-2 text-sm text-slate-600">
-                  <span>Search results for:</span>
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md font-medium">"{searchTerm}"</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Professional Notifications Table */}
+          {/* Table Container */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
-              <h3 className="text-lg font-semibold text-slate-900">Notification History</h3>
-            </div>
             <ThemeTable
               data={filteredNotifications}
               columns={columns}

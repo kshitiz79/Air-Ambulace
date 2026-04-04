@@ -16,8 +16,13 @@ import {
   FaBuilding,
   FaFilter,
   FaSyncAlt,
-  FaExclamationTriangle
+  FaExclamationTriangle,
+  FaUpload,
+  FaFileExcel,
+  FaDownload
 } from 'react-icons/fa';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import { useThemeStyles } from '../../hooks/useThemeStyles';
 import baseUrl from '../../baseUrl/baseUrl';
 
@@ -288,6 +293,71 @@ const CreateHospital = () => {
     setSuccess('');
   };
 
+  const downloadSampleTemplate = async (format) => {
+    setLoading(true);
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Hospitals Template');
+      
+      // Define headers
+      worksheet.columns = [
+        { header: 'Hospital Name*', key: 'hospital_name', width: 20 },
+        { header: 'District Name/ID*', key: 'district', width: 25 },
+        { header: 'Address', key: 'address', width: 30 },
+        { header: 'Phone', key: 'phone', width: 15 },
+        { header: 'Email', key: 'email', width: 25 },
+        { header: 'Type (PRIVATE/GOVERNMENT)', key: 'type', width: 25 },
+        { header: 'Reg. Number', key: 'reg_num', width: 20 },
+        { header: 'Contact Person', key: 'cp_name', width: 20 },
+        { header: 'CP Phone', key: 'cp_phone', width: 15 },
+        { header: 'CP Email', key: 'cp_email', width: 25 },
+      ];
+      
+      // Add some sample data
+      worksheet.addRow({
+        hospital_name: 'City Hospital',
+        district: districts[0]?.district_name || 'Bhopal',
+        address: '123 Main St',
+        phone: '0755-123456',
+        email: 'info@cityhosp.com',
+        type: 'PRIVATE',
+        reg_num: 'REG123',
+        cp_name: 'John Doe',
+        cp_phone: '9876543210',
+        cp_email: 'john@cityhosp.com'
+      });
+  
+      // Add instructions
+      worksheet.addRow({});
+      worksheet.addRow(['* Required fields']);
+  
+      if (format === 'xlsx') {
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        saveAs(blob, `Hospital_Upload_Template_${new Date().getTime()}.xlsx`);
+      } else {
+        try {
+          const buffer = await workbook.csv.writeBuffer();
+          const blob = new Blob([buffer], { type: 'text/csv;charset=utf-8' });
+          saveAs(blob, `Hospital_Upload_Template_${new Date().getTime()}.csv`);
+        } catch (csvErr) {
+          console.warn('CSV buffer failed, manual fallback', csvErr);
+          const headers = ['Hospital Name*', 'District Name/ID*', 'Address', 'Phone', 'Email', 'Type', 'Reg. Number', 'Contact Person', 'CP Phone', 'CP Email'];
+          const sample = ['City Hospital', 'Bhopal', '123 Main St', '0755-123456', 'info@cityhosp.com', 'PRIVATE', 'REG123', 'John Doe', '9876543210', 'john@cityhosp.com'];
+          const csvLines = [headers.join(','), sample.join(',')];
+          const blob = new Blob([csvLines.join('\n')], { type: 'text/csv;charset=utf-8' });
+          saveAs(blob, `Hospital_Upload_Template_${new Date().getTime()}.csv`);
+        }
+      }
+      setSuccess(`Sample ${format.toUpperCase()} template downloaded successfully!`);
+    } catch (err) {
+      console.error('Download error:', err);
+      setError('Failed to download template: ' + (err.message || 'Unknown error'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading && hospitals.length === 0) {
     return (
       <div className="max-w-7xl mx-auto p-6">
@@ -351,6 +421,16 @@ const CreateHospital = () => {
             >
               <FaPlus className="inline mr-2" />
               {editingHospital ? 'Edit Hospital' : 'Add Hospital'}
+            </button>
+            <button
+              onClick={() => setActiveTab('bulk')}
+              className={`px-4 py-2 font-medium text-sm rounded-t-lg transition ${activeTab === 'bulk'
+                ? 'bg-blue-600 text-white'
+                : `${styles.secondaryText} hover:${styles.primaryText} hover:bg-gray-100`
+                }`}
+            >
+              <FaUpload className="inline mr-2" />
+              Bulk Upload
             </button>
           </div>
         </div>
@@ -769,6 +849,150 @@ const CreateHospital = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {activeTab === 'bulk' && (
+        <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow}`}>
+          <div className={`px-6 py-4 border-b ${styles.borderColor}`}>
+            <h2 className={`text-xl font-semibold ${styles.primaryText} flex items-center`}>
+              <FaUpload className="mr-2 text-blue-600" />
+              Bulk Upload Hospitals
+            </h2>
+          </div>
+          <div className="p-8">
+            <div className={`border-2 border-dashed ${styles.borderColor} rounded-xl p-10 text-center hover:bg-gray-50 transition-colors cursor-pointer relative`}>
+              <input 
+                type="file" 
+                accept=".xlsx, .xls, .csv" 
+                className="absolute inset-0 opacity-0 cursor-pointer"
+                onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  
+                  setLoading(true);
+                  setError('');
+                  setSuccess('');
+                  
+                  try {
+                    const workbook = new ExcelJS.Workbook();
+                    const reader = new FileReader();
+                    
+                    reader.onload = async (event) => {
+                      try {
+                        if (extension === 'csv') {
+                          await workbook.csv.read(new Response(event.target.result).body);
+                        } else {
+                          await workbook.xlsx.load(event.target.result);
+                        }
+
+                        const worksheet = workbook.worksheets[0];
+                        const hospitalsToUpload = [];
+                        
+                        // Assuming Row 1 is header
+                        worksheet.eachRow((row, rowNumber) => {
+                          if (rowNumber > 1) {
+                            const districtName = row.getCell(2).value?.toString() || row.getCell(2).value?.result?.toString();
+                            const district = districts.find(d => 
+                              d.district_name.toLowerCase() === districtName?.toLowerCase() ||
+                              d.district_id.toString() === districtName
+                            );
+
+                            if (district) {
+                              hospitalsToUpload.push({
+                                hospital_name: row.getCell(1).value?.toString() || row.getCell(1).value?.result?.toString(),
+                                district_id: district.district_id,
+                                address: row.getCell(3).value?.toString() || row.getCell(3).value?.result?.toString() || '',
+                                contact_phone: row.getCell(4).value?.toString() || row.getCell(4).value?.result?.toString() || '',
+                                contact_email: row.getCell(5).value?.toString() || row.getCell(5).value?.result?.toString() || '',
+                                hospital_type: (row.getCell(6).value?.toString()?.toUpperCase() === 'GOVERNMENT' || row.getCell(6).value?.result?.toString()?.toUpperCase() === 'GOVERNMENT') ? 'GOVERNMENT' : 'PRIVATE',
+                                registration_number: row.getCell(7).value?.toString() || row.getCell(7).value?.result?.toString() || '',
+                                contact_person_name: row.getCell(8).value?.toString() || row.getCell(8).value?.result?.toString() || '',
+                                contact_person_phone: row.getCell(9).value?.toString() || row.getCell(9).value?.result?.toString() || '',
+                                contact_person_email: row.getCell(10).value?.toString() || row.getCell(10).value?.result?.toString() || '',
+                              });
+                            }
+                          }
+                        });
+                        
+                        if (hospitalsToUpload.length === 0) throw new Error('No valid data found in file or districts mismatch');
+                        
+                        const token = localStorage.getItem('token');
+                        const response = await axios.post(`${baseUrl}/api/hospitals/bulk`, hospitalsToUpload, {
+                          headers: { Authorization: `Bearer ${token}` },
+                        });
+                        
+                        setSuccess(`${response.data.message || 'Data uploaded successfully!'}`);
+                        fetchData();
+                        setActiveTab('list');
+                      } catch (err) {
+                        console.error('Processing error:', err);
+                        setError('Processing error: ' + err.message);
+                      } finally {
+                        setLoading(false);
+                        e.target.value = ''; // Reset input
+                      }
+                    };
+                    
+                    reader.readAsArrayBuffer(file);
+                  } catch (err) {
+                    setError('File error: ' + err.message);
+                    setLoading(false);
+                  }
+                }}
+              />
+              <FaFileExcel className="mx-auto text-5xl text-green-600 mb-4" />
+              <h3 className={`text-lg font-bold ${styles.primaryText}`}>Click to upload or drag and drop</h3>
+              <p className={`${styles.secondaryText} text-sm mt-2`}>Supports .xlsx, .xls and .csv formats</p>
+              
+              <div className="mt-8 flex flex-col md:flex-row items-center justify-center gap-4 relative z-50">
+                <button 
+                  type="button"
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    downloadSampleTemplate('xlsx'); 
+                  }}
+                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition shadow-sm hover:shadow-md"
+                >
+                  <FaDownload className="mr-2" />
+                  Download Sample Excel
+                </button>
+                <button 
+                  type="button"
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    downloadSampleTemplate('csv'); 
+                  }}
+                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition shadow-sm hover:shadow-md"
+                >
+                  <FaDownload className="mr-2" />
+                  Download Sample CSV
+                </button>
+              </div>
+
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="text-left text-[10px] bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800 italic">
+                  <p className="font-black text-blue-800 dark:text-blue-300 mb-1 uppercase tracking-wider">Format (1-5):</p>
+                  <ul className="list-disc list-inside text-blue-700 dark:text-blue-400">
+                    <li>Col 1: Hospital Name*</li>
+                    <li>Col 2: District Name/ID*</li>
+                    <li>Col 3: Address</li>
+                    <li>Col 4: Phone</li>
+                    <li>Col 5: Email</li>
+                  </ul>
+                </div>
+                <div className="text-left text-[10px] bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800 italic">
+                  <p className="font-black text-blue-800 dark:text-blue-300 mb-1 uppercase tracking-wider">Format (6-10):</p>
+                  <ul className="list-disc list-inside text-blue-700 dark:text-blue-400">
+                    <li>Col 6: Type (PRIVATE/GOVERNMENT)</li>
+                    <li>Col 7: Reg. Number</li>
+                    <li>Col 8: Contact Person</li>
+                    <li>Col 9: CP Phone</li>
+                    <li>Col 10: CP Email</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

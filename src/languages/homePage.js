@@ -5,7 +5,7 @@ const homePage = {
     tollFree: 'TOLLFREE',
     emergencySituationHelp: 'Emergency Situation Help ...',
     freeEmergencyAirTransport: 'Free Emergency Air Transport',
-    ayushmanCardDesc: 'Free air transport facility for treatment in government and Ayushman listed hospitals within and outside the state for Ayushman card holders.',
+    ayushmanCardDesc: 'Free air transport for treatment in government and Ayushman-listed hospitals (within & outside the state).',
     support247: '24×7 SUPPORT',
     serviceFeatures: 'Service Features',
     serviceFeaturesDesc: 'Advanced air ambulance services with comprehensive medical care and government support',
@@ -53,6 +53,20 @@ const homePage = {
     // Citizen portal
     citizenHomeTitle: 'Welcome to Air Ambulance Services',
     citizenHomeDesc: 'This portal facilitates air ambulance services under the Ayushman Bharat scheme in Madhya Pradesh, providing critical medical transport for emergencies.',
+    
+    // Footer
+    quickLinks: 'Quick Links',
+    aboutTheScheme: 'About the Scheme',
+    howItWorks: 'How It Works',
+    governmentPortals: 'Government Portals',
+    mpGovernment: 'MP Government',
+    mpHealthDept: 'MP Health Dept.',
+    ayushmanBharat: 'Ayushman Bharat',
+    contactUs: 'Contact Us',
+    tollFreeEmergency: 'Toll-Free Emergency',
+    email: 'Email',
+    footerDesc: 'Providing swift, life-saving emergency air transport to the citizens of Madhya Pradesh — free of cost under the Ayushman Bharat Yojana schemes.',
+    operatedBy: 'Operated by JetServe Aviation under authorisation from the Government of Madhya Pradesh.',
   },
   hi: {
     pmShriAirAmbulance: 'पीएमश्री एयर एम्बुलेंस',
@@ -60,7 +74,7 @@ const homePage = {
     tollFree: 'टोल फ्री',
     emergencySituationHelp: 'आपातकालीन स्थिति की सहायता ...',
     freeEmergencyAirTransport: 'निःशुल्क आपातकालीन हवाई परिवहन',
-    ayushmanCardDesc: 'आयुष्मान कार्डधारकों के लिए राज्य के भीतर एवं बाहर के सरकारी व आयुष्मान सूची-बद्ध अस्पतालों में इलाज के लिए निःशुल्क हवाई परिवहन सुविधा।',
+    ayushmanCardDesc: 'आयुष्मान कार्डधारकों के लिए राज्य के भीतर व बाहर सरकारी व सूचीबद्ध अस्पतालों में इलाज हेतु निःशुल्क हवाई सुविधा।',
     support247: '24×7 सहायता',
     serviceFeatures: 'सेवा की विशेषताएं',
     serviceFeaturesDesc: 'व्यापक चिकित्सा देखभाल और सरकारी सहायता के साथ उन्नत हवाई एम्बुलेंस सेवाएं',
@@ -104,6 +118,20 @@ const homePage = {
 
     citizenHomeTitle: 'वायु एम्बुलेंस सेवाओं में आपका स्वागत है',
     citizenHomeDesc: 'यह पोर्टल मध्य प्रदेश में आयुष्मान भारत योजना के तहत हवाई एम्बुलेंस सेवाओं की सुविधा प्रदान करता है, जो आपात स्थिति के लिए महत्वपूर्ण चिकित्सा परिवहन प्रदान करता है।',
+
+    // Footer
+    quickLinks: 'क्विक लिंक्स',
+    aboutTheScheme: 'योजना के बारे में',
+    howItWorks: 'यह कैसे काम करता है',
+    governmentPortals: 'सरकारी पोर्टल',
+    mpGovernment: 'MP शासन',
+    mpHealthDept: 'म.प्र. स्वास्थ्य विभाग',
+    ayushmanBharat: 'आयुष्मान भारत',
+    contactUs: 'हमसे संपर्क करें',
+    tollFreeEmergency: 'टोल-फ्री इमरजेंसी',
+    email: 'ईमेल',
+    footerDesc: 'मध्य प्रदेश के नागरिकों को गंभीर आपातकालीन स्थिति में त्वरित और जीवनरक्षक हवाई परिवहन सेवा - आयुष्मान भारत योजना के अंतर्गत पूर्णतः निःशुल्क उपलब्ध कराई जा रही है।',
+    operatedBy: 'मध्य प्रदेश सरकार के प्राधिकरण के तहत जेटसर्व एविएशन द्वारा संचालित।',
   },
 };
 

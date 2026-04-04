@@ -1,514 +1,262 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-  FaShieldAlt,
-  FaExclamationTriangle,
-  FaCheckCircle,
-  FaTimesCircle,
-  FaLock,
-  FaUnlock,
-  FaKey,
-  FaEye,
-  FaUserShield,
-  FaServer,
-  FaNetworkWired,
-
-  FaBug,
-  FaSearch,
-  FaDownload,
-  FaSyncAlt,
-  FaClock,
-  FaGlobe,
-  FaDatabase,
-  FaFire
+  FaShieldAlt, FaExclamationTriangle, FaCheckCircle, FaTimesCircle,
+  FaLock, FaKey, FaUserShield, FaSearch, FaDownload, FaSyncAlt,
+  FaClock, FaGlobe, FaFire, FaUser,
 } from 'react-icons/fa';
 import { useThemeStyles } from '../../hooks/useThemeStyles';
 import baseUrl from '../../baseUrl/baseUrl';
 
 const SecurityCenter = () => {
   const styles = useThemeStyles();
-  const [securityEvents, setSecurityEvents] = useState([]);
-  const [securityStats, setSecurityStats] = useState({
-    totalThreats: 23,
-    blockedAttempts: 156,
-    activeAlerts: 3,
-    securityScore: 85,
-    lastScan: new Date().toISOString(),
-    firewallStatus: 'Active',
-    sslStatus: 'Valid',
-    backupEncryption: 'Enabled'
-  });
+  const [events, setEvents] = useState([]);
+  const [topIps, setTopIps] = useState([]);
+  const [stats, setStats] = useState({ totalFailed: 0, failedLogins24h: 0, securityScore: 100 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSeverity, setSelectedSeverity] = useState('ALL');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [eventsPerPage] = useState(20);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const LIMIT = 50;
 
-  const severityLevels = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
+  const token = localStorage.getItem('token');
+  const headers = { Authorization: `Bearer ${token}` };
 
-  // Generate mock security events
-  const generateSecurityEvents = () => {
-    const eventTypes = [
-      'Failed Login Attempt',
-      'Suspicious IP Access',
-      'SQL Injection Attempt',
-      'Brute Force Attack',
-      'Unauthorized API Access',
-      'File Upload Blocked',
-      'XSS Attempt Blocked',
-      'Rate Limit Exceeded',
-      'Malware Detection',
-      'Firewall Block',
-      'SSL Certificate Warning',
-      'Database Access Anomaly',
-      'Admin Panel Access',
-      'Password Reset Abuse',
-      'Session Hijacking Attempt'
-    ];
-
-    const sources = ['Web Application', 'API', 'Database', 'File System', 'Network', 'Authentication'];
-    const actions = ['Blocked', 'Monitored', 'Quarantined', 'Logged', 'Alerted'];
-
-    return Array.from({ length: 100 }, (_, i) => ({
-      id: i + 1,
-      type: eventTypes[Math.floor(Math.random() * eventTypes.length)],
-      severity: severityLevels[Math.floor(Math.random() * severityLevels.length)],
-      source: sources[Math.floor(Math.random() * sources.length)],
-      action: actions[Math.floor(Math.random() * actions.length)],
-      ip_address: `${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
-      user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-      details: `Security event details for incident ${i + 1}`,
-      resolved: Math.random() > 0.3
-    }));
-  };
-
-  // Fetch security data
-  const fetchSecurityData = async () => {
+  const fetchData = useCallback(async (p = 1) => {
     try {
       setLoading(true);
-      // In a real application, this would fetch from an API
-      const mockEvents = generateSecurityEvents();
-      setSecurityEvents(mockEvents);
+      const params = new URLSearchParams({ page: p, limit: LIMIT });
+      if (search) params.set('search', search);
+
+      const res = await fetch(`${baseUrl}/api/activity-logs/security?${params}`, { headers });
+      if (!res.ok) throw new Error('Failed to fetch security events');
+      const data = await res.json();
+
+      setEvents(data.data || []);
+      setTotal(data.total || 0);
+      setTotalPages(data.totalPages || 1);
+      setTopIps(data.topIps || []);
+      setStats(data.stats || { totalFailed: 0, failedLogins24h: 0, securityScore: 100 });
       setError('');
     } catch (err) {
-      console.error('Security data fetch error:', err);
-      setError('Failed to load security data: ' + err.message);
+      setError(err.message);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [search]);
 
-  // Filter events
-  const filteredEvents = securityEvents.filter(event => {
-    const matchesSearch =
-      event.type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.source?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.ip_address?.includes(searchTerm) ||
-      event.details?.toLowerCase().includes(searchTerm.toLowerCase());
+  useEffect(() => { fetchData(1); }, []);
 
-    const matchesSeverity = selectedSeverity === 'ALL' || event.severity === selectedSeverity;
+  const handleRefresh = () => { setRefreshing(true); fetchData(page); };
+  const handleSearch = () => { setPage(1); fetchData(1); };
 
-    return matchesSearch && matchesSeverity;
+  const formatDate = (d) => new Date(d).toLocaleString('en-IN', {
+    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit',
   });
 
-  // Pagination
-  const getCurrentPageEvents = () => {
-    const indexOfLastEvent = currentPage * eventsPerPage;
-    const indexOfFirstEvent = indexOfLastEvent - eventsPerPage;
-    return filteredEvents.slice(indexOfFirstEvent, indexOfLastEvent);
-  };
-
-  const totalPages = Math.ceil(filteredEvents.length / eventsPerPage);
-
-  useEffect(() => {
-    fetchSecurityData();
-  }, []);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, selectedSeverity]);
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchSecurityData();
-  };
-
-  const handleResolveEvent = (eventId) => {
-    setSecurityEvents(prev =>
-      prev.map(event =>
-        event.id === eventId ? { ...event, resolved: true } : event
-      )
-    );
-  };
-
-  const getSeverityColor = (severity) => {
-    const colors = {
-      LOW: 'bg-blue-100 text-blue-800',
-      MEDIUM: 'bg-yellow-100 text-yellow-800',
-      HIGH: 'bg-orange-100 text-orange-800',
-      CRITICAL: 'bg-red-100 text-red-800',
-    };
-    return colors[severity] || 'bg-gray-100 text-gray-800';
-  };
-
-  const getSeverityIcon = (severity) => {
-    const icons = {
-      LOW: <FaCheckCircle />,
-      MEDIUM: <FaExclamationTriangle />,
-      HIGH: <FaExclamationTriangle />,
-      CRITICAL: <FaTimesCircle />,
-    };
-    return icons[severity] || <FaCheckCircle />;
-  };
-
-  const getActionColor = (action) => {
-    const colors = {
-      Blocked: 'bg-red-100 text-red-800',
-      Monitored: 'bg-blue-100 text-blue-800',
-      Quarantined: 'bg-orange-100 text-orange-800',
-      Logged: 'bg-gray-100 text-gray-800',
-      Alerted: 'bg-yellow-100 text-yellow-800',
-    };
-    return colors[action] || 'bg-gray-100 text-gray-800';
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString('en-IN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const exportSecurityReport = () => {
-    const csvContent = [
-      ['Timestamp', 'Type', 'Severity', 'Source', 'Action', 'IP Address', 'Resolved', 'Details'].join(','),
-      ...filteredEvents.map(event => [
-        event.timestamp,
-        `"${event.type}"`,
-        event.severity,
-        event.source,
-        event.action,
-        event.ip_address,
-        event.resolved ? 'Yes' : 'No',
-        `"${event.details}"`
-      ].join(','))
+  const exportCSV = () => {
+    const csv = [
+      ['Timestamp', 'Username', 'Full Name', 'Role', 'Action', 'Status', 'IP Address', 'Description'].join(','),
+      ...events.map(e => [
+        e.created_at, e.username || '', e.full_name || '', e.role || '',
+        e.action || e.event_type, e.status, e.ip_address || '',
+        `"${(e.description || '').replace(/"/g, "'")}"`,
+      ].join(',')),
     ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = `security-report-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    a.href = url; a.download = `security-events-${new Date().toISOString().split('T')[0]}.csv`; a.click();
+    URL.revokeObjectURL(url);
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto p-6">
-        <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-8`}>
-          <div className="animate-pulse">
-            <div className={`h-8 ${styles.loadingShimmer} rounded mb-6`}></div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className={`h-24 ${styles.loadingShimmer} rounded`}></div>
-              ))}
-            </div>
-            <div className={`h-64 ${styles.loadingShimmer} rounded`}></div>
-          </div>
-          <p className={`text-center ${styles.secondaryText} mt-4`}>Loading security center...</p>
-        </div>
-      </div>
-    );
-  }
+  const scoreColor = stats.securityScore >= 80 ? 'from-green-500 to-green-600'
+    : stats.securityScore >= 50 ? 'from-yellow-500 to-yellow-600'
+    : 'from-red-500 to-red-600';
 
   return (
-    <div className={`max-w-6xl mx-auto p-6 ${styles.pageBackground}`}>
+    <div className={`max-w-7xl mx-auto p-6 ${styles.pageBackground}`}>
       {/* Header */}
-      <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} mb-6`}>
-        <div className={`px-6 py-4 border-b ${styles.borderColor}`}>
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className={`text-3xl font-bold ${styles.primaryText} flex items-center`}>
-                <FaShieldAlt className="mr-3 text-red-600" />
-                Security Center
-              </h1>
-              <p className={`${styles.secondaryText} mt-1`}>
-                Monitor security threats and system protection status
-              </p>
-            </div>
-            <div className="flex space-x-3">
-              <button
-                onClick={handleRefresh}
-                disabled={refreshing}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-              >
-                <FaSyncAlt className={`mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-                {refreshing ? 'Refreshing...' : 'Refresh'}
-              </button>
-              <button
-                onClick={exportSecurityReport}
-                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-              >
-                <FaDownload className="mr-2" />
-                Export Report
-              </button>
-            </div>
+      <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} mb-6 px-6 py-4`}>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className={`text-3xl font-bold ${styles.primaryText} flex items-center`}>
+              <FaShieldAlt className="mr-3 text-red-600" /> Security Center
+            </h1>
+            <p className={`${styles.secondaryText} mt-1`}>Real-time failed logins and suspicious activity from all dashboards</p>
+          </div>
+          <div className="flex space-x-3">
+            <button onClick={handleRefresh} disabled={refreshing} className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50">
+              <FaSyncAlt className={`mr-2 ${refreshing ? 'animate-spin' : ''}`} /> Refresh
+            </button>
+            <button onClick={exportCSV} className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+              <FaDownload className="mr-2" /> Export
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Error Alert */}
       {error && (
-        <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg border border-red-200 flex items-center">
-          <FaExclamationTriangle className="mr-2" />
-          {error}
+        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg flex items-center">
+          <FaExclamationTriangle className="mr-2" />{error}
         </div>
       )}
 
-      {/* Security Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-lg shadow-sm p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-red-100 text-sm font-medium">Total Threats</p>
-              <p className="text-3xl font-bold">{securityStats.totalThreats}</p>
-            </div>
-            <div className="bg-red-400 bg-opacity-30 rounded-full p-3">
-              <FaExclamationTriangle className="text-2xl" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg shadow-sm p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-orange-100 text-sm font-medium">Blocked Attempts</p>
-              <p className="text-3xl font-bold">{securityStats.blockedAttempts}</p>
-            </div>
-            <div className="bg-orange-400 bg-opacity-30 rounded-full p-3">
-              <FaLock className="text-2xl" />
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: 'Total Failed Events', value: stats.totalFailed, color: 'from-red-500 to-red-600', icon: <FaTimesCircle /> },
+          { label: 'Failed Logins (24h)', value: stats.failedLogins24h, color: 'from-orange-500 to-orange-600', icon: <FaLock /> },
+          { label: 'Suspicious IPs', value: topIps.length, color: 'from-yellow-500 to-yellow-600', icon: <FaGlobe /> },
+          { label: 'Security Score', value: `${stats.securityScore}%`, color: scoreColor, icon: <FaShieldAlt /> },
+        ].map(s => (
+          <div key={s.label} className={`bg-gradient-to-r ${s.color} rounded-lg p-4 text-white`}>
+            <div className="flex items-center justify-between">
+              <div><p className="text-white/80 text-xs font-medium">{s.label}</p><p className="text-2xl font-bold">{s.value}</p></div>
+              <div className="bg-white/20 rounded-full p-2 text-lg">{s.icon}</div>
             </div>
           </div>
-        </div>
-
-        <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg shadow-sm p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-yellow-100 text-sm font-medium">Active Alerts</p>
-              <p className="text-3xl font-bold">{securityStats.activeAlerts}</p>
-            </div>
-            <div className="bg-yellow-400 bg-opacity-30 rounded-full p-3">
-              <FaExclamationTriangle className="text-2xl" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-sm p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-green-100 text-sm font-medium">Security Score</p>
-              <p className="text-3xl font-bold">{securityStats.securityScore}%</p>
-            </div>
-            <div className="bg-green-400 bg-opacity-30 rounded-full p-3">
-              <FaShieldAlt className="text-2xl" />
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Security Status Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-6`}>
-          <div className="flex items-center justify-between">
+      {/* System Status */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {[
+          { label: 'Firewall Status', value: 'Active', icon: <FaFire />, color: 'green' },
+          { label: 'SSL Certificate', value: 'Valid', icon: <FaLock />, color: 'green' },
+          { label: 'Backup Encryption', value: 'Enabled', icon: <FaKey />, color: 'green' },
+        ].map(s => (
+          <div key={s.label} className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-4 flex items-center justify-between`}>
             <div>
-              <p className={`${styles.secondaryText} text-sm font-medium`}>Firewall Status</p>
-              <span className="inline-flex px-2 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">
-                {securityStats.firewallStatus}
-              </span>
+              <p className={`${styles.secondaryText} text-sm`}>{s.label}</p>
+              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-${s.color}-100 text-${s.color}-800`}>{s.value}</span>
             </div>
-            <div className="bg-green-100 rounded-full p-3">
-              <FaFire className="text-green-600 text-xl" />
+            <div className={`bg-${s.color}-100 rounded-full p-3`}>
+              <span className={`text-${s.color}-600 text-xl`}>{s.icon}</span>
             </div>
           </div>
-        </div>
-
-        <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-6`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className={`${styles.secondaryText} text-sm font-medium`}>SSL Certificate</p>
-              <span className="inline-flex px-2 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">
-                {securityStats.sslStatus}
-              </span>
-            </div>
-            <div className="bg-green-100 rounded-full p-3">
-              <FaLock className="text-green-600 text-xl" />
-            </div>
-          </div>
-        </div>
-
-        <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-6`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className={`${styles.secondaryText} text-sm font-medium`}>Backup Encryption</p>
-              <span className="inline-flex px-2 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">
-                {securityStats.backupEncryption}
-              </span>
-            </div>
-            <div className="bg-green-100 rounded-full p-3">
-              <FaKey className="text-green-600 text-xl" />
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Filters */}
-      <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-6 mb-6`}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="md:col-span-2">
-            <label className={`block text-sm font-medium ${styles.secondaryText} mb-1`}>Search Events</label>
-            <div className="relative">
-              <FaSearch className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${styles.secondaryText}`} />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* Top Offender IPs */}
+        <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow}`}>
+          <div className={`px-4 py-3 border-b ${styles.borderColor}`}>
+            <h2 className={`font-semibold ${styles.primaryText} flex items-center`}>
+              <FaGlobe className="mr-2 text-red-500" /> Top Offender IPs (24h)
+            </h2>
+          </div>
+          <div className="p-4">
+            {topIps.length === 0 ? (
+              <p className={`text-sm ${styles.secondaryText} text-center py-4`}>No suspicious IPs detected</p>
+            ) : (
+              <div className="space-y-2">
+                {topIps.map((ip, i) => (
+                  <div key={ip.ip_address} className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <span className="w-5 h-5 rounded-full bg-red-100 text-red-700 text-xs flex items-center justify-center mr-2 font-bold">{i + 1}</span>
+                      <span className={`text-sm font-mono ${styles.primaryText}`}>{ip.ip_address}</span>
+                    </div>
+                    <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-semibold">{ip.count} attempts</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Search filter */}
+        <div className={`lg:col-span-2 ${styles.cardBackground} rounded-lg ${styles.cardShadow} p-4 flex flex-col justify-center`}>
+          <div className="flex gap-3">
+            <div className="flex-1 relative">
+              <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by type, source, IP, or details..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
+                placeholder="Search username, IP, description..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                className={`w-full pl-9 pr-3 py-2 border rounded-md text-sm ${styles.inputBackground}`}
               />
             </div>
+            <button onClick={handleSearch} className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition">
+              Search
+            </button>
           </div>
-
-          <div>
-            <label className={`block text-sm font-medium ${styles.secondaryText} mb-1`}>Severity</label>
-            <select
-              value={selectedSeverity}
-              onChange={(e) => setSelectedSeverity(e.target.value)}
-              className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
-            >
-              <option value="ALL">All Severities</option>
-              {severityLevels.map(level => (
-                <option key={level} value={level}>{level}</option>
-              ))}
-            </select>
-          </div>
+          <p className={`text-xs ${styles.secondaryText} mt-2`}>
+            Showing failed logins and failed API requests from all dashboards. Total: {total.toLocaleString()} events.
+          </p>
         </div>
       </div>
 
-      {/* Security Events Table */}
+      {/* Events Table */}
       <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow}`}>
-        <div className={`px-6 py-4 border-b ${styles.borderColor}`}>
-          <h2 className={`text-xl font-semibold ${styles.primaryText}`}>
-            Security Events ({filteredEvents.length})
-          </h2>
+        <div className={`px-6 py-4 border-b ${styles.borderColor} flex items-center justify-between`}>
+          <h2 className={`text-lg font-semibold ${styles.primaryText}`}>Security Events ({total.toLocaleString()})</h2>
+          <span className={`text-sm ${styles.secondaryText}`}>Page {page} of {totalPages}</span>
         </div>
 
         <div className="overflow-x-auto">
-          {getCurrentPageEvents().length === 0 ? (
+          {loading ? (
+            <div className="p-8 text-center">
+              <div className="animate-spin w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full mx-auto mb-3"></div>
+              <p className={styles.secondaryText}>Loading security events...</p>
+            </div>
+          ) : events.length === 0 ? (
             <div className={`p-8 text-center ${styles.secondaryText}`}>
-              <FaShieldAlt className="mx-auto text-4xl mb-4 text-gray-300" />
-              <p>No security events found matching the current filters.</p>
+              <FaShieldAlt className="mx-auto text-4xl mb-3 text-gray-300" />
+              <p>No security events found. System looks clean.</p>
             </div>
           ) : (
             <table className="min-w-full">
               <thead className={styles.tableHeader}>
                 <tr>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>
-                    Timestamp
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>
-                    Event Type
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>
-                    Severity
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>
-                    Source
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>
-                    Action
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>
-                    IP Address
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>
-                    Status
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>
-                    Actions
-                  </th>
+                  {['Timestamp', 'User', 'Role', 'Action', 'Status', 'IP Address', 'Description'].map(h => (
+                    <th key={h} className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody className={`${styles.tableBody} divide-y ${styles.borderColor}`}>
-                {getCurrentPageEvents().map((event) => (
-                  <tr key={event.id} className={styles.tableRow}>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                {events.map(ev => (
+                  <tr key={ev.log_id} className={styles.tableRow}>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center text-xs">
+                        <FaClock className="mr-1 text-gray-400" />
+                        <span className={styles.secondaryText}>{formatDate(ev.created_at)}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center">
-                        <FaClock className="mr-2 text-gray-400" />
-                        <span className={`text-sm ${styles.primaryText}`}>
-                          {formatDate(event.timestamp)}
-                        </span>
+                        <div className="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center mr-2">
+                          <FaUser className="text-red-600 text-xs" />
+                        </div>
+                        <div>
+                          <p className={`text-sm font-medium ${styles.primaryText}`}>{ev.username || 'Unknown'}</p>
+                          {ev.full_name && <p className={`text-xs ${styles.secondaryText}`}>{ev.full_name}</p>}
+                        </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`text-sm font-medium ${styles.primaryText}`}>
-                        {event.type}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">{ev.role || '—'}</span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                        {ev.action || ev.event_type}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getSeverityColor(event.severity)}`}>
-                        {getSeverityIcon(event.severity)}
-                        <span className="ml-1">{event.severity}</span>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                        {ev.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`text-sm ${styles.primaryText}`}>
-                        {event.source}
-                      </span>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className={`text-xs font-mono ${styles.secondaryText}`}>{ev.ip_address || '—'}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getActionColor(event.action)}`}>
-                        {event.action}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <FaGlobe className="mr-2 text-gray-400" />
-                        <span className={`text-sm ${styles.secondaryText}`}>
-                          {event.ip_address}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${event.resolved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                        {event.resolved ? 'Resolved' : 'Open'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button
-                          className="text-blue-600 hover:text-blue-900 transition"
-                          title="View Details"
-                        >
-                          <FaEye />
-                        </button>
-                        {!event.resolved && (
-                          <button
-                            onClick={() => handleResolveEvent(event.id)}
-                            className="text-green-600 hover:text-green-900 transition"
-                            title="Mark as Resolved"
-                          >
-                            <FaCheckCircle />
-                          </button>
-                        )}
-                      </div>
+                    <td className="px-4 py-3 max-w-xs">
+                      <p className={`text-xs ${styles.secondaryText} truncate`} title={ev.description}>{ev.description || '—'}</p>
                     </td>
                   </tr>
                 ))}
@@ -517,44 +265,18 @@ const SecurityCenter = () => {
           )}
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
-          <div className={`px-6 py-4 border-t ${styles.borderColor}`}>
-            <div className="flex items-center justify-between">
-              <div className={`text-sm ${styles.secondaryText}`}>
-                Showing {((currentPage - 1) * eventsPerPage) + 1} to {Math.min(currentPage * eventsPerPage, filteredEvents.length)} of {filteredEvents.length} events
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition"
-                >
-                  Previous
-                </button>
-                {[...Array(Math.min(5, totalPages))].map((_, i) => {
-                  const page = i + 1;
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-1 border rounded-md transition ${currentPage === page
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'hover:bg-gray-50'
-                        }`}
-                    >
-                      {page}
-                    </button>
-                  );
-                })}
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition"
-                >
-                  Next
-                </button>
-              </div>
+          <div className={`px-6 py-4 border-t ${styles.borderColor} flex items-center justify-between`}>
+            <span className={`text-sm ${styles.secondaryText}`}>Showing {((page - 1) * LIMIT) + 1}–{Math.min(page * LIMIT, total)} of {total}</span>
+            <div className="flex space-x-2">
+              <button onClick={() => { const p = Math.max(page - 1, 1); setPage(p); fetchData(p); }} disabled={page === 1} className="px-3 py-1 border rounded-md text-sm disabled:opacity-50 hover:bg-gray-50 transition">Prev</button>
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const p = Math.max(1, Math.min(page - 2, totalPages - 4)) + i;
+                return (
+                  <button key={p} onClick={() => { setPage(p); fetchData(p); }} className={`px-3 py-1 border rounded-md text-sm transition ${page === p ? 'bg-red-600 text-white border-red-600' : 'hover:bg-gray-50'}`}>{p}</button>
+                );
+              })}
+              <button onClick={() => { const p = Math.min(page + 1, totalPages); setPage(p); fetchData(p); }} disabled={page === totalPages} className="px-3 py-1 border rounded-md text-sm disabled:opacity-50 hover:bg-gray-50 transition">Next</button>
             </div>
           </div>
         )}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { restrictedChange } from '../../../../utils/restrictInput';
 
 const langProps = (language) => language === 'hi'
@@ -7,6 +7,7 @@ const langProps = (language) => language === 'hi'
 
 const PatientDetails = ({ formData, handleChange, language, labels, errors }) => {
   const rc = restrictedChange(handleChange, language);
+  const [showAadharFallback, setShowAadharFallback] = useState(false);
   return (
     <div className="space-y-4">
       {/* Quick Access: Transportation Category */}
@@ -20,25 +21,27 @@ const PatientDetails = ({ formData, handleChange, language, labels, errors }) =>
             </h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-blue-100 italic">
-                {labels[language].transportationCategory}
-              </label>
-              <select
-                name="transportation_category"
-                value={formData.transportation_category}
-                onChange={handleChange}
-                className="w-full p-3 bg-white/10 border-white/20 border-2 rounded-xl focus:bg-white focus:text-blue-900 focus:ring-0 transition-all font-bold text-sm backdrop-blur-md appearance-none"
-              >
-                <option value="" className="text-gray-900">{language === 'en' ? 'Choose Category...' : 'श्रेणी चुनें...'}</option>
-                <option value="Within Division" className="text-gray-900">Within Division</option>
-                <option value="Out of Division" className="text-gray-900">Out of Division</option>
-                <option value="Out of State" className="text-gray-900">Out of State</option>
-              </select>
-              {errors.transportation_category && (
-                <p className="text-orange-300 text-[10px] mt-1 font-bold uppercase">{errors.transportation_category}</p>
-              )}
-            </div>
+            {formData.air_transport_type !== 'Paid' && (
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-blue-100 italic">
+                  {labels[language].transportationCategory}
+                </label>
+                <select
+                  name="transportation_category"
+                  value={formData.transportation_category}
+                  onChange={handleChange}
+                  className="w-full p-3 bg-white/10 border-white/20 border-2 rounded-xl focus:bg-white focus:text-blue-900 focus:ring-0 transition-all font-bold text-sm backdrop-blur-md appearance-none"
+                >
+                  <option value="" className="text-gray-900">{language === 'en' ? 'Choose Category...' : 'श्रेणी चुनें...'}</option>
+                  <option value="Within Division" className="text-gray-900">Within Division</option>
+                  <option value="Out of Division" className="text-gray-900">Out of Division</option>
+                  <option value="Out of State" className="text-gray-900">Out of State</option>
+                </select>
+                {errors.transportation_category && (
+                  <p className="text-orange-300 text-[10px] mt-1 font-bold uppercase">{errors.transportation_category}</p>
+                )}
+              </div>
+            )}
             <div>
               <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-blue-100 italic">
                 {labels[language].airTransportType}
@@ -143,96 +146,144 @@ const PatientDetails = ({ formData, handleChange, language, labels, errors }) =>
           <div className="w-1 h-5 bg-blue-600 rounded-full mr-2"></div>
           <h3 className="text-lg font-black text-gray-900 tracking-tight">{labels[language].identityInfo}</h3>
         </div>
-        <div className="bg-gray-50/50 p-4 rounded-xl border border-gray-100 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[10px] font-black text-gray-700 mb-2 uppercase tracking-widest italic">{labels[language].identityCardType}</label>
-              <div className="grid grid-cols-2 gap-2">
-                {['ABHA', 'PM_JAY'].map((type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => {
-                      handleChange({ target: { name: 'identity_card_type', value: type } });
-                    }}
-                    className={`p-3 rounded-xl font-black text-xs uppercase tracking-widest border-2 transition-all ${
-                      formData.identity_card_type === type 
-                        ? 'bg-blue-600 border-blue-600 text-white shadow-md' 
-                        : 'bg-white border-gray-50 text-gray-400 hover:border-blue-200'
-                    }`}
-                  >
-                    {type === 'ABHA' ? 'ABHA' : 'PM JAY'}
-                  </button>
-                ))}
-              </div>
-              {errors.identity_card_type && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.identity_card_type}</p>}
-            </div>
 
-            <div className="flex flex-col justify-end">
-              {formData.identity_card_type && (
-                <div className="animate-in fade-in slide-in-from-top-2">
-                  <label className="block text-[10px] font-black text-blue-600 mb-1.5 uppercase tracking-widest italic">
-                    {formData.identity_card_type === 'ABHA' ? labels[language].abhaNumber : labels[language].pmJayId}
-                  </label>
-                  <input
-                    type="text"
-                    name="ayushman_card_number"
-                    value={formData.ayushman_card_number}
-                    onChange={handleChange}
-                    placeholder={formData.identity_card_type === 'ABHA' ? '14-digit ABHA ID' : '9-digit PM JAY ID'}
-                    maxLength={formData.identity_card_type === 'ABHA' ? 14 : 9}
-                    className="w-full p-3 border-gray-100 border-2 rounded-xl focus:ring-2 focus:ring-blue-50 focus:border-blue-500 shadow-sm transition-all font-bold text-sm"
-                  />
-                  {errors.ayushman_card_number && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.ayushman_card_number}</p>}
-                </div>
-              )}
+        {/* PAID SEVA — Aadhaar only */}
+        {formData.air_transport_type === 'Paid' ? (
+          <div className="bg-gray-50/50 p-4 rounded-xl border border-orange-100 shadow-sm">
+            <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-3 italic">
+              {language === 'hi' ? 'पेड सेवा — केवल आधार कार्ड आवश्यक है' : 'Paid Seva — Aadhaar Card required'}
+            </p>
+            <div>
+              <label className="block text-[10px] font-black text-gray-600 mb-1.5 uppercase tracking-widest italic">
+                {labels[language].aadharCard} *
+              </label>
+              <input
+                type="text"
+                name="aadhar_card_number"
+                value={formData.aadhar_card_number}
+                onChange={handleChange}
+                placeholder="0000 0000 0000"
+                maxLength={12}
+                className="w-full p-3 border-gray-100 border-2 rounded-xl focus:border-blue-500 bg-white transition-all font-mono text-sm"
+              />
+              {errors.aadhar_card_number && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.aadhar_card_number}</p>}
             </div>
           </div>
-
-          {!formData.identity_card_type && (
-            <div className="mt-6 pt-6 border-t border-dashed border-gray-200">
-              <p className="text-[9px] font-black text-gray-400 mb-4 text-center uppercase tracking-widest italic">
-                {labels[language].orProvideBothAadharPan}
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-black text-gray-600 mb-1.5 uppercase tracking-widest italic">{labels[language].aadharCard}</label>
-                  <input
-                    type="text"
-                    name="aadhar_card_number"
-                    value={formData.aadhar_card_number}
-                    onChange={handleChange}
-                    placeholder="0000 0000 0000"
-                    maxLength={12}
-                    className="w-full p-3 border-gray-100 border-2 rounded-xl focus:border-blue-500 bg-white transition-all font-mono text-sm"
-                  />
-                  {errors.aadhar_card_number && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.aadhar_card_number}</p>}
+        ) : (
+          /* FREE SEVA — ABHA / PM JAY or Aadhaar+PAN */
+          <div className="bg-gray-50/50 p-4 rounded-xl border border-gray-100 shadow-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[10px] font-black text-gray-700 mb-2 uppercase tracking-widest italic">{labels[language].identityCardType}</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {['ABHA', 'PM_JAY'].map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => {
+                        // toggle — clicking selected type deselects it
+                        const newVal = formData.identity_card_type === type ? '' : type;
+                        handleChange({ target: { name: 'MULTI_UPDATE_REFERRAL', value: { identity_card_type: newVal, ayushman_card_number: '', aadhar_card_number: '', pan_card_number: '' } } });
+                      }}
+                      className={`p-3 rounded-xl font-black text-xs uppercase tracking-widest border-2 transition-all ${
+                        formData.identity_card_type === type
+                          ? 'bg-blue-600 border-blue-600 text-white shadow-md'
+                          : 'bg-white border-gray-50 text-gray-400 hover:border-blue-200'
+                      }`}
+                    >
+                      {type === 'ABHA' ? 'ABHA' : 'PM JAY'}
+                    </button>
+                  ))}
                 </div>
-                <div>
-                  <label className="block text-[10px] font-black text-gray-600 mb-1.5 uppercase tracking-widest italic">{labels[language].panCard}</label>
-                  <input
-                    type="text"
-                    name="pan_card_number"
-                    value={formData.pan_card_number}
-                    onChange={(e) => {
-                      const value = e.target.value.toUpperCase();
-                      handleChange({ target: { name: 'pan_card_number', value } });
-                    }}
-                    placeholder="ABCDE1234F"
-                    maxLength={10}
-                    className="w-full p-3 border-gray-100 border-2 rounded-xl focus:border-blue-500 bg-white transition-all font-mono text-sm"
-                  />
-                  {errors.pan_card_number && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.pan_card_number}</p>}
-                </div>
+               
+                {errors.identity_card_type && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.identity_card_type}</p>}
               </div>
-              {errors.identity_fallback && (
-                <p className="text-red-500 text-[10px] mt-4 font-black text-center uppercase italic">
-                  {errors.identity_fallback}
-                </p>
-              )}
+
+              <div className="flex flex-col justify-end">
+                {formData.identity_card_type && (
+                  <div className="animate-in fade-in slide-in-from-top-2">
+                    <label className="block text-[10px] font-black text-blue-600 mb-1.5 uppercase tracking-widest italic">
+                      {formData.identity_card_type === 'ABHA' ? labels[language].abhaNumber : labels[language].pmJayId}
+                    </label>
+                    <input
+                      type="text"
+                      name="ayushman_card_number"
+                      value={formData.ayushman_card_number}
+                      onChange={handleChange}
+                      placeholder={formData.identity_card_type === 'ABHA' ? '14-digit ABHA ID' : '9-digit PM JAY ID'}
+                      maxLength={formData.identity_card_type === 'ABHA' ? 14 : 9}
+                      className="w-full p-3 border-gray-100 border-2 rounded-xl focus:ring-2 focus:ring-blue-50 focus:border-blue-500 shadow-sm transition-all font-bold text-sm"
+                    />
+                    {errors.ayushman_card_number && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.ayushman_card_number}</p>}
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-        </div>
+
+            {!formData.identity_card_type && (
+              <div className="mt-4 pt-4 border-t border-dashed border-gray-200">
+                {!showAadharFallback ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowAadharFallback(true)}
+                    className="text-[10px] font-black text-blue-500 uppercase tracking-widest hover:text-blue-700 underline underline-offset-2"
+                  >
+{language === 'hi' ? '+ जरूरत हो तो आधार कार्ड से भरें' : '+ Use Aadhaar Card if needed'}
+                  </button>
+                ) : (
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest italic">
+                        {labels[language].orProvideBothAadharPan}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowAadharFallback(false);
+                          handleChange({ target: { name: 'MULTI_UPDATE_REFERRAL', value: { aadhar_card_number: '', pan_card_number: '' } } });
+                        }}
+                        className="text-[9px] text-gray-400 hover:text-red-500 uppercase font-bold"
+                      >
+                        ✕ Cancel
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] font-black text-gray-600 mb-1.5 uppercase tracking-widest italic">{labels[language].aadharCard}</label>
+                        <input
+                          type="text"
+                          name="aadhar_card_number"
+                          value={formData.aadhar_card_number}
+                          onChange={handleChange}
+                          placeholder="0000 0000 0000"
+                          maxLength={12}
+                          className="w-full p-3 border-gray-100 border-2 rounded-xl focus:border-blue-500 bg-white transition-all font-mono text-sm"
+                        />
+                        {errors.aadhar_card_number && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.aadhar_card_number}</p>}
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-black text-gray-600 mb-1.5 uppercase tracking-widest italic">{labels[language].panCard}</label>
+                        <input
+                          type="text"
+                          name="pan_card_number"
+                          value={formData.pan_card_number}
+                          onChange={(e) => handleChange({ target: { name: 'pan_card_number', value: e.target.value.toUpperCase() } })}
+                          placeholder="ABCDE1234F"
+                          maxLength={10}
+                          className="w-full p-3 border-gray-100 border-2 rounded-xl focus:border-blue-500 bg-white transition-all font-mono text-sm"
+                        />
+                        {errors.pan_card_number && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.pan_card_number}</p>}
+                      </div>
+                    </div>
+                    {errors.identity_fallback && (
+                      <p className="text-red-500 text-[10px] mt-3 font-black text-center uppercase italic">{errors.identity_fallback}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

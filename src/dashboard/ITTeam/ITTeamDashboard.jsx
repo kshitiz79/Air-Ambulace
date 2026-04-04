@@ -84,7 +84,7 @@ const ITTeamDashboard = () => {
           notificationCount={5}
         />
 
-        <main className="flex-grow p-8 bg-gray-50 overflow-y-auto">
+        <main className="flex-grow p-8 bg-gray-50 overflow-y-auto overflow-x-hidden">
           <Outlet />
         </main>
       </div>

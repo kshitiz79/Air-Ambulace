@@ -11,21 +11,21 @@ const ForwardToDMPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     // Simulate forwarding
-    addNotification(`Enquiry ${enquiryId} forwarded to DM`);
-    alert(`Enquiry ${enquiryId} forwarded to DM`);
-    navigate('/sdm');
+    addNotification(`Enquiry ${enquiryId} forwarded to Collector`);
+    alert(`Enquiry ${enquiryId} forwarded to Collector`);
+    navigate('/sdm-dashboard');
   };
 
   return (
     <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow">
-      <h2 className="text-xl font-semibold mb-4">Forward to DM - {enquiryId}</h2>
+      <h2 className="text-xl font-semibold mb-4">Forward to Collector - {enquiryId}</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium">Remarks</label>
           <textarea
             value={remarks}
             onChange={(e) => setRemarks(e.target.value)}
-            placeholder="Enter remarks for DM"
+            placeholder="Enter remarks for Collector"
             className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
             rows="4"
             required
@@ -35,7 +35,7 @@ const ForwardToDMPage = () => {
           type="submit"
           className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
         >
-          Forward to DM
+          Forward to Collector
         </button>
       </form>
     </div>

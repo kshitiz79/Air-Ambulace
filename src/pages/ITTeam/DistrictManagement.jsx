@@ -1,431 +1,425 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FiPlus, 
-  FiEdit, 
-  FiTrash2, 
-  FiRefreshCw,
-  FiMapPin,
-  FiUpload,
-  FiDownload,
-  FiCheckCircle,
-  FiXCircle
-} from 'react-icons/fi';
-import ThemeTable from './../../components/Common/ThemeTable';
-import ThemeButton from './../../components/Common/ThemeButton';
+import axios from 'axios';
+import {
+  FaMapMarkerAlt, FaPlus, FaList, FaEdit, FaTrash,
+  FaGlobe, FaFilter, FaSyncAlt, FaExclamationTriangle,
+  FaChartBar, FaHospital, FaUsers, FaUpload, FaMailBulk, FaBuilding,
+} from 'react-icons/fa';
+import { Bar, Doughnut } from 'react-chartjs-2';
+import {
+  Chart as ChartJS, CategoryScale, LinearScale, BarElement,
+  Title, Tooltip, Legend, ArcElement,
+} from 'chart.js';
+import { useThemeStyles } from '../../hooks/useThemeStyles';
 import baseUrl from '../../baseUrl/baseUrl';
 
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
+
+const DIVISIONS = [
+  'Bhopal','Indore','Gwalior','Jabalpur','Rewa',
+  'Sagar','Ujjain','Chambal','Narmadapuram','Shahdol',
+];
+
 const DistrictManagement = () => {
+  const styles = useThemeStyles();
+
   const [districts, setDistricts] = useState([]);
+  const [filteredDistricts, setFilteredDistricts] = useState([]);
+  const [hospitals, setHospitals] = useState([]);
+  const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [selectedDistrict, setSelectedDistrict] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [activeTab, setActiveTab] = useState('list');
+  const [editingDistrict, setEditingDistrict] = useState(null);
+
   const [formData, setFormData] = useState({
-    district_name: '',
-    state: '',
-    district_code: '',
-    population: '',
-    area_sq_km: ''
+    district_name: '', post_office_name: '', pincode: '',
+    state: 'Madhya Pradesh', division: '',
   });
 
-  useEffect(() => {
-    fetchDistricts();
-  }, []);
+  const [filter, setFilter] = useState({ state: 'ALL', search: '' });
 
-  const fetchDistricts = async () => {
+  const [dashboardStats, setDashboardStats] = useState({
+    totalDistricts: 0, totalHospitals: 0, totalEnquiries: 0,
+    districtStats: [], stateStats: [],
+  });
+
+  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { filterDistricts(); }, [districts, filter]);
+
+  const token = () => localStorage.getItem('token');
+  const headers = () => ({ Authorization: `Bearer ${token()}` });
+
+  const fetchData = async () => {
+    setLoading(true); setError('');
     try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${baseUrl}/api/districts`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setDistricts(Array.isArray(data) ? data : data.data || []);
+      const [dRes, hRes, eRes] = await Promise.all([
+        axios.get(`${baseUrl}/api/districts`, { headers: headers() }),
+        axios.get(`${baseUrl}/api/hospitals`, { headers: headers() }),
+        axios.get(`${baseUrl}/api/enquiries`, { headers: headers() }),
+      ]);
+      const d = dRes.data.data || dRes.data || [];
+      const h = hRes.data.data || [];
+      const e = eRes.data.data || [];
+      setDistricts(d); setHospitals(h); setEnquiries(e);
+      calculateStats(d, h, e);
+    } catch (err) {
+      setError('Failed to fetch data: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setLoading(false); setRefreshing(false);
+    }
+  };
+
+  const calculateStats = (d, h, e) => {
+    const districtMap = {};
+    d.forEach(district => {
+      districtMap[district.district_name] = {
+        hospitals: h.filter(x => x.district_id === district.district_id).length,
+        enquiries: e.filter(x => x.district_id === district.district_id).length,
+      };
+    });
+    const districtStats = Object.entries(districtMap)
+      .map(([name, v]) => ({ name, ...v, total: v.hospitals + v.enquiries }))
+      .sort((a, b) => b.total - a.total).slice(0, 10);
+
+    const stateMap = {};
+    d.forEach(x => { const s = x.state || 'Unknown'; stateMap[s] = (stateMap[s] || 0) + 1; });
+    const stateStats = Object.entries(stateMap).map(([state, count]) => ({ state, count }));
+
+    setDashboardStats({ totalDistricts: d.length, totalHospitals: h.length, totalEnquiries: e.length, districtStats, stateStats });
+  };
+
+  const filterDistricts = () => {
+    let f = districts;
+    if (filter.state !== 'ALL') f = f.filter(d => d.state === filter.state);
+    if (filter.search) f = f.filter(d =>
+      d.district_name?.toLowerCase().includes(filter.search.toLowerCase()) ||
+      d.post_office_name?.toLowerCase().includes(filter.search.toLowerCase()) ||
+      d.pincode?.includes(filter.search)
+    );
+    setFilteredDistricts(f);
+  };
+
+  const resetForm = () => {
+    setFormData({ district_name: '', post_office_name: '', pincode: '', state: 'Madhya Pradesh', division: '' });
+    setEditingDistrict(null); setError(''); setSuccess('');
+  };
+
+  const handleEdit = (district) => {
+    setEditingDistrict(district);
+    setFormData({
+      district_name: district.district_name || '',
+      post_office_name: district.post_office_name || '',
+      pincode: district.pincode || '',
+      state: district.state || 'Madhya Pradesh',
+      division: district.division || '',
+    });
+    setActiveTab('create');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault(); setError(''); setSuccess(''); setLoading(true);
+    try {
+      if (editingDistrict) {
+        await axios.put(`${baseUrl}/api/districts/${editingDistrict.district_id}`, formData, { headers: headers() });
+        setSuccess('District updated successfully!');
       } else {
-        console.error('Failed to fetch districts');
-        setDistricts([]);
+        await axios.post(`${baseUrl}/api/districts`, formData, { headers: headers() });
+        setSuccess('District created successfully!');
       }
-    } catch (error) {
-      console.error('Error fetching districts:', error);
-      setDistricts([]);
+      resetForm(); fetchData(); setActiveTab('list');
+    } catch (err) {
+      setError(err.response?.data?.error || err.response?.data?.message || 'Failed to save district');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this district?')) return;
+    setDeletingId(id);
     try {
-      const token = localStorage.getItem('token');
-      const url = selectedDistrict 
-        ? `${baseUrl}/api/districts/${selectedDistrict.district_id}`
-        : `${baseUrl}/api/districts`;
-      
-      const method = selectedDistrict ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
-        setShowModal(false);
-        fetchDistricts();
-        resetForm();
-        alert(selectedDistrict ? 'District updated successfully!' : 'District created successfully!');
-      } else {
-        const errorData = await response.json();
-        alert('Error: ' + (errorData.message || 'Failed to save district'));
-      }
-    } catch (error) {
-      console.error('Error saving district:', error);
-      alert('Failed to save district. Please try again.');
+      await axios.delete(`${baseUrl}/api/districts/${id}`, { headers: headers() });
+      setSuccess('District deleted successfully!'); fetchData();
+    } catch (err) {
+      setError(err.response?.data?.error || err.response?.data?.message || 'Failed to delete district');
+    } finally {
+      setDeletingId(null);
     }
   };
 
-  const handleEdit = (district) => {
-    setSelectedDistrict(district);
-    setFormData({
-      district_name: district.district_name,
-      state: district.state,
-      district_code: district.district_code,
-      population: district.population?.toString() || '',
-      area_sq_km: district.area_sq_km?.toString() || ''
-    });
-    setShowModal(true);
+  const districtChartData = {
+    labels: dashboardStats.districtStats.slice(0, 5).map(d => d.name.length > 15 ? d.name.slice(0, 15) + '…' : d.name),
+    datasets: [
+      { label: 'Hospitals', data: dashboardStats.districtStats.slice(0, 5).map(d => d.hospitals), backgroundColor: 'rgba(59,130,246,0.8)', borderColor: '#3B82F6', borderWidth: 1 },
+      { label: 'Enquiries', data: dashboardStats.districtStats.slice(0, 5).map(d => d.enquiries), backgroundColor: 'rgba(16,185,129,0.8)', borderColor: '#10B981', borderWidth: 1 },
+    ],
   };
 
-  const handleDelete = async (districtId) => {
-    if (!window.confirm('Are you sure you want to delete this district? This action cannot be undone.')) {
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${baseUrl}/api/districts/${districtId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        fetchDistricts();
-        alert('District deleted successfully!');
-      } else {
-        const errorData = await response.json();
-        alert('Error: ' + (errorData.message || 'Failed to delete district'));
-      }
-    } catch (error) {
-      console.error('Error deleting district:', error);
-      alert('Failed to delete district. Please try again.');
-    }
+  const stateChartData = {
+    labels: dashboardStats.stateStats.map(s => s.state),
+    datasets: [{
+      data: dashboardStats.stateStats.map(s => s.count),
+      backgroundColor: ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899'],
+      borderColor: ['#2563EB','#059669','#D97706','#DC2626','#7C3AED','#DB2777'],
+      borderWidth: 2,
+    }],
   };
 
-  const resetForm = () => {
-    setFormData({
-      district_name: '',
-      state: '',
-      district_code: '',
-      population: '',
-      area_sq_km: ''
-    });
-    setSelectedDistrict(null);
-  };
-
-  const handleExcelUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      // TODO: Implement Excel upload functionality
-      alert('Excel upload functionality will be implemented soon!');
-    }
-  };
-
-  const handleExportExcel = () => {
-    // TODO: Implement Excel export functionality
-    alert('Excel export functionality will be implemented soon!');
-  };
-
-  const columns = [
-    { 
-      key: 'district_id', 
-      label: 'ID',
-      render: (value) => <span className="font-mono text-sm">{value}</span>
-    },
-    { 
-      key: 'district_name', 
-      label: 'District Name',
-      render: (value) => <span className="font-medium">{value}</span>
-    },
-    { 
-      key: 'state', 
-      label: 'State',
-      render: (value) => <span className="text-sm">{value}</span>
-    },
-    { 
-      key: 'district_code', 
-      label: 'Code',
-      render: (value) => <span className="font-mono text-sm">{value}</span>
-    },
-    { 
-      key: 'population', 
-      label: 'Population',
-      render: (value) => value ? <span className="text-sm">{value.toLocaleString()}</span> : '-'
-    },
-    { 
-      key: 'area_sq_km', 
-      label: 'Area (sq km)',
-      render: (value) => value ? <span className="text-sm">{value}</span> : '-'
-    },
-    {
-      key: 'actions',
-      label: 'Actions',
-      render: (_, row) => (
-        <div className="flex space-x-2">
-          <button
-            onClick={() => handleEdit(row)}
-            className="text-blue-600 hover:text-blue-800"
-            title="Edit"
-          >
-            <FiEdit size={16} />
-          </button>
-          <button
-            onClick={() => handleDelete(row.district_id)}
-            className="text-red-600 hover:text-red-800"
-            title="Delete"
-          >
-            <FiTrash2 size={16} />
-          </button>
+  if (loading && districts.length === 0) {
+    return (
+      <div className={`w-full p-6 ${styles.pageBackground}`}>
+        <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-8`}>
+          <div className="animate-pulse space-y-4">
+            <div className={`h-8 ${styles.loadingShimmer} rounded`}></div>
+            <div className="grid grid-cols-3 gap-4">{[...Array(3)].map((_, i) => <div key={i} className={`h-24 ${styles.loadingShimmer} rounded`}></div>)}</div>
+            <div className={`h-64 ${styles.loadingShimmer} rounded`}></div>
+          </div>
+          <p className={`text-center ${styles.secondaryText} mt-4`}>Loading districts...</p>
         </div>
-      )
-    }
-  ];
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
+    <div className={`w-full p-6 ${styles.pageBackground}`}>
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">District Management</h1>
-          <p className="text-gray-600">Manage districts and administrative divisions</p>
+      <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} mb-6`}>
+        <div className={`px-6 py-4 border-b ${styles.borderColor}`}>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className={`text-3xl font-bold ${styles.primaryText} flex items-center`}>
+                <FaMapMarkerAlt className="mr-3 text-blue-600" /> District Management
+              </h1>
+              <p className={`${styles.secondaryText} mt-1`}>Manage districts and administrative areas</p>
+            </div>
+            <button onClick={() => { setRefreshing(true); fetchData(); }} disabled={refreshing}
+              className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm font-medium">
+              <FaSyncAlt className={`mr-2 ${refreshing ? 'animate-spin' : ''}`} /> Refresh
+            </button>
+          </div>
         </div>
-        <div className="flex items-center space-x-3">
-          <input
-            type="file"
-            accept=".xlsx,.xls"
-            onChange={handleExcelUpload}
-            className="hidden"
-            id="excel-upload"
-          />
-          <label
-            htmlFor="excel-upload"
-            className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer"
-          >
-            <FiUpload className="mr-2" />
-            Import Excel
-          </label>
-          <button
-            onClick={handleExportExcel}
-            className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-          >
-            <FiDownload className="mr-2" />
-            Export Excel
-          </button>
-          <button
-            onClick={fetchDistricts}
-            className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-            disabled={loading}
-          >
-            <FiRefreshCw className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </button>
-          <ThemeButton
-            onClick={() => {
-              resetForm();
-              setShowModal(true);
-            }}
-            className="flex items-center space-x-2"
-          >
-            <FiPlus size={16} />
-            <span>Add District</span>
-          </ThemeButton>
+        {/* Tabs */}
+        <div className="px-6">
+          <div className="flex space-x-1">
+            {[
+              { key: 'list', icon: <FaList className="inline mr-2" />, label: `District List (${filteredDistricts.length})` },
+              { key: 'create', icon: <FaPlus className="inline mr-2" />, label: editingDistrict ? 'Edit District' : 'Add District' },
+              { key: 'analytics', icon: <FaChartBar className="inline mr-2" />, label: 'Analytics' },
+            ].map(tab => (
+              <button key={tab.key} onClick={() => { setActiveTab(tab.key); if (tab.key !== 'create') resetForm(); }}
+                className={`px-4 py-2 font-medium text-sm rounded-t-lg transition ${activeTab === tab.key ? 'bg-blue-600 text-white' : `${styles.secondaryText} hover:bg-gray-100`}`}>
+                {tab.icon}{tab.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
+
+      {/* Alerts */}
+      {error && <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg border border-red-200 flex items-center"><FaExclamationTriangle className="mr-2" />{error}</div>}
+      {success && <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg border border-green-200">{success}</div>}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <FiMapPin className="text-blue-600 mr-3" size={24} />
-            <div>
-              <p className="text-sm text-gray-600">Total Districts</p>
-              <p className="text-2xl font-bold text-gray-900">{districts.length}</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        {[
+          { label: 'Total Districts', value: dashboardStats.totalDistricts, color: 'from-blue-500 to-blue-600', icon: <FaMapMarkerAlt className="text-2xl" />, bg: 'bg-blue-400' },
+          { label: 'Total Hospitals', value: dashboardStats.totalHospitals, color: 'from-green-500 to-green-600', icon: <FaHospital className="text-2xl" />, bg: 'bg-green-400' },
+          { label: 'Total Enquiries', value: dashboardStats.totalEnquiries, color: 'from-purple-500 to-purple-600', icon: <FaUsers className="text-2xl" />, bg: 'bg-purple-400' },
+        ].map(s => (
+          <div key={s.label} className={`bg-gradient-to-r ${s.color} rounded-lg shadow-sm p-6 text-white`}>
+            <div className="flex items-center justify-between">
+              <div><p className="text-white/80 text-sm font-medium">{s.label}</p><p className="text-3xl font-bold">{s.value}</p></div>
+              <div className={`${s.bg} bg-opacity-30 rounded-full p-3`}>{s.icon}</div>
             </div>
           </div>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <FiCheckCircle className="text-green-600 mr-3" size={24} />
-            <div>
-              <p className="text-sm text-gray-600">Active Districts</p>
-              <p className="text-2xl font-bold text-gray-900">{districts.length}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <FiMapPin className="text-purple-600 mr-3" size={24} />
-            <div>
-              <p className="text-sm text-gray-600">States Covered</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {new Set(districts.map(d => d.state)).size}
-              </p>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Districts Table */}
-      <div className="bg-white rounded-lg shadow-sm">
-        <ThemeTable
-          data={districts}
-          columns={columns}
-          loading={loading}
-          emptyMessage="No districts found"
-        />
-      </div>
+      {/* Analytics Tab */}
+      {activeTab === 'analytics' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-6`}>
+            <h2 className={`text-xl font-semibold ${styles.primaryText} flex items-center mb-4`}>
+              <FaChartBar className="mr-2 text-blue-600" /> Top Districts by Activity
+            </h2>
+            <div className="h-64">
+              <Bar data={districtChartData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }} />
+            </div>
+          </div>
+          <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-6`}>
+            <h2 className={`text-xl font-semibold ${styles.primaryText} flex items-center mb-4`}>
+              <FaGlobe className="mr-2 text-green-600" /> Districts by State
+            </h2>
+            <div className="h-64">
+              <Doughnut data={stateChartData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }} />
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* District Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-sm w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 rounded-t-xl">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <FiMapPin className="text-white" size={24} />
-                  <h3 className="text-xl font-semibold text-white">
-                    {selectedDistrict ? 'Edit District' : 'Add New District'}
-                  </h3>
-                </div>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="text-white hover:text-gray-200 transition-colors"
-                >
-                  <FiXCircle size={24} />
-                </button>
+      {/* List Tab */}
+      {activeTab === 'list' && (
+        <>
+          <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow} p-4 mb-6`}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={`block text-sm font-medium ${styles.secondaryText} mb-1`}>State</label>
+                <select value={filter.state} onChange={e => setFilter({ ...filter, state: e.target.value })}
+                  className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 ${styles.inputBackground}`}>
+                  <option value="ALL">All States</option>
+                  {dashboardStats.stateStats.map(s => <option key={s.state} value={s.state}>{s.state}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={`block text-sm font-medium ${styles.secondaryText} mb-1`}>Search</label>
+                <input type="text" value={filter.search} onChange={e => setFilter({ ...filter, search: e.target.value })}
+                  placeholder="Search districts..." className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 ${styles.inputBackground}`} />
               </div>
             </div>
+          </div>
 
-            {/* Modal Body */}
-            <div className="p-6">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Left Column */}
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        District Name *
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.district_name}
-                        onChange={(e) => setFormData({...formData, district_name: e.target.value})}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        placeholder="Enter district name"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        State *
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.state}
-                        onChange={(e) => setFormData({...formData, state: e.target.value})}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        placeholder="Enter state name"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        District Code
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.district_code}
-                        onChange={(e) => setFormData({...formData, district_code: e.target.value})}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        placeholder="Enter district code"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Right Column */}
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Population
-                      </label>
-                      <input
-                        type="number"
-                        value={formData.population}
-                        onChange={(e) => setFormData({...formData, population: e.target.value})}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        placeholder="Enter population"
-                        min="0"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Area (sq km)
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={formData.area_sq_km}
-                        onChange={(e) => setFormData({...formData, area_sq_km: e.target.value})}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        placeholder="Enter area in square kilometers"
-                        min="0"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <ThemeButton 
-                    type="submit" 
-                    className="px-8 py-3 flex items-center space-x-2"
-                  >
-                    <FiCheckCircle size={18} />
-                    <span>{selectedDistrict ? 'Update District' : 'Add District'}</span>
-                  </ThemeButton>
-                </div>
-              </form>
+          <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow}`}>
+            <div className={`px-6 py-4 border-b ${styles.borderColor} flex items-center justify-between`}>
+              <h2 className={`text-xl font-semibold ${styles.primaryText}`}>District List ({filteredDistricts.length})</h2>
+              <button onClick={() => { resetForm(); setActiveTab('create'); }}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium">
+                <FaPlus className="mr-2" /> Add District
+              </button>
             </div>
+            <div className="overflow-x-auto">
+              {filteredDistricts.length === 0 ? (
+                <div className={`p-8 text-center ${styles.secondaryText}`}>
+                  <FaMapMarkerAlt className="mx-auto text-4xl mb-4 text-gray-300" />
+                  <p>No districts found matching the current filters.</p>
+                </div>
+              ) : (
+                <table className="min-w-full">
+                  <thead className={styles.tableHeader}>
+                    <tr>
+                      {['District Name','Division','State','Post Office','Pincode','Statistics','Actions'].map(h => (
+                        <th key={h} className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${styles.secondaryText}`}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className={`${styles.tableBody} divide-y ${styles.borderColor}`}>
+                    {filteredDistricts.map(district => {
+                      const dHospitals = hospitals.filter(h => h.district_id === district.district_id).length;
+                      const dEnquiries = enquiries.filter(e => e.district_id === district.district_id).length;
+                      return (
+                        <tr key={district.district_id} className={styles.tableRow}>
+                          <td className={`px-6 py-4 whitespace-nowrap ${styles.primaryText}`}>
+                            <div className="flex items-center">
+                              <FaMapMarkerAlt className="text-blue-500 mr-3" />
+                              <span className="text-sm font-medium">{district.district_name}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {district.division
+                              ? <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-semibold">{district.division}</span>
+                              : <span className="text-gray-400 text-xs italic">—</span>}
+                          </td>
+                          <td className={`px-6 py-4 whitespace-nowrap text-sm ${styles.primaryText}`}>
+                            <div className="flex items-center"><FaGlobe className="text-gray-400 mr-2" />{district.state}</div>
+                          </td>
+                          <td className={`px-6 py-4 whitespace-nowrap text-sm ${styles.primaryText}`}>
+                            <div className="flex items-center"><FaMailBulk className="text-gray-400 mr-2" />{district.post_office_name || 'N/A'}</div>
+                          </td>
+                          <td className={`px-6 py-4 whitespace-nowrap text-sm ${styles.primaryText}`}>
+                            <div className="flex items-center"><FaBuilding className="text-gray-400 mr-2" />{district.pincode || 'N/A'}</div>
+                          </td>
+                          <td className={`px-6 py-4 whitespace-nowrap text-sm ${styles.primaryText}`}>
+                            <div className="space-y-1">
+                              <div className="flex items-center"><FaHospital className="text-green-500 mr-2" />{dHospitals} Hospitals</div>
+                              <div className="flex items-center"><FaUsers className="text-blue-500 mr-2" />{dEnquiries} Enquiries</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div className="flex space-x-3">
+                              <button onClick={() => handleEdit(district)} className="text-blue-600 hover:text-blue-900 flex items-center">
+                                <FaEdit className="mr-1" /> Edit
+                              </button>
+                              <button onClick={() => handleDelete(district.district_id)} disabled={deletingId === district.district_id}
+                                className="text-red-600 hover:text-red-900 disabled:opacity-50 flex items-center">
+                                <FaTrash className="mr-1" />{deletingId === district.district_id ? 'Deleting…' : 'Delete'}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Create/Edit Tab */}
+      {activeTab === 'create' && (
+        <div className={`${styles.cardBackground} rounded-lg ${styles.cardShadow}`}>
+          <div className={`px-6 py-4 border-b ${styles.borderColor}`}>
+            <h2 className={`text-xl font-semibold ${styles.primaryText}`}>
+              {editingDistrict ? 'Edit District' : 'Add New District'}
+            </h2>
+          </div>
+          <div className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>District Name *</label>
+                  <input type="text" name="district_name" value={formData.district_name} required
+                    onChange={e => setFormData({ ...formData, district_name: e.target.value })}
+                    className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 ${styles.inputBackground}`}
+                    placeholder="Enter district name" />
+                </div>
+                <div>
+                  <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>State *</label>
+                  <input type="text" name="state" value={formData.state} required
+                    onChange={e => setFormData({ ...formData, state: e.target.value })}
+                    className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 ${styles.inputBackground}`}
+                    placeholder="Enter state name" />
+                </div>
+                <div>
+                  <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>Division</label>
+                  <select name="division" value={formData.division}
+                    onChange={e => setFormData({ ...formData, division: e.target.value })}
+                    className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 ${styles.inputBackground}`}>
+                    <option value="">-- Select Division --</option>
+                    {DIVISIONS.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                  <p className={`text-xs mt-1 ${styles.secondaryText}`}>Each division contains 5–6 districts</p>
+                </div>
+                <div>
+                  <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>Post Office Name</label>
+                  <input type="text" name="post_office_name" value={formData.post_office_name}
+                    onChange={e => setFormData({ ...formData, post_office_name: e.target.value })}
+                    className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 ${styles.inputBackground}`}
+                    placeholder="Enter post office name" />
+                </div>
+                <div>
+                  <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>Pincode</label>
+                  <input type="text" name="pincode" value={formData.pincode}
+                    onChange={e => setFormData({ ...formData, pincode: e.target.value })}
+                    className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 ${styles.inputBackground}`}
+                    placeholder="Enter pincode" />
+                </div>
+              </div>
+              <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200">
+                <button type="button" onClick={() => { resetForm(); setActiveTab('list'); }}
+                  className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium">
+                  Cancel
+                </button>
+                <button type="submit" disabled={loading}
+                  className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50 flex items-center">
+                  {loading ? <><span className="animate-spin mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full inline-block"></span>Saving…</> : (editingDistrict ? 'Update District' : 'Add District')}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -59,11 +59,12 @@ const enquiryForm = {
     contactName: 'Contact Name',
     contactPhone: 'Contact Phone',
     contactEmail: 'Contact Email',
-    emergencyContactProfile: 'Emergency Contact Profile',
+    emergencyContactProfile: 'Emergency Contact Person Profile',
 
     // Hospital & District
     hospitalId: 'Destination Hospital',
     sourceHospitalId: 'Source Hospital',
+    destinationDistrict: 'Destination District',
 
     // Referral
     referringPhysicianName: 'Referring Physician Name',
@@ -193,6 +194,7 @@ const enquiryForm = {
 
     hospitalId: 'गंतव्य अस्पताल',
     sourceHospitalId: 'स्रोत अस्पताल',
+    destinationDistrict: 'गंतव्य जिला',
 
     referringPhysicianName: 'रेफर करने वाले चिकित्सक का नाम',
     referringPhysicianDesignation: 'रेफर करने वाले चिकित्सक का पद',
@@ -259,3 +261,7 @@ const enquiryForm = {
 };
 
 export default enquiryForm;
+
+
+
+

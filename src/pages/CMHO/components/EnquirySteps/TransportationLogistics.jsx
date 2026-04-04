@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { restrictedChange } from '../../../../utils/restrictInput';
+import baseUrl from '../../../../baseUrl/baseUrl';
 
 const langProps = (language) => language === 'hi'
   ? { lang: 'hi', style: { fontFamily: "'Noto Sans Devanagari', sans-serif" } }
@@ -7,9 +8,34 @@ const langProps = (language) => language === 'hi'
 
 const TransportationLogistics = ({ formData, handleChange, language, labels, errors }) => {
   const rc = restrictedChange(handleChange, language);
+  const [ambulances, setAmbulances] = useState([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    fetch(`${baseUrl}/api/ambulances`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(d => setAmbulances(d.data || []))
+      .catch(() => {});
+  }, []);
+
+  // When ambulance is selected from dropdown, auto-fill both reg number and contact
+  const handleAmbulanceSelect = (e) => {
+    const regNum = e.target.value;
+    const found = ambulances.find(a => a.registration_number === regNum);
+    // Use MULTI_UPDATE to set both fields atomically — avoids stale closure issue
+    handleChange({
+      target: {
+        name: 'MULTI_UPDATE_REFERRAL',
+        value: {
+          ambulance_registration_number: regNum,
+          ambulance_contact: found?.contact_number || '',
+        },
+      },
+    });
+  };
+
   return (
     <div className="space-y-4">
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-lg shadow-gray-50/50">
           <div className="flex items-center mb-4">
@@ -46,27 +72,52 @@ const TransportationLogistics = ({ formData, handleChange, language, labels, err
 
         <div className="space-y-3 flex flex-col justify-center bg-white p-4 rounded-2xl border border-gray-100 shadow-lg shadow-gray-50/50">
           <div>
-            <label className="block text-[10px] font-black text-gray-500 mb-1 uppercase tracking-widest italic">{labels[language].ambulanceRegistrationNumber}</label>
-            <input
-              type="text"
-              name="ambulance_registration_number"
-              value={formData.ambulance_registration_number}
-              onChange={handleChange}
-              placeholder="e.g. CG 04 MP 1234"
-              className="w-full p-2.5 border-2 border-gray-100 rounded-xl focus:border-blue-500 transition-all text-lg font-black tracking-widest uppercase text-blue-900 bg-gray-50/20"
-            />
-            {errors.ambulance_registration_number && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.ambulance_registration_number}</p>}
+            <label className="block text-[10px] font-black text-gray-500 mb-1 uppercase tracking-widest italic">
+              {labels[language].ambulanceRegistrationNumber}
+            </label>
+            {ambulances.length > 0 ? (
+              <select
+                name="ambulance_registration_number"
+                value={formData.ambulance_registration_number}
+                onChange={handleAmbulanceSelect}
+                className="w-full p-2.5 border-2 border-gray-100 rounded-xl focus:border-blue-500 transition-all text-sm font-bold bg-white uppercase"
+              >
+                <option value="">-- Select Ambulance --</option>
+                {ambulances.map(a => (
+                  <option key={a.ambulance_id} value={a.registration_number}>
+                    {a.registration_number} — {a.aircraft_type} ({a.base_location})
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="text"
+                name="ambulance_registration_number"
+                value={formData.ambulance_registration_number}
+                onChange={handleChange}
+                placeholder="e.g. CG 04 MP 1234"
+                className="w-full p-2.5 border-2 border-gray-100 rounded-xl focus:border-blue-500 transition-all text-lg font-black tracking-widest uppercase text-blue-900 bg-gray-50/20"
+              />
+            )}
+            {errors.ambulance_registration_number && (
+              <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.ambulance_registration_number}</p>
+            )}
           </div>
           <div>
-            <label className="block text-[10px] font-black text-gray-400 mb-1 uppercase tracking-widest italic">{labels[language].ambulanceContact}</label>
+            <label className="block text-[10px] font-black text-gray-400 mb-1 uppercase tracking-widest italic">
+              {labels[language].ambulanceContact}
+            </label>
             <input
               type="text"
               name="ambulance_contact"
               value={formData.ambulance_contact}
               onChange={handleChange}
               className="w-full p-2.5 border-2 border-gray-100 rounded-xl focus:border-blue-500 transition-all text-base font-bold bg-white"
+              placeholder="Auto-filled from master"
             />
-            {errors.ambulance_contact && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.ambulance_contact}</p>}
+            {errors.ambulance_contact && (
+              <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.ambulance_contact}</p>
+            )}
           </div>
         </div>
       </div>
