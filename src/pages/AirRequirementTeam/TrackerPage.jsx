@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { FiMapPin, FiClock, FiTruck, FiNavigation, FiRefreshCw } from 'react-icons/fi';
+import baseUrl from '../../baseUrl/baseUrl';
 
 const TrackerPage = () => {
   const [activeFlights, setActiveFlights] = useState([]);
@@ -9,60 +11,73 @@ const TrackerPage = () => {
   useEffect(() => {
     fetchActiveFlights();
     // Set up real-time updates
-    const interval = setInterval(fetchActiveFlights, 30000); // Update every 30 seconds
+    const interval = setInterval(() => fetchActiveFlights(false), 30000); // Silent refresh every 30 seconds
     return () => clearInterval(interval);
   }, []);
 
-  const fetchActiveFlights = async () => {
+  const fetchActiveFlights = async (showLoading = true) => {
     try {
-      setLoading(true);
-      // Simulate API call for active flights
-      const mockData = [
-        {
-          assignment_id: 1,
-          enquiry_id: 12345,
-          ambulance_id: 'AA-001',
-          patient_name: 'John Doe',
-          pickup_location: 'Delhi AIIMS',
-          drop_location: 'Mumbai Hospital',
-          departure_time: '2024-01-15 10:30:00',
-          estimated_arrival: '2024-01-15 12:45:00',
-          current_location: { lat: 28.6139, lng: 77.2090 },
-          status: 'IN_PROGRESS',
-          crew_details: 'Pilot: John Smith, Medic: Jane Doe',
-          progress: 65,
-          distance_covered: '650 km',
-          distance_remaining: '350 km',
-          speed: '450 km/h',
-          altitude: '35,000 ft'
-        },
-        {
-          assignment_id: 2,
-          enquiry_id: 12346,
-          ambulance_id: 'AA-002',
-          patient_name: 'Sarah Wilson',
-          pickup_location: 'Bangalore General Hospital',
-          drop_location: 'Chennai Apollo',
-          departure_time: '2024-01-15 14:00:00',
-          estimated_arrival: '2024-01-15 15:30:00',
-          current_location: { lat: 12.9716, lng: 77.5946 },
-          status: 'IN_PROGRESS',
-          crew_details: 'Pilot: Mike Johnson, Medic: Lisa Brown',
-          progress: 30,
-          distance_covered: '120 km',
-          distance_remaining: '280 km',
-          speed: '420 km/h',
-          altitude: '32,000 ft'
+      if (showLoading) setLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${baseUrl}/api/flight-assignments`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      ];
-      setActiveFlights(mockData);
-      if (!selectedFlight && mockData.length > 0) {
-        setSelectedFlight(mockData[0]);
+      });
+      
+      if (response.ok) {
+        const assignments = await response.json();
+        
+        // Filter for active flights (IN_PROGRESS or ASSIGNED)
+        const activeOnly = assignments.filter(f => f.status === 'IN_PROGRESS' || f.status === 'ASSIGNED');
+        
+        // Transform real data to match UI expectations
+        const transformedData = activeOnly.map(f => {
+          const departure = f.departure_time ? new Date(f.departure_time) : new Date();
+          const arrival = f.arrival_time ? new Date(f.arrival_time) : new Date(departure.getTime() + 2 * 60 * 60 * 1000);
+          const now = new Date();
+          
+          // Calculate simulated progress based on time
+          let progress = 0;
+          if (f.status === 'COMPLETED') progress = 100;
+          else if (f.status === 'IN_PROGRESS') {
+            const total = (arrival - departure) || 1;
+            const elapsed = now - departure;
+            progress = Math.min(Math.max(Math.floor((elapsed / total) * 100), 10), 95);
+          } else {
+            progress = 0;
+          }
+
+          return {
+            assignment_id: f.assignment_id,
+            enquiry_id: f.enquiry_id,
+            ambulance_id: f.ambulance_id,
+            patient_name: f.enquiry?.patient_name || 'Unknown',
+            pickup_location: f.enquiry?.sourceHospital?.name || f.enquiry?.sourceHospital?.hospital_name || 'Base',
+            drop_location: f.enquiry?.hospital?.name || f.enquiry?.hospital?.hospital_name || 'Destination',
+            departure_time: f.departure_time || departure.toISOString(),
+            estimated_arrival: f.arrival_time || arrival.toISOString(),
+            current_location: { lat: 23.2599, lng: 77.4126 }, // Static for now
+            status: f.status,
+            crew_details: f.crewMembers?.map(c => `${c.role}: ${c.full_name}`).join(', ') || f.crew_details || 'Staff Pending',
+            progress: progress,
+            distance_covered: `${Math.floor(progress * 4.5)} km`,
+            distance_remaining: `${Math.floor((100 - progress) * 4.5)} km`,
+            speed: f.status === 'IN_PROGRESS' ? '450 km/h' : '0 km/h',
+            altitude: f.status === 'IN_PROGRESS' ? '32,000 ft' : '0 ft'
+          };
+        });
+
+        setActiveFlights(transformedData);
+        if (transformedData.length > 0 && !selectedFlight) {
+          setSelectedFlight(transformedData[0]);
+        }
       }
     } catch (error) {
       console.error('Error fetching active flights:', error);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -105,7 +120,7 @@ const TrackerPage = () => {
           <p className="text-gray-600">Real-time tracking of active air ambulance flights</p>
         </div>
         <button
-          onClick={fetchActiveFlights}
+          onClick={() => fetchActiveFlights(true)}
           className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <FiRefreshCw size={16} />
@@ -140,7 +155,9 @@ const TrackerPage = () => {
             <FiClock className="text-yellow-600 mr-3" size={24} />
             <div>
               <p className="text-sm text-gray-600">Avg Speed</p>
-              <p className="text-2xl font-bold text-gray-900">435 km/h</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {activeFlights.length > 0 ? '435 km/h' : '0 km/h'}
+              </p>
             </div>
           </div>
         </div>
@@ -149,7 +166,9 @@ const TrackerPage = () => {
             <FiNavigation className="text-purple-600 mr-3" size={24} />
             <div>
               <p className="text-sm text-gray-600">Total Distance</p>
-              <p className="text-2xl font-bold text-gray-900">1,250 km</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {activeFlights.reduce((acc, f) => acc + parseInt(f.distance_covered), 0)} km
+              </p>
             </div>
           </div>
         </div>
@@ -161,7 +180,7 @@ const TrackerPage = () => {
           <div className="p-6 border-b">
             <h3 className="text-lg font-semibold text-gray-900">Active Flights</h3>
           </div>
-          <div className="divide-y">
+          <div className="divide-y overflow-y-auto max-h-[600px]">
             {loading ? (
               <div className="p-6 text-center text-gray-500">Loading flights...</div>
             ) : activeFlights.length === 0 ? (
@@ -177,30 +196,29 @@ const TrackerPage = () => {
                 >
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <h4 className="font-medium text-gray-900">{flight.ambulance_id}</h4>
-                      <p className="text-sm text-gray-600">Case #{flight.enquiry_id}</p>
+                      <h4 className="font-medium text-gray-900 font-mono text-sm">{flight.ambulance_id}</h4>
+                      <p className="text-xs text-gray-600">Case #{flight.enquiry_id}</p>
                     </div>
-                    <span className={`text-sm font-medium ${getStatusColor(flight.status)}`}>
+                    <span className={`text-[10px] uppercase tracking-wider font-bold ${getStatusColor(flight.status)}`}>
                       {flight.status.replace('_', ' ')}
                     </span>
                   </div>
                   
-                  <div className="space-y-1 text-sm text-gray-600">
-                    <p>Patient: {flight.patient_name}</p>
-                    <p>From: {flight.pickup_location}</p>
-                    <p>To: {flight.drop_location}</p>
-                    <p>ETA: {calculateETA(flight.departure_time, flight.estimated_arrival)}</p>
+                  <div className="space-y-1 text-xs text-gray-600">
+                    <p className="font-medium text-gray-800">{flight.patient_name}</p>
+                    <p className="truncate">From: {flight.pickup_location}</p>
+                    <p className="truncate">To: {flight.drop_location}</p>
                   </div>
 
                   {/* Progress Bar */}
                   <div className="mt-3">
-                    <div className="flex justify-between text-xs text-gray-500 mb-1">
+                    <div className="flex justify-between text-[10px] text-gray-500 mb-1">
                       <span>Progress</span>
                       <span>{flight.progress}%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
                       <div
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                        className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
                         style={{ width: `${flight.progress}%` }}
                       ></div>
                     </div>
@@ -216,131 +234,100 @@ const TrackerPage = () => {
           {selectedFlight ? (
             <>
               {/* Map Placeholder */}
-              <div className="bg-white rounded-lg shadow-sm">
-                <div className="p-6 border-b">
-                  <h3 className="text-lg font-semibold text-gray-900">Flight Map</h3>
+              <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                <div className="p-4 bg-gray-50 border-b">
+                  <h3 className="text-lg font-semibold text-gray-900">Flight Path</h3>
                 </div>
-                <div className="p-6">
-                  <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
-                    <div className="text-center text-gray-500">
-                      <FiMapPin size={48} className="mx-auto mb-2" />
-                      <p>Interactive Map</p>
-                      <p className="text-sm">Showing route from {selectedFlight.pickup_location} to {selectedFlight.drop_location}</p>
-                      <div className="mt-4 p-3 bg-white rounded-lg shadow-sm">
-                        <p className="text-sm font-medium text-gray-900">Current Position</p>
-                        <p className="text-xs text-gray-600">
-                          Lat: {selectedFlight.current_location.lat}, Lng: {selectedFlight.current_location.lng}
-                        </p>
+                <div className="p-0">
+                  <div className="bg-blue-50 h-[350px] relative flex items-center justify-center">
+                    <div className="absolute inset-0 opacity-20 pointer-events-none" style={{
+                      backgroundImage: 'radial-gradient(#4a90e2 1px, transparent 1px)',
+                      backgroundSize: '20px 20px'
+                    }}></div>
+                    <div className="z-10 text-center">
+                      <FiNavigation size={64} className="text-blue-500 mx-auto mb-4 animate-pulse rotate-45" />
+                      <p className="text-blue-800 font-bold text-xl uppercase tracking-widest">En Route</p>
+                      <div className="mt-6 flex items-center justify-center space-x-12">
+                        <div className="text-center">
+                          <p className="text-[10px] text-blue-400 uppercase">Origin</p>
+                          <p className="text-sm font-bold text-blue-900">{selectedFlight.pickup_location}</p>
+                        </div>
+                        <div className="h-px w-24 bg-blue-300 relative">
+                          <div className="absolute top-1/2 left-0 h-2 w-2 bg-blue-500 rounded-full -translate-y-1/2"></div>
+                          <div className="absolute top-1/2 right-0 h-2 w-2 border-2 border-blue-500 rounded-full -translate-y-1/2"></div>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-[10px] text-blue-400 uppercase">Destination</p>
+                          <p className="text-sm font-bold text-blue-900">{selectedFlight.drop_location}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Flight Information */}
-              <div className="bg-white rounded-lg shadow-sm">
-                <div className="p-6 border-b">
-                  <h3 className="text-lg font-semibold text-gray-900">Flight Information</h3>
-                </div>
-                <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Flight Details</h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Ambulance ID:</span>
-                            <span className="font-medium">{selectedFlight.ambulance_id}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Case ID:</span>
-                            <span className="font-medium">#{selectedFlight.enquiry_id}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Patient:</span>
-                            <span className="font-medium">{selectedFlight.patient_name}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Crew:</span>
-                            <span className="font-medium text-right">{selectedFlight.crew_details}</span>
-                          </div>
+              {/* Flight Information Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 {/* Details 1 */}
+                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <h4 className="text-sm font-bold text-gray-400 uppercase mb-4 border-b pb-2">Mission Parameters</h4>
+                    <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                           <span className="text-xs text-gray-500">Ambulance</span>
+                           <span className="text-sm font-mono font-bold text-blue-600">{selectedFlight.ambulance_id}</span>
                         </div>
-                      </div>
-
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Route Information</h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">From:</span>
-                            <span className="font-medium text-right">{selectedFlight.pickup_location}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">To:</span>
-                            <span className="font-medium text-right">{selectedFlight.drop_location}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Departure:</span>
-                            <span className="font-medium">{formatTime(selectedFlight.departure_time)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">ETA:</span>
-                            <span className="font-medium">{formatTime(selectedFlight.estimated_arrival)}</span>
-                          </div>
+                        <div className="flex justify-between items-center">
+                           <span className="text-xs text-gray-500">Patient</span>
+                           <span className="text-sm font-bold text-gray-800">{selectedFlight.patient_name}</span>
                         </div>
-                      </div>
+                        <div className="flex justify-between items-center border-t pt-2">
+                           <span className="text-xs text-gray-500">Departure</span>
+                           <span className="text-sm font-bold text-gray-700">{formatTime(selectedFlight.departure_time)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                           <span className="text-xs text-gray-500">ETA</span>
+                           <span className="text-sm font-bold text-green-600">{formatTime(selectedFlight.estimated_arrival)}</span>
+                        </div>
                     </div>
+                 </div>
 
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Flight Status</h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Current Speed:</span>
-                            <span className="font-medium">{selectedFlight.speed}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Altitude:</span>
-                            <span className="font-medium">{selectedFlight.altitude}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Distance Covered:</span>
-                            <span className="font-medium">{selectedFlight.distance_covered}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Distance Remaining:</span>
-                            <span className="font-medium">{selectedFlight.distance_remaining}</span>
-                          </div>
+                 {/* Details 2 */}
+                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <h4 className="text-sm font-bold text-gray-400 uppercase mb-4 border-b pb-2">Telemetry</h4>
+                    <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                           <span className="text-xs text-gray-500">Ground Speed</span>
+                           <span className="text-sm font-bold text-gray-800">{selectedFlight.speed}</span>
                         </div>
-                      </div>
-
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Progress</h4>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Completion</span>
-                            <span className="font-medium">{selectedFlight.progress}%</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-3">
-                            <div
-                              className="bg-green-600 h-3 rounded-full transition-all duration-300"
-                              style={{ width: `${selectedFlight.progress}%` }}
-                            ></div>
-                          </div>
-                          <div className="text-xs text-gray-500 text-center">
-                            ETA: {calculateETA(selectedFlight.departure_time, selectedFlight.estimated_arrival)}
-                          </div>
+                        <div className="flex justify-between items-center">
+                           <span className="text-xs text-gray-500">Altitude</span>
+                           <span className="text-sm font-bold text-gray-800">{selectedFlight.altitude}</span>
                         </div>
-                      </div>
+                        <div className="flex justify-between items-center border-t pt-2">
+                           <span className="text-xs text-gray-500">Covered</span>
+                           <span className="text-sm font-bold text-gray-700">{selectedFlight.distance_covered}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                           <span className="text-xs text-gray-500">Remaining</span>
+                           <span className="text-sm font-bold text-orange-600">{selectedFlight.distance_remaining}</span>
+                        </div>
                     </div>
-                  </div>
-                </div>
+                 </div>
+
+                 {/* Full width Crew */}
+                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 md:col-span-2">
+                    <h4 className="text-sm font-bold text-gray-400 uppercase mb-3">On-Board Crew</h4>
+                    <p className="text-sm text-gray-700 italic border-l-4 border-blue-500 pl-3 py-1">
+                        {selectedFlight.crew_details}
+                    </p>
+                 </div>
               </div>
             </>
           ) : (
-            <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-              <FiMapPin size={48} className="mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Select a Flight</h3>
-              <p className="text-gray-600">Choose a flight from the list to view detailed tracking information</p>
+            <div className="bg-white rounded-lg shadow-sm p-12 text-center h-[500px] flex flex-col justify-center border-2 border-dashed border-gray-200">
+              <FiNavigation size={64} className="mx-auto text-gray-300 mb-6" />
+              <h3 className="text-xl font-bold text-gray-400">COMMAND CENTER</h3>
+              <p className="text-gray-400 mt-2">Select an active mission to initiate telemetry monitoring</p>
             </div>
           )}
         </div>

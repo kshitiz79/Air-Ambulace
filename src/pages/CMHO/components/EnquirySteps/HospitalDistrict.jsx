@@ -1,6 +1,7 @@
 import React from 'react';
+import HospitalSearchInput from '../../../../components/Common/HospitalSearchInput';
 
-const HospitalDistrict = ({ formData, handleChange, language, labels, errors, hospitals, districts }) => {
+const HospitalDistrict = ({ formData, handleChange, language, labels, errors, hospitals, districts, onHospitalCreated }) => {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -11,37 +12,39 @@ const HospitalDistrict = ({ formData, handleChange, language, labels, errors, ho
           </div>
           <div className="space-y-4">
             <div>
-              <label className="block text-[10px] font-black text-gray-400 mb-1 uppercase tracking-widest italic">{labels[language].sourceHospitalId}</label>
-              <select
+              <label className="block text-[10px] font-black text-gray-400 mb-1 uppercase tracking-widest italic">
+                {labels[language].sourceHospitalId} <span className="text-red-500">*</span>
+              </label>
+              <HospitalSearchInput
                 name="source_hospital_id"
                 value={formData.source_hospital_id}
+                hospitals={hospitals}
                 onChange={handleChange}
-                className="w-full p-2.5 bg-gray-50/50 border-2 border-transparent rounded-xl focus:bg-white focus:border-blue-500 transition-all font-bold text-sm"
-              >
-                <option value="">{language === 'en' ? 'Choose Origin...' : 'स्रोत चुनें...'}</option>
-                {hospitals.map(h => (
-                  <option key={h.hospital_id} value={h.hospital_id}>{h.name}</option>
-                ))}
-              </select>
-              {errors.source_hospital_id && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.source_hospital_id}</p>}
+                onHospitalCreated={onHospitalCreated}
+                placeholder={language === 'en' ? 'Search or type origin hospital...' : 'स्रोत अस्पताल खोजें या टाइप करें...'}
+                inputClass="w-full p-2.5 bg-gray-50/50 border-2 border-transparent rounded-xl focus:bg-white focus:border-blue-500 transition-all font-bold text-sm"
+              />
+              {errors.source_hospital_id && <p className="text-red-500 text-[10px] mt-1 font-bold flex items-center gap-1"><span>⚠</span>{errors.source_hospital_id}</p>}
             </div>
             <div>
-              <label className="block text-[10px] font-black text-gray-400 mb-1 uppercase tracking-widest italic">{labels[language].hospitalId}</label>
-              <select
+              <label className="block text-[10px] font-black text-gray-400 mb-1 uppercase tracking-widest italic">
+                {labels[language].hospitalId} <span className="text-red-500">*</span>
+              </label>
+              <HospitalSearchInput
                 name="hospital_id"
                 value={formData.hospital_id}
+                hospitals={hospitals}
                 onChange={handleChange}
-                className="w-full p-2.5 bg-gray-50/50 border-2 border-transparent rounded-xl focus:bg-white focus:border-blue-500 transition-all font-bold text-sm"
-              >
-                <option value="">{language === 'en' ? 'Choose Destination...' : 'गंतव्य चुनें...'}</option>
-                {hospitals.map(h => (
-                  <option key={h.hospital_id} value={h.hospital_id}>{h.name}</option>
-                ))}
-              </select>
-              {errors.hospital_id && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.hospital_id}</p>}
+                onHospitalCreated={onHospitalCreated}
+                placeholder={language === 'en' ? 'Search or type destination hospital...' : 'गंतव्य अस्पताल खोजें या टाइप करें...'}
+                inputClass="w-full p-2.5 bg-gray-50/50 border-2 border-transparent rounded-xl focus:bg-white focus:border-blue-500 transition-all font-bold text-sm"
+              />
+              {errors.hospital_id && <p className="text-red-500 text-[10px] mt-1 font-bold flex items-center gap-1"><span>⚠</span>{errors.hospital_id}</p>}
             </div>
             <div>
-              <label className="block text-[10px] font-black text-gray-400 mb-1 uppercase tracking-widest italic">{labels[language].destinationDistrict}</label>
+              <label className="block text-[10px] font-black text-gray-400 mb-1 uppercase tracking-widest italic">
+                {labels[language].destinationDistrict} <span className="text-red-500">*</span>
+              </label>
               <select
                 name="district_id"
                 value={formData.district_id}
@@ -53,7 +56,7 @@ const HospitalDistrict = ({ formData, handleChange, language, labels, errors, ho
                   <option key={d.district_id} value={d.district_id}>{d.district_name}</option>
                 ))}
               </select>
-              {errors.district_id && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.district_id}</p>}
+              {errors.district_id && <p className="text-red-500 text-[10px] mt-1 font-bold flex items-center gap-1"><span>⚠</span>{errors.district_id}</p>}
             </div>
           </div>
         </div>

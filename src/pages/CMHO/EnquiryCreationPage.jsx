@@ -12,7 +12,7 @@ import Documentation from './components/EnquirySteps/Documentation';
 import HospitalDistrict from './components/EnquirySteps/HospitalDistrict';
 
 const getDocumentTypeOptions = (t) => [
-  { value: 'AYUSHMAN_CARD', label: t.ayushmanCard || 'Ayushman Card' },
+  { value: 'AYUSHMAN_CARD', label: t.ayushmanCardDoc || 'Ayushman Card' },
   { value: 'ID_PROOF', label: t.idProof || 'ID Proof' },
   { value: 'MEDICAL_REPORT', label: t.medicalReport || 'Medical Report' },
   { value: 'OTHER', label: t.other || 'Other' },
@@ -34,8 +34,10 @@ export default function EnquiryCreationPage() {
     labels.hospitalId || 'Hospital & District',
   ];
   const [step, setStep] = useState(0);
+  const userRole = localStorage.getItem('role');
   const [hospitals, setHospitals] = useState([]);
   const [districts, setDistricts] = useState([]);
+  const [successModal, setSuccessModal] = useState(null); // { enquiryId, enquiryCode, docCount, escalated, escalationId, escalationError }
   const [formData, setFormData] = useState({
     patient_name: '',
     identity_card_type: '',
@@ -49,7 +51,7 @@ export default function EnquiryCreationPage() {
     documents: [{ file: null, type: '' }],
     hospital_id: '',
     source_hospital_id: '',
-    district_id: localStorage.getItem('district_id') || '',
+    district_id: userRole === 'ADMIN' ? '' : (localStorage.getItem('district_id') || ''),
     father_spouse_name: '',
     age: '',
     gender: '',
@@ -106,6 +108,21 @@ export default function EnquiryCreationPage() {
     fetchLookups();
   }, [language]);
 
+  // Refresh hospitals list (called after inline hospital creation)
+  const refreshHospitals = async () => {
+    try {
+      const res = await fetch(`${baseUrl}/api/hospitals`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setHospitals(json.data || json);
+      }
+    } catch (err) {
+      console.error('Hospital refresh failed:', err);
+    }
+  };
+
   // Add a new document input
   const addDocumentInput = () => {
     setFormData({
@@ -153,8 +170,8 @@ export default function EnquiryCreationPage() {
           } else if (formData.identity_card_type === 'PM_JAY') {
             if (!formData.ayushman_card_number) {
               errs.ayushman_card_number = `${labels.pmJayId} ${labels.required}`;
-            } else if (!/^\d{9}$/.test(formData.ayushman_card_number)) {
-              errs.ayushman_card_number = labels.idMustBe9Digits || 'PM JAY ID must be exactly 9 digits';
+            } else if (!/^[A-Z0-9]{9}$/i.test(formData.ayushman_card_number)) {
+              errs.ayushman_card_number = labels.idMustBe9Digits || 'PM JAY ID must be exactly 9 alphanumeric characters';
             }
           }
 
@@ -295,8 +312,8 @@ export default function EnquiryCreationPage() {
       } else if (formData.identity_card_type === 'PM_JAY') {
         if (!formData.ayushman_card_number) {
           errs.ayushman_card_number = `${labels.pmJayId} ${labels.required}`;
-        } else if (!/^\d{9}$/.test(formData.ayushman_card_number)) {
-          errs.ayushman_card_number = 'PM JAY ID must be exactly 9 digits';
+        } else if (!/^[A-Z0-9]{9}$/i.test(formData.ayushman_card_number)) {
+          errs.ayushman_card_number = 'PM JAY ID must be exactly 9 alphanumeric characters';
         }
       }
 
@@ -412,6 +429,51 @@ export default function EnquiryCreationPage() {
     const errs = validateForm();
     if (Object.keys(errs).length) {
       setErrors(errs);
+
+      // Find which step has the first error and jump to it
+      const stepFieldMap = [
+        ['patient_name','father_spouse_name','age','gender','address','aadhar_card_number','ayushman_card_number','identity_card_type','air_transport_type','identity_fallback','pan_card_number'],
+        ['contact_name','contact_phone','contact_email'],
+        ['medical_condition','chief_complaint','general_condition','vitals'],
+        ['referring_physician_name','referring_physician_designation','recommending_authority_name','recommending_authority_designation','approval_authority_name','approval_authority_designation'],
+        ['transportation_category','ambulance_contact'],
+        ['documents'],
+        ['hospital_id','source_hospital_id','district_id','escalation_reason','escalated_to'],
+      ];
+      const firstErrStep = stepFieldMap.findIndex(fields =>
+        fields.some(f => errs[f]) || Object.keys(errs).some(k => k.startsWith('document_'))
+      );
+      if (firstErrStep >= 0) setStep(firstErrStep);
+
+      // Build a human-readable summary
+      const fieldLabels = {
+        patient_name: 'Patient Name', father_spouse_name: "Father/Spouse Name", age: 'Age',
+        gender: 'Gender', address: 'Address', aadhar_card_number: 'Aadhaar Card',
+        ayushman_card_number: 'ABHA/PM JAY Number', identity_card_type: 'Identity Card Type',
+        air_transport_type: 'Air Transport Type', contact_name: 'Contact Name',
+        contact_phone: 'Contact Phone', contact_email: 'Contact Email',
+        medical_condition: 'Medical Condition', chief_complaint: 'Chief Complaint',
+        general_condition: 'General Condition', vitals: 'Vitals',
+        referring_physician_name: 'Referring Physician Name',
+        referring_physician_designation: 'Referring Physician Designation',
+        recommending_authority_name: 'Recommending Authority Name',
+        recommending_authority_designation: 'Recommending Authority Designation',
+        approval_authority_name: 'Approval Authority Name',
+        approval_authority_designation: 'Approval Authority Designation',
+        transportation_category: 'Transportation Category',
+        hospital_id: 'Destination Hospital', source_hospital_id: 'Source Hospital',
+        district_id: 'District', documents: 'Documents',
+        escalation_reason: 'Escalation Reason', escalated_to: 'Escalated To',
+      };
+      const missing = Object.keys(errs)
+        .filter(k => !k.startsWith('document_'))
+        .map(k => fieldLabels[k] || k)
+        .slice(0, 5);
+      const docErrs = Object.keys(errs).filter(k => k.startsWith('document_')).length;
+      let msg = missing.join(', ');
+      if (docErrs) msg += (msg ? ', ' : '') + `${docErrs} document issue(s)`;
+      setFormError(`Please fix: ${msg}`);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     setIsSubmitting(true);
@@ -422,25 +484,23 @@ export default function EnquiryCreationPage() {
     const enumFields = ['identity_card_type', 'transportation_category', 'gender', 'vitals', 'air_transport_type'];
 
     Object.keys(formData).forEach((key) => {
-      // Skip file fields as they are handled separately or specially
-      if (key === 'documents' || key === 'emergency_proof') {
-        return;
-      }
-      
+      if (key === 'documents' || key === 'emergency_proof') return;
       if (key === 'bed_availability_confirmed' || key === 'als_ambulance_arranged') {
         payload.append(key, formData[key] ? '1' : '0');
       } else if (enumFields.includes(key) && !formData[key]) {
-        // Don't append empty ENUM values — backend will treat missing as null
-        return;
+        return; // Don't send empty ENUMs
       } else {
         payload.append(key, formData[key]);
       }
     });
 
-    // Handle documents nested array
+    // Handle documents — group by type so multiple files of same type all get appended
+    // Backend multer uses .fields() with maxCount:10 per type, so appending same key multiple times works
     if (formData.documents) {
       formData.documents.forEach((doc) => {
-        if (doc.file && doc.type) payload.append(doc.type, doc.file);
+        if (doc.file && doc.type) {
+          payload.append(doc.type, doc.file, doc.file.name);
+        }
       });
     }
     // IMPORTANT: Use 'userId' (camelCase) to match what's stored in Login.jsx
@@ -500,57 +560,32 @@ export default function EnquiryCreationPage() {
           const escalationData = await escalationRes.json();
           if (!escalationRes.ok) throw new Error(escalationData.message || 'Failed to escalate case');
 
-          alert(`Enquiry #${data.data.enquiry_id} (${data.data.enquiry_code}) created and escalated! Escalation ID: ${escalationData.data.escalation_id}`);
+          setSuccessModal({
+            enquiryId:    data.data.enquiry_id,
+            enquiryCode:  data.data.enquiry_code,
+            docCount:     data.data.documents?.length || 0,
+            escalated:    true,
+            escalationId: escalationData.data.escalation_id,
+          });
         } catch (escalationErr) {
           console.error('Escalation error:', escalationErr);
-          alert(`Enquiry #${data.data.enquiry_id} (${data.data.enquiry_code}) created but escalation failed: ${escalationErr.message}`);
+          setSuccessModal({
+            enquiryId:       data.data.enquiry_id,
+            enquiryCode:     data.data.enquiry_code,
+            docCount:        data.data.documents?.length || 0,
+            escalated:       false,
+            escalationError: escalationErr.message,
+          });
         }
       } else {
-        alert(`Enquiry #${data.data.enquiry_id} (${data.data.enquiry_code}) created! Documents: ${data.data.documents?.length || 0}`);
+        setSuccessModal({
+          enquiryId:   data.data.enquiry_id,
+          enquiryCode: data.data.enquiry_code,
+          docCount:    data.data.documents?.length || 0,
+          escalated:   false,
+        });
       }
 
-      setFormData({
-        patient_name: '',
-        identity_card_type: '',
-        ayushman_card_number: '',
-        aadhar_card_number: '',
-        pan_card_number: '',
-        medical_condition: '',
-        contact_name: '',
-        contact_phone: '',
-        contact_email: '',
-        documents: [{ file: null, type: '' }],
-        hospital_id: '',
-        source_hospital_id: '',
-        district_id: localStorage.getItem('district_id') || '',
-        father_spouse_name: '',
-        age: '',
-        gender: '',
-        address: '',
-        chief_complaint: '',
-        general_condition: '',
-        vitals: '',
-        referring_physician_name: '',
-        referring_physician_designation: '',
-        referral_note: '',
-        transportation_category: '',
-        air_transport_type: '',
-        recommending_authority_name: '',
-        recommending_authority_designation: '',
-        approval_authority_name: '',
-        approval_authority_designation: '',
-        bed_availability_confirmed: false,
-        als_ambulance_arranged: false,
-        ambulance_registration_number: '',
-        ambulance_contact: '',
-        medical_team_note: '',
-        remarks: '',
-        escalate_case: false,
-        escalation_reason: '',
-        escalated_to: '',
-        emergency_proof: null,
-      });
-      setStep(0);
     } catch (err) {
       console.error('Submit error:', err);
       setFormError(`${labels.error}: ${err.message}`);
@@ -577,13 +612,132 @@ export default function EnquiryCreationPage() {
           removeDocumentInput={removeDocumentInput}
         />
       );
-      case 6: return <HospitalDistrict {...commonProps} hospitals={hospitals} districts={districts} />;
+      case 6: return <HospitalDistrict {...commonProps} hospitals={hospitals} districts={districts} onHospitalCreated={refreshHospitals} />;
       default: return null;
     }
   };
 
   return (
     <div className="max-w-7xl mx-auto p-2 md:p-6 bg-gray-50 min-h-screen">
+
+      {/* ── Success Modal ─────────────────────────────────────────────────── */}
+      {successModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+
+            {/* Top accent */}
+            <div className={`h-2 w-full ${successModal.escalationError ? 'bg-orange-400' : successModal.escalated ? 'bg-purple-500' : 'bg-green-500'}`} />
+
+            <div className="p-8 text-center">
+              {/* Icon */}
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5 text-4xl shadow-lg ${
+                successModal.escalationError
+                  ? 'bg-orange-100 shadow-orange-100'
+                  : successModal.escalated
+                    ? 'bg-purple-100 shadow-purple-100'
+                    : 'bg-green-100 shadow-green-100'
+              }`}>
+                {successModal.escalationError ? '⚠️' : successModal.escalated ? '🚨' : '✅'}
+              </div>
+
+              {/* Title */}
+              <h2 className="text-xl font-black text-gray-900 tracking-tight mb-1">
+                {successModal.escalationError
+                  ? 'Enquiry Created'
+                  : successModal.escalated
+                    ? 'Enquiry Created & Escalated'
+                    : 'Enquiry Submitted Successfully'}
+              </h2>
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-6">
+                {successModal.escalationError
+                  ? 'Escalation failed — enquiry is saved'
+                  : 'Your case has been registered in the system'}
+              </p>
+
+              {/* Info pills */}
+              <div className="flex flex-wrap justify-center gap-2 mb-6">
+                <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-black border border-blue-100">
+                  🔢 ID #{successModal.enquiryId}
+                </span>
+                <span className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-xs font-black font-mono border border-gray-200">
+                  {successModal.enquiryCode}
+                </span>
+                {successModal.docCount > 0 && (
+                  <span className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-50 text-teal-700 rounded-full text-xs font-black border border-teal-100">
+                    📎 {successModal.docCount} doc{successModal.docCount > 1 ? 's' : ''}
+                  </span>
+                )}
+                {successModal.escalated && successModal.escalationId && (
+                  <span className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 rounded-full text-xs font-black border border-purple-100">
+                    🚨 Escalation #{successModal.escalationId}
+                  </span>
+                )}
+              </div>
+
+              {/* Escalation error note */}
+              {successModal.escalationError && (
+                <div className="mb-5 p-3 bg-orange-50 border border-orange-200 rounded-xl text-left">
+                  <p className="text-[10px] font-black text-orange-700 uppercase tracking-widest mb-1">Escalation Error</p>
+                  <p className="text-xs text-orange-600">{successModal.escalationError}</p>
+                </div>
+              )}
+
+              {/* What happens next */}
+              <div className="text-left bg-gray-50 rounded-2xl p-4 mb-6 space-y-2">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">What happens next</p>
+                {[
+                  '📧 Notification email sent to authorities',
+                  '📋 Case is now PENDING review',
+                  successModal.escalated ? '🚨 Escalated to senior authority' : '🔄 Collector will review and approve',
+                ].map(item => (
+                  <div key={item} className="flex items-center gap-2">
+                    <span className="text-sm">{item.split(' ')[0]}</span>
+                    <span className="text-xs text-gray-600 font-medium">{item.split(' ').slice(1).join(' ')}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setSuccessModal(null);
+                    setStep(0);
+                    setFormData({
+                      patient_name: '', identity_card_type: '', ayushman_card_number: '',
+                      aadhar_card_number: '', pan_card_number: '', medical_condition: '',
+                      contact_name: '', contact_phone: '', contact_email: '',
+                      documents: [{ file: null, type: '' }],
+                      hospital_id: '', source_hospital_id: '',
+                      district_id: userRole === 'ADMIN' ? '' : (localStorage.getItem('district_id') || ''),
+                      father_spouse_name: '', age: '', gender: '', address: '',
+                      chief_complaint: '', general_condition: '', vitals: '',
+                      referring_physician_name: '', referring_physician_designation: '',
+                      referral_note: '', transportation_category: '', air_transport_type: '',
+                      recommending_authority_name: '', recommending_authority_designation: '',
+                      approval_authority_name: '', approval_authority_designation: '',
+                      bed_availability_confirmed: false, als_ambulance_arranged: false,
+                      ambulance_registration_number: '', ambulance_contact: '',
+                      medical_team_note: '', remarks: '',
+                      escalate_case: false, escalation_reason: '', escalated_to: '',
+                      emergency_proof: null,
+                    });
+                  }}
+                  className="flex-1 py-3 bg-blue-600 text-white font-black text-xs uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-100"
+                >
+                  + New Enquiry
+                </button>
+                <button
+                  onClick={() => setSuccessModal(null)}
+                  className="flex-1 py-3 bg-gray-100 text-gray-700 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-gray-200 transition-all"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Header Section */}
       <div className="mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -653,11 +807,20 @@ export default function EnquiryCreationPage() {
       <div className="bg-white rounded-xl shadow-lg shadow-gray-200/40 border border-gray-100 overflow-hidden">
         {/* Form Error Banner */}
         {formError && (
-          <div className="p-4 bg-red-600 border-b border-red-700 flex items-center justify-center text-white sticky top-0 z-[60] shadow-2xl animate-pulse">
-            <span className="mr-3 text-xl">⚠️</span>
-            <div className="text-center">
-              <p className="text-[12px] font-black uppercase tracking-[0.2em]">{formError}</p>
-              <p className="text-[9px] font-bold opacity-80 uppercase mt-0.5 tracking-widest">Please correct the highlighted fields below to proceed</p>
+          <div className="p-4 bg-red-600 border-b border-red-700 sticky top-0 z-[60] shadow-2xl">
+            <div className="flex items-start gap-3 max-w-3xl mx-auto">
+              <span className="text-2xl mt-0.5 shrink-0">⚠️</span>
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-[0.15em] text-white">
+                  Form has errors — please correct the highlighted fields
+                </p>
+                <p className="text-[10px] text-red-200 mt-1 font-semibold">{formError}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFormError('')}
+                className="ml-auto text-red-200 hover:text-white text-lg leading-none shrink-0"
+              >✕</button>
             </div>
           </div>
         )}

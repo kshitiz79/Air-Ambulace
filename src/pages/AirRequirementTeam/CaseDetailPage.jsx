@@ -196,7 +196,7 @@ const CaseDetailPage = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-6xl mx-auto">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -268,13 +268,15 @@ const CaseDetailPage = () => {
       </div>
 
       {/* Cases Table */}
-      <div className="bg-white rounded-lg shadow-sm">
-        <ThemeTable
-          data={filteredCases}
-          columns={columns}
-          loading={loading}
-          emptyMessage="No cases found"
-        />
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <ThemeTable
+            data={filteredCases}
+            columns={columns}
+            loading={loading}
+            emptyMessage="No cases found"
+          />
+        </div>
       </div>
 
       {/* Enhanced Case Detail Modal */}
@@ -603,9 +605,9 @@ const CaseDetailPage = () => {
                                 </div>
                               </div>
                               <button
-                                onClick={() => {
-                                  const link = document.createElement('a');
-                                  link.href = `${baseUrl}${doc.file_path}`;
+                                  onClick={() => {
+                                    const link = document.createElement('a');
+                                    link.href = doc.file_path.startsWith('http') ? doc.file_path : `${baseUrl}${doc.file_path}`;
                                   link.download = doc.document_type || 'document';
                                   document.body.appendChild(link);
                                   link.click();

@@ -12,7 +12,8 @@ const TransportationLogistics = ({ formData, handleChange, language, labels, err
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    fetch(`${baseUrl}/api/ambulances`, { headers: { Authorization: `Bearer ${token}` } })
+    // Only fetch AVAILABLE ambulances so user can't pick one that's IN_USE or in MAINTENANCE
+    fetch(`${baseUrl}/api/ambulances/available`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(d => setAmbulances(d.data || []))
       .catch(() => {});
@@ -74,6 +75,7 @@ const TransportationLogistics = ({ formData, handleChange, language, labels, err
           <div>
             <label className="block text-[10px] font-black text-gray-500 mb-1 uppercase tracking-widest italic">
               {labels[language].ambulanceRegistrationNumber}
+              <span className="ml-2 text-green-600 normal-case font-bold">({ambulances.length} available)</span>
             </label>
             {ambulances.length > 0 ? (
               <select
@@ -82,7 +84,7 @@ const TransportationLogistics = ({ formData, handleChange, language, labels, err
                 onChange={handleAmbulanceSelect}
                 className="w-full p-2.5 border-2 border-gray-100 rounded-xl focus:border-blue-500 transition-all text-sm font-bold bg-white uppercase"
               >
-                <option value="">-- Select Ambulance --</option>
+                <option value="">-- Select Available Ambulance --</option>
                 {ambulances.map(a => (
                   <option key={a.ambulance_id} value={a.registration_number}>
                     {a.registration_number} — {a.aircraft_type} ({a.base_location})

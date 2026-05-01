@@ -238,25 +238,24 @@ const Login = () => {
   };
 
   return (
-<div
-  className="relative min-h-screen bg-center bg-cover"
-  style={{ backgroundImage: `url('/bg-image2.png')` }}
->
-  <div className="absolute inset-0 bg-black/20"></div>
+    <div
+      className="relative min-h-screen bg-center bg-cover"
+      style={{ backgroundImage: `url('/bg-image2.png')` }}
+    >
+      <div className="absolute inset-0 bg-black/40" />
 
-  {/* Force password change modal — shown before navigating to dashboard */}
-  {pendingRedirect && (
-    <ForceChangePasswordModal
-      onSuccess={() => {
-        setPendingRedirect(null);
-        navigate(pendingRedirect, { replace: true });
-      }}
-    />
-  )}
+      {pendingRedirect && (
+        <ForceChangePasswordModal
+          onSuccess={() => {
+            setPendingRedirect(null);
+            navigate(pendingRedirect, { replace: true });
+          }}
+        />
+      )}
 
-  <div className="relative z-10 flex items-center justify-start h-screen px-10">
-    
-<div className="w-full max-w-xl p-10 px-24 h-[700px] bg-white border border-slate-300  shadow-lg flex flex-col justify-center">
+      {/* Center card — full screen on mobile, fixed box on desktop */}
+      <div className="relative z-10 flex items-center justify-center min-h-screen px-4 py-8 md:justify-start md:px-10">
+        <div className="w-full max-w-sm md:max-w-md bg-white shadow-2xl rounded-2xl md:rounded-none p-8 md:p-12 flex flex-col justify-center">
           
           {step === 1 && (
             <>
@@ -424,13 +423,13 @@ const Login = () => {
   </p>
 
   {/* OTP BOXES */}
-  <div className="flex gap-4 justify-center mt-4">
+  <div className="flex gap-2 justify-center mt-4">
     {[...Array(6)].map((_, i) => (
       <input
         key={i}
         type="text"
         maxLength="1"
-        className="w-14 h-14 border border-gray-300 rounded-lg text-center text-xl focus:ring-2 focus:ring-blue-500 outline-none"
+        className="w-10 h-10 md:w-14 md:h-14 border border-gray-300 rounded-lg text-center text-lg md:text-xl focus:ring-2 focus:ring-blue-500 outline-none"
         value={otp[i]}
         onChange={(e) => {
           const value = e.target.value;

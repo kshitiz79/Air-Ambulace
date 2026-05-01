@@ -1,20 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { FiHome, FiTruck, FiFileText, FiInfo, FiDollarSign, FiActivity, FiUsers, FiBarChart2, FiMessageSquare, FiBell, FiSettings, FiUser, FiList, FiDatabase } from 'react-icons/fi';
-import { FaHospital, FaAmbulance, FaHeartbeat, FaUserMd, FaWhatsapp } from 'react-icons/fa';
+import { FiHome, FiTruck, FiFileText, FiInfo, FiActivity, FiUsers, FiBarChart2, FiMessageSquare, FiBell, FiSettings, FiUser, FiList, FiDatabase, FiMail, FiCheckCircle, FiMenu, FiX } from 'react-icons/fi';
+import { FaHospital, FaAmbulance, FaHeartbeat, FaUserMd, FaWhatsapp, FaPlus } from 'react-icons/fa';
 import Sidebar from '../../components/Global/SideBar';
 import Header from '../../components/Global/Header';
 import { useLanguage } from '../../contexts/LanguageContext';
 
 const AdminDashboard = () => {
   const { t } = useLanguage();
-  
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   const links = [
     { to: '/admin', label: t.dashboard, icon: <FiHome /> },
+    { to: '/admin/enquiry-creation-page', label: t.enquiryCreation, icon: <FaPlus /> },
     { to: '/admin/admin-report-page', label: t.adminReport, icon: <FiTruck /> },
     { to: '/admin/alert-page', label: t.alerts, icon: <FiFileText /> },
     { to: '/admin/export-page', label: t.exportData, icon: <FiInfo /> },
-    { to: '/admin/permission-page', label: t.permissions, icon: <FiDollarSign /> },
     { to: '/admin/system-performance-page', label: t.systemPerformance, icon: <FiActivity /> },
     { to: '/admin/user-management', label: t.userManagement, icon: <FiUsers /> },
     { to: '/admin/enquiry-management', label: t.enquiryManagement, icon: <FiMessageSquare /> },
@@ -27,9 +28,10 @@ const AdminDashboard = () => {
     { to: '/admin/doctor-assignments', label: 'Doctor Assignments', icon: <FaUserMd /> },
     { to: '/admin/ambulance-tracking', label: 'Ambulance Tracking', icon: <FaAmbulance /> },
     { to: '/admin/whatsapp-config', label: 'WhatsApp Alerts', icon: <FaWhatsapp /> },
+    { to: '/admin/email-config', label: 'Email Alerts', icon: <FiMail /> },
+    { to: '/admin/completed-cases', label: 'Completed Cases', icon: <FiCheckCircle /> },
   ];
 
-  // Get real user information from localStorage
   const userName = localStorage.getItem('full_name') || localStorage.getItem('username') || 'Admin User';
   const userRole = t.administrator;
 
@@ -39,39 +41,76 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="flex h-screen font-sans">
-      {/* Sidebar */}
-      <Sidebar
-        navigationLinks={links}
-        title={t.adminDashboard}
-        className="w-72 bg-white shadow-sm p-6 overflow-y-auto border-r border-gray-200"
-        userName={userName}
-        userRole={userRole}
-        onLogout={handleLogout}
-      />
+    <div className="flex h-screen font-sans overflow-hidden">
 
-      {/* Main Content Area */}
-      <div className="flex-1 min-w-0 flex flex-col">
-        {/* Header */}
-        <Header
-          greeting={`Welcome, ${userName}`}
+      {/* ── Mobile overlay ─────────────────────────────────────────────── */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* ── Sidebar — hidden on mobile unless open ─────────────────────── */}
+      <div className={`
+        fixed inset-y-0 left-0 z-50
+        md:relative md:inset-auto md:z-auto md:flex md:flex-col md:h-full
+        transition-transform duration-300 ease-in-out
+        ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
+        <Sidebar
+          navigationLinks={links}
+          title={t.adminDashboard}
           userName={userName}
-          showSearch={true}
-          showNotifications={true}
-          showSettings={true}
-          notificationCount={5}
-        >
+          userRole={userRole}
+          onLogout={handleLogout}
+          onLinkClick={() => setMobileOpen(false)}
+        />
+      </div>
 
-          <button title={t.settings} className="p-2 rounded-full hover:bg-blue-700/50 transition">
-            <FiSettings className="text-xl" />
-          </button>
-          <button title={t.profile} className="p-2 rounded-full hover:bg-blue-700/50 transition">
-            <FiUser className="text-xl" />
-          </button>
-        </Header>
+      {/* ── Main content ───────────────────────────────────────────────── */}
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
 
-        {/* Content */}
-        <main className="flex-grow p-6 bg-gray-50 overflow-y-auto">
+        {/* Mobile top bar */}
+        <div className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200 shadow-sm">
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="p-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all"
+          >
+            <FiMenu size={20} />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center">
+              <FiActivity className="text-white text-sm" />
+            </div>
+            <span className="font-black text-gray-900 text-sm uppercase tracking-tight">Admin</span>
+          </div>
+          <div className="w-9 h-9 bg-gradient-to-br from-green-500 to-emerald-400 rounded-full flex items-center justify-center text-white font-bold text-sm">
+            {userName?.charAt(0).toUpperCase()}
+          </div>
+        </div>
+
+        {/* Desktop header */}
+        <div className="hidden md:block">
+          <Header
+            greeting={`Welcome, ${userName}`}
+            userName={userName}
+            showSearch={true}
+            showNotifications={true}
+            showSettings={true}
+            notificationCount={5}
+          >
+            <button title={t.settings} className="p-2 rounded-full hover:bg-blue-700/50 transition">
+              <FiSettings className="text-xl" />
+            </button>
+            <button title={t.profile} className="p-2 rounded-full hover:bg-blue-700/50 transition">
+              <FiUser className="text-xl" />
+            </button>
+          </Header>
+        </div>
+
+        {/* Page content */}
+        <main className="flex-grow overflow-y-auto bg-gray-50 p-3 md:p-6">
           <Outlet />
         </main>
       </div>

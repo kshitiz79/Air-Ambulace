@@ -207,7 +207,7 @@ const DMECaseFileView = () => {
             {enquiry.documents?.length > 0 ? enquiry.documents.map((doc) => (
               <div key={doc.document_id} className="bg-teal-50 p-4 rounded-xl shadow-sm hover:shadow-md transition">
                 <p className="font-medium text-teal-700 mb-3">{doc.document_type}</p>
-                <a href={`${baseUrl}${doc.file_path}`} target="_blank" rel="noopener noreferrer"
+                <a href={doc.file_path.startsWith('http') ? doc.file_path : `${baseUrl}${doc.file_path}`} target="_blank" rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition">
                   <FiDownload className="h-5 w-5" /> {t.download}
                 </a>

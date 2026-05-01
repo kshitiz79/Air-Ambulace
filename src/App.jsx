@@ -59,6 +59,7 @@ import TrackerPage from "./pages/AirRequirementTeam/TrackerPage";
 import InvoiceGenerationPage from "./pages/AirRequirementTeam/InvoiceGenerationPage";
 import CaseCloseFile from "./pages/AirRequirementTeam/CaseCloseFile";
 import AirTeamProfile from "./pages/AirRequirementTeam/Profile";
+import CrewManagementPage from "./pages/AirRequirementTeam/CrewManagementPage";
 
 import AdminPanel from "./dashboard/AdminPanel/AdminPanel";
 import AdminDashboard from "./pages/AdminPanel/AdminDashboard";
@@ -66,7 +67,6 @@ import AdminReportsPage from "./pages/AdminPanel/AdminReportsPage";
 import AlertsPage from "./pages/AdminPanel/AlertsPage";
 import DistrictDataPage from "./pages/AdminPanel/DistrictDataPage";
 import ExportPage from "./pages/AdminPanel/ExportPage";
-import PermissionsManagementPage from "./pages/AdminPanel/PermissionsManagementPage";
 import SystemPerformancePage from "./pages/AdminPanel/SystemPerformancePage";
 import UserManagementPage from "./pages/AdminPanel/UserManagementPage";
 import EnquiryManagementPage from "./pages/AdminPanel/EnquiryManagementPage";
@@ -88,6 +88,8 @@ import Login from "./pages/Auth/Login";
 // import HomePage from "./pages/HomePage";
 import Signup from "./pages/Auth/Signup";
 import CreateHospital from "./pages/AdminPanel/Hospital";
+import EmailConfigPage from "./pages/AdminPanel/EmailConfigPage";
+import CompletedCasesPage from "./pages/AdminPanel/CompletedCasesPage";
 import BeneficiaryEditPageList from "./pages/CMHO/BeneficiaryEditPageList";
 import BeneficiaryDetailsEditPage from "./pages/CMHO/BeneficiaryDetailsEditPage";
 import BeneficiaryDetailPage from "./pages/CMHO/BeneficiaryDetailPage";
@@ -145,7 +147,7 @@ function App() {
 
     if (!token) {
       console.log('Redirecting to /sign-in: No token');
-      return <Navigate to="/sign-in" />;
+      return <Navigate to="/sign-in" replace />;
     }
 
     if (isTokenExpired(token)) {
@@ -153,14 +155,14 @@ function App() {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('role');
-      return <Navigate to="/sign-in?expired=true" />;
+      return <Navigate to="/sign-in?expired=true" replace />;
     }
 
     if (roleRequired) {
       const allowedRoles = Array.isArray(roleRequired) ? roleRequired : [roleRequired];
       if (!allowedRoles.includes(role)) {
         console.log(`Redirecting to /: Role mismatch (stored: ${role}, allowed: ${allowedRoles})`);
-        return <Navigate to="/" />;
+        return <Navigate to="/" replace />;
       }
     }
 
@@ -209,8 +211,8 @@ function App() {
         </Route>
 
         {/* Standalone CMHO routes */}
-        <Route path="/beneficiary-detail/:id" element={<PrivateRoute roleRequired="CMHO"><BeneficiaryDetailPage /></PrivateRoute>} />
-        <Route path="/beneficiary-edit/:id" element={<PrivateRoute roleRequired="CMHO"><BeneficiaryDetailsEditPage /></PrivateRoute>} />
+        <Route path="/beneficiary-detail/:id" element={<PrivateRoute roleRequired={["CMHO", "ADMIN"]}><BeneficiaryDetailPage /></PrivateRoute>} />
+        <Route path="/beneficiary-edit/:id" element={<PrivateRoute roleRequired={["CMHO", "ADMIN"]}><BeneficiaryDetailsEditPage /></PrivateRoute>} />
 
 
 
@@ -250,14 +252,15 @@ function App() {
 
         <Route path="/admin" element={<PrivateRoute roleRequired="ADMIN"><AdminPanel /></PrivateRoute>}>
           <Route index element={<AdminDashboard />} />
+          <Route path="enquiry-creation-page" element={<EnquiryCreationPage />} />
           <Route path="admin-report-page" element={<AdminReportsPage />} />
           <Route path="alert-page" element={<AlertsPage />} />
           <Route path="district-data-page" element={<DistrictDataPage />} />
           <Route path="export-page" element={<ExportPage />} />
-          <Route path="permission-page" element={<PermissionsManagementPage />} />
           <Route path="system-performance-page" element={<SystemPerformancePage />} />
           <Route path="user-management" element={<UserManagementPage />} />
           <Route path="enquiry-management" element={<EnquiryManagementPage />} />
+          <Route path="enquiry-detail/:id" element={<BeneficiaryDetailPage />} />
           <Route path="hospital-management" element={<CreateHospital />} />
           <Route path="all-queries" element={<AllQueryPage />} />
           <Route path="referral-authority-management" element={<ReferralAuthorityManagement />} />
@@ -266,6 +269,8 @@ function App() {
           <Route path="doctor-assignments" element={<DoctorAssignmentPage />} />
           <Route path="ambulance-tracking" element={<AmbulanceAssignmentTracking />} />
           <Route path="whatsapp-config" element={<WhatsAppConfigPage />} />
+          <Route path="email-config" element={<EmailConfigPage />} />
+          <Route path="completed-cases" element={<CompletedCasesPage />} />
           <Route path="notification" element={<NotificationPage />} />
         </Route>
 
@@ -280,6 +285,7 @@ function App() {
           <Route path="case-close-file" element={<CaseCloseFile />} />
           <Route path="notification" element={<NotificationPage />} />
           <Route path="profile" element={<AirTeamProfile />} />
+          <Route path="crew-management" element={<CrewManagementPage />} />
         </Route>
 
         <Route path="/dme-dashboard" element={<PrivateRoute roleRequired="DME"><DmePanel /></PrivateRoute>}>

@@ -64,7 +64,7 @@ const enquiryForm = {
     // Hospital & District
     hospitalId: 'Destination Hospital',
     sourceHospitalId: 'Source Hospital',
-    destinationDistrict: 'Destination District',
+    destinationDistrict: 'Enquiry District (Case City)',
 
     // Referral
     referringPhysicianName: 'Referring Physician Name',
@@ -133,6 +133,20 @@ const enquiryForm = {
     escalationReasonRequired: 'Escalation Reason is required when escalating',
     documentTypeRequired: 'Document type is required for each uploaded file',
     allowedFileTypes: 'Only JPEG, PNG, or PDF files are allowed',
+
+    // Extra UI headings
+    personalInfo: 'Personal Information',
+    contactDetails: 'Contact Details',
+    hospitalDetails: 'Hospital Details',
+    medicalInfo: 'Medical Information',
+    timeline: 'Timeline',
+    created: 'Created At',
+    lastUpdated: 'Last Updated',
+    years: 'Years',
+    ambulanceAssignment: 'Ambulance Assignment',
+    referralTransportDetails: 'Referral & Transport Details',
+    editDetails: 'Edit Details',
+    backToDashboard: 'Back to Dashboard',
   },
   hi: {
     title: 'पूछताछ बनाएं',
@@ -194,7 +208,7 @@ const enquiryForm = {
 
     hospitalId: 'गंतव्य अस्पताल',
     sourceHospitalId: 'स्रोत अस्पताल',
-    destinationDistrict: 'गंतव्य जिला',
+    destinationDistrict: 'पूछताछ जिला (केस शहर)',
 
     referringPhysicianName: 'रेफर करने वाले चिकित्सक का नाम',
     referringPhysicianDesignation: 'रेफर करने वाले चिकित्सक का पद',
@@ -257,6 +271,20 @@ const enquiryForm = {
     escalationReasonRequired: 'एस्केलेशन के समय एस्केलेशन का कारण आवश्यक है',
     documentTypeRequired: 'प्रत्येक अपलोड की गई फ़ाइल के लिए दस्तावेज़ प्रकार आवश्यक है',
     allowedFileTypes: 'केवल JPEG, PNG या PDF फ़ाइलों की अनुमति है',
+
+    // Extra UI headings
+    personalInfo: 'व्यक्तिगत जानकारी',
+    contactDetails: 'संपर्क विवरण',
+    hospitalDetails: 'अस्पताल का विवरण',
+    medicalInfo: 'चिकित्सा जानकारी',
+    timeline: 'समय रेखा',
+    created: 'बनाया गया',
+    lastUpdated: 'अंतिम अद्यतन',
+    years: 'वर्ष',
+    ambulanceAssignment: 'एम्बुलेंस आवंटन',
+    referralTransportDetails: 'रेफरल और परिवहन विवरण',
+    editDetails: 'विवरण संपादित करें',
+    backToDashboard: 'डैशबोर्ड पर वापस जाएं',
   },
 };
 

@@ -204,6 +204,10 @@ const AmbulanceManagementPage = () => {
         color: 'bg-blue-100 text-blue-800',
         icon: <FiActivity size={14} />
       },
+      'RETURNING': {
+        color: 'bg-purple-100 text-purple-800',
+        icon: <FiActivity size={14} />
+      },
       'MAINTENANCE': {
         color: 'bg-yellow-100 text-yellow-800',
         icon: <FiTool size={14} />
@@ -213,8 +217,8 @@ const AmbulanceManagementPage = () => {
         icon: <FiXCircle size={14} />
       }
     };
-    
-    const config = statusConfig[status];
+
+    const config = statusConfig[status] || { color: 'bg-gray-100 text-gray-700', icon: null };
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${config.color}`}>
         {config.icon}

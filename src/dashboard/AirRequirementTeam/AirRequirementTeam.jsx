@@ -28,6 +28,7 @@ const AirRequirementTeam = () => {
     { to: '/air-team/post-operation-page', label: t.operationReports, icon: <FiActivity /> },
     { to: '/air-team/ambulance-management-page', label: t.ambulanceManagement, icon: <FaPlane /> },
     { to: '/air-team/tracker-page', label: t.flightTracker, icon: <FiMapPin /> },
+    { to: '/air-team/crew-management', label: t.crewManagement, icon: <FiUser /> },
     { to: '/air-team/invoice-generation-page', label: t.invoiceManagement, icon: <FiDollarSign /> },
     { to: '/air-team/case-close-file', label: t.caseClosure, icon: <FiFileText /> },
     { to: '/air-team/profile', label: t.myProfile, icon: <FiUser /> },

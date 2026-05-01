@@ -675,158 +675,176 @@ const CreateHospital = () => {
             <h2 className={`text-xl font-semibold ${styles.primaryText}`}>
               {editingHospital ? 'Edit Hospital' : 'Add New Hospital'}
             </h2>
+            <p className={`text-sm ${styles.secondaryText} mt-1`}>
+              Only Hospital Name is required. Expand "More Details" to add district and other info.
+            </p>
           </div>
           <div className="p-6">
             <form onSubmit={editingHospital ? handleUpdate : handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
-                    Hospital Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="hospital_name"
-                    value={formData.hospital_name}
-                    onChange={handleChange}
-                    required
-                    className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
-                    placeholder="Enter hospital name"
-                  />
-                </div>
-
-                <div>
-                  <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
-                    District *
-                  </label>
-                  <select
-                    name="district_id"
-                    value={formData.district_id}
-                    onChange={handleChange}
-                    required
-                    className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
-                  >
-                    <option value="">Select District</option>
-                    {districts.map((district) => (
-                      <option key={district.district_id} value={district.district_id}>
-                        {district.district_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
-                    Hospital Type
-                  </label>
-                  <select
-                    name="hospital_type"
-                    value={formData.hospital_type}
-                    onChange={handleChange}
-                    className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
-                  >
-                    <option value="PRIVATE">Private</option>
-                    <option value="GOVERNMENT">Government</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
-                    Registration Number
-                  </label>
-                  <input
-                    type="text"
-                    name="registration_number"
-                    value={formData.registration_number}
-                    onChange={handleChange}
-                    className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
-                    placeholder="Enter registration number"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
-                    Address
-                  </label>
-                  <textarea
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    rows={3}
-                    className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
-                    placeholder="Enter hospital address"
-                  />
-                </div>
-
-                <div>
-                  <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
-                    Hospital Phone
-                  </label>
-                  <input
-                    type="text"
-                    name="contact_phone"
-                    value={formData.contact_phone}
-                    onChange={handleChange}
-                    className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
-                    placeholder="Enter phone number"
-                  />
-                </div>
-
-                <div>
-                  <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
-                    Hospital Email
-                  </label>
-                  <input
-                    type="email"
-                    name="contact_email"
-                    value={formData.contact_email}
-                    onChange={handleChange}
-                    className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
-                    placeholder="Enter email address"
-                  />
-                </div>
-
-                <div>
-                  <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
-                    Contact Person Name
-                  </label>
-                  <input
-                    type="text"
-                    name="contact_person_name"
-                    value={formData.contact_person_name}
-                    onChange={handleChange}
-                    className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
-                    placeholder="Enter contact person name"
-                  />
-                </div>
-
-                <div>
-                  <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
-                    Contact Person Phone
-                  </label>
-                  <input
-                    type="text"
-                    name="contact_person_phone"
-                    value={formData.contact_person_phone}
-                    onChange={handleChange}
-                    className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
-                    placeholder="Enter contact person phone"
-                  />
-                </div>
-
-                <div>
-                  <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
-                    Contact Person Email
-                  </label>
-                  <input
-                    type="email"
-                    name="contact_person_email"
-                    value={formData.contact_person_email}
-                    onChange={handleChange}
-                    className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
-                    placeholder="Enter contact person email"
-                  />
-                </div>
+              {/* Required Field — only name */}
+              <div>
+                <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
+                  Hospital Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="hospital_name"
+                  value={formData.hospital_name}
+                  onChange={handleChange}
+                  required
+                  className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
+                  placeholder="Enter hospital name"
+                />
               </div>
+
+              {/* Optional Fields — collapsible */}
+              <details className="group border border-gray-200 rounded-lg overflow-hidden">
+                <summary className="flex items-center justify-between px-5 py-3 bg-gray-50 cursor-pointer hover:bg-gray-100 transition select-none">
+                  <span className={`text-sm font-semibold ${styles.secondaryText} uppercase tracking-wider`}>
+                    More Details (Optional)
+                  </span>
+                  <span className="text-gray-400 group-open:rotate-180 transition-transform text-xs">▼</span>
+                </summary>
+                <div className="p-5 space-y-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                      <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
+                        District
+                      </label>
+                      <select
+                        name="district_id"
+                        value={formData.district_id}
+                        onChange={handleChange}
+                        className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
+                      >
+                        <option value="">Select District</option>
+                        {districts.map((district) => (
+                          <option key={district.district_id} value={district.district_id}>
+                            {district.district_name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
+                        Hospital Type
+                      </label>
+                      <select
+                        name="hospital_type"
+                        value={formData.hospital_type}
+                        onChange={handleChange}
+                        className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
+                      >
+                        <option value="PRIVATE">Private</option>
+                        <option value="GOVERNMENT">Government</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
+                        Registration Number
+                      </label>
+                      <input
+                        type="text"
+                        name="registration_number"
+                        value={formData.registration_number}
+                        onChange={handleChange}
+                        className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
+                        placeholder="Enter registration number"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
+                        Address
+                      </label>
+                      <textarea
+                        name="address"
+                        value={formData.address}
+                        onChange={handleChange}
+                        rows={2}
+                        className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
+                        placeholder="Enter hospital address"
+                      />
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
+                        Hospital Phone
+                      </label>
+                      <input
+                        type="text"
+                        name="contact_phone"
+                        value={formData.contact_phone}
+                        onChange={handleChange}
+                        className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
+                        placeholder="Enter phone number"
+                      />
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
+                        Hospital Email
+                      </label>
+                      <input
+                        type="email"
+                        name="contact_email"
+                        value={formData.contact_email}
+                        onChange={handleChange}
+                        className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
+                        placeholder="Enter email address"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Contact Person sub-section */}
+                  <div className="border-t border-gray-100 pt-4">
+                    <p className={`text-xs font-bold uppercase tracking-wider ${styles.secondaryText} mb-3`}>Contact Person</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                      <div>
+                        <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
+                          Name
+                        </label>
+                        <input
+                          type="text"
+                          name="contact_person_name"
+                          value={formData.contact_person_name}
+                          onChange={handleChange}
+                          className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
+                          placeholder="Contact person name"
+                        />
+                      </div>
+                      <div>
+                        <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
+                          Phone
+                        </label>
+                        <input
+                          type="text"
+                          name="contact_person_phone"
+                          value={formData.contact_person_phone}
+                          onChange={handleChange}
+                          className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
+                          placeholder="Contact person phone"
+                        />
+                      </div>
+                      <div>
+                        <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          name="contact_person_email"
+                          value={formData.contact_person_email}
+                          onChange={handleChange}
+                          className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
+                          placeholder="Contact person email"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </details>
 
               <div className="flex justify-end space-x-4">
                 {editingHospital && (

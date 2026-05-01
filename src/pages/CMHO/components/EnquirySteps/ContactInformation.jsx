@@ -15,20 +15,24 @@ const ContactInformation = ({ formData, handleChange, language, labels, errors }
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-5 rounded-2xl border border-gray-100 shadow-lg shadow-gray-50">
         <div className="md:col-span-2">
-          <label className="block text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest italic">{labels[language].contactName}</label>
+          <label className="block text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest italic">
+            {labels[language].contactName} <span className="text-red-500">*</span>
+          </label>
           <input
             type="text"
             name="contact_name"
             value={formData.contact_name}
             onChange={rc}
             {...langProps(language)}
-            className="w-full p-3.5 border-2 border-gray-50 rounded-xl bg-gray-50/50 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50/50 transition-all text-base font-bold"
+            className={`w-full p-3.5 border-2 rounded-xl bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-blue-50/50 transition-all text-base font-bold ${errors.contact_name ? 'border-red-300 bg-red-50/30' : 'border-gray-50 focus:border-blue-500'}`}
             placeholder={language === 'hi' ? 'संपर्क व्यक्ति का नाम' : 'Primary Point of Contact'}
           />
-          {errors.contact_name && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.contact_name}</p>}
+          {errors.contact_name && <p className="text-red-500 text-[10px] mt-1 font-bold flex items-center gap-1"><span>⚠</span>{errors.contact_name}</p>}
         </div>
         <div>
-          <label className="block text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest italic">{labels[language].contactPhone}</label>
+          <label className="block text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest italic">
+            {labels[language].contactPhone} <span className="text-red-500">*</span>
+          </label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-gray-400 text-sm italic">+91</span>
             <input
@@ -37,22 +41,24 @@ const ContactInformation = ({ formData, handleChange, language, labels, errors }
               value={formData.contact_phone}
               onChange={handleChange}
               maxLength={10}
-              className="w-full p-3 pl-14 border-2 border-gray-50 rounded-xl bg-gray-50/50 focus:bg-white focus:border-blue-500 transition-all text-base font-bold"
+              className={`w-full p-3 pl-14 border-2 rounded-xl bg-gray-50/50 focus:bg-white focus:border-blue-500 transition-all text-base font-bold ${errors.contact_phone ? 'border-red-300 bg-red-50/30' : 'border-gray-50'}`}
             />
           </div>
-          {errors.contact_phone && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.contact_phone}</p>}
+          {errors.contact_phone && <p className="text-red-500 text-[10px] mt-1 font-bold flex items-center gap-1"><span>⚠</span>{errors.contact_phone}</p>}
         </div>
         <div>
-          <label className="block text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest italic">{labels[language].contactEmail}</label>
+          <label className="block text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest italic">
+            {labels[language].contactEmail} <span className="text-red-500">*</span>
+          </label>
           <input
             type="email"
             name="contact_email"
             value={formData.contact_email}
             onChange={handleChange}
-            className="w-full p-3 border-2 border-gray-50 rounded-xl bg-gray-50/50 focus:bg-white focus:border-blue-500 transition-all font-semibold text-sm"
+            className={`w-full p-3 border-2 rounded-xl bg-gray-50/50 focus:bg-white focus:border-blue-500 transition-all font-semibold text-sm ${errors.contact_email ? 'border-red-300 bg-red-50/30' : 'border-gray-50'}`}
             placeholder="contact@example.com"
           />
-          {errors.contact_email && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.contact_email}</p>}
+          {errors.contact_email && <p className="text-red-500 text-[10px] mt-1 font-bold flex items-center gap-1"><span>⚠</span>{errors.contact_email}</p>}
         </div>
       </div>
     </div>

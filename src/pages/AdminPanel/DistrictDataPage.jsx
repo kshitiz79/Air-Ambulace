@@ -28,6 +28,45 @@ import { Bar, Doughnut } from 'react-chartjs-2';
 import { useThemeStyles } from '../../hooks/useThemeStyles';
 import baseUrl from '../../baseUrl/baseUrl';
 
+const STATE_DIVISIONS = {
+  'Andhra Pradesh': ['Coastal Andhra', 'Rayalaseema'],
+  'Arunachal Pradesh': ['East', 'West', 'Central'],
+  'Assam': ['North Assam', 'Lower Assam', 'Upper Assam', 'Central Assam', 'Hills & Barak Valley'],
+  'Bihar': ['Patna', 'Tirhut', 'Saran', 'Darbhanga', 'Kosi', 'Purnia', 'Bhagalpur', 'Munger', 'Magadh'],
+  'Chhattisgarh': ['Raipur', 'Bilaspur', 'Durg', 'Bastar', 'Surguja'],
+  'Goa': ['North Goa', 'South Goa'],
+  'Gujarat': ['Ahmedabad', 'Gandhinagar', 'Vadodara', 'Surat', 'Rajkot', 'Bhavnagar'],
+  'Haryana': ['Ambala', 'Faridabad', 'Gurugram', 'Hisar', 'Karnal', 'Rohtak'],
+  'Himachal Pradesh': ['Kangra', 'Mandi', 'Shimla'],
+  'Jharkhand': ['Palamu', 'North Chotanagpur', 'South Chotanagpur', 'Kolhan', 'Santhal Pargana'],
+  'Karnataka': ['Belgaum', 'Bangalore', 'Gulbarga', 'Mysore'],
+  'Kerala': ['North Kerala', 'Central Kerala', 'South Kerala'],
+  'Madhya Pradesh': ['Bhopal', 'Chambal', 'Gwalior', 'Indore', 'Jabalpur', 'Narmadapuram', 'Rewa', 'Sagar', 'Shahdol', 'Ujjain'],
+  'Maharashtra': ['Amravati', 'Aurangabad', 'Konkan', 'Nagpur', 'Nashik', 'Pune'],
+  'Manipur': ['Inner Manipur', 'Outer Manipur'],
+  'Meghalaya': ['Jaintia Hills', 'Khasi Hills', 'Garo Hills'],
+  'Mizoram': ['Northern', 'Southern'],
+  'Nagaland': ['Kohima', 'Mokokchung', 'Tuensang'],
+  'Odisha': ['Central', 'Northern', 'Southern'],
+  'Punjab': ['Patiala', 'Jalandhar', 'Ferozepur', 'Faridkot', 'Ropar'],
+  'Rajasthan': ['Ajmer', 'Bharatpur', 'Bikaner', 'Jaipur', 'Jodhpur', 'Kota', 'Udaipur'],
+  'Sikkim': ['North Sikkim', 'South Sikkim', 'East Sikkim', 'West Sikkim'],
+  'Tamil Nadu': ['North Tamil Nadu', 'West Tamil Nadu', 'South Tamil Nadu', 'Cauvery Delta'],
+  'Telangana': ['Hyderabad', 'Warangal', 'Nizamabad', 'Khammam'],
+  'Tripura': ['West Tripura', 'South Tripura', 'North Tripura', 'Dhalai'],
+  'Uttar Pradesh': ['Agra', 'Aligarh', 'Ayodhya', 'Azamgarh', 'Bareilly', 'Basti', 'Chitrakoot', 'Devipatan', 'Gorakhpur', 'Jhansi', 'Kanpur', 'Lucknow', 'Meerut', 'Mirzapur', 'Moradabad', 'Prayagraj', 'Saharanpur', 'Varanasi'],
+  'Uttarakhand': ['Garhwal', 'Kumaon'],
+  'West Bengal': ['Presidency', 'Burdwan', 'Jalpaiguri', 'Malda', 'Medinipur'],
+  'Andaman and Nicobar Islands': ['Andaman', 'Nicobar'],
+  'Chandigarh': ['Chandigarh'],
+  'Dadra and Nagar Haveli and Daman and Diu': ['Dadra and Nagar Haveli', 'Daman', 'Diu'],
+  'Lakshadweep': ['Lakshadweep'],
+  'Delhi': ['North Delhi', 'South Delhi', 'East Delhi', 'West Delhi', 'Central Delhi', 'New Delhi'],
+  'Puducherry': ['Puducherry', 'Karaikal', 'Mahe', 'Yanam'],
+  'Jammu and Kashmir': ['Jammu', 'Kashmir'],
+  'Ladakh': ['Leh', 'Kargil']
+};
+
 const CreateDistrict = () => {
   const styles = useThemeStyles();
   const [formData, setFormData] = useState({
@@ -178,7 +217,16 @@ const CreateDistrict = () => {
   };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === 'state') {
+      setFormData({ 
+        ...formData, 
+        state: value,
+        division: '' // Reset division when state changes
+      });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -778,15 +826,18 @@ const CreateDistrict = () => {
                   <label className={`block text-sm font-medium ${styles.secondaryText} mb-2`}>
                     State *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="state"
                     value={formData.state}
                     onChange={handleChange}
                     required
                     className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
-                    placeholder="Enter state name"
-                  />
+                  >
+                    <option value="">-- Select State --</option>
+                    {Object.keys(STATE_DIVISIONS).sort().map(state => (
+                      <option key={state} value={state}>{state}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -800,12 +851,13 @@ const CreateDistrict = () => {
                     className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${styles.inputBackground}`}
                   >
                     <option value="">-- Select Division --</option>
-                    {[
-                      'Bhopal', 'Indore', 'Gwalior', 'Jabalpur', 'Rewa',
-                      'Sagar', 'Ujjain', 'Chambal', 'Narmadapuram', 'Shahdol',
-                    ].map(div => (
-                      <option key={div} value={div}>{div}</option>
-                    ))}
+                    {formData.state && STATE_DIVISIONS[formData.state] ? (
+                      STATE_DIVISIONS[formData.state].map(div => (
+                        <option key={div} value={div}>{div}</option>
+                      ))
+                    ) : (
+                      <option disabled>Please select a state first</option>
+                    )}
                   </select>
                   <p className={`text-xs mt-1 ${styles.secondaryText}`}>Each division contains 5–6 districts</p>
                 </div>

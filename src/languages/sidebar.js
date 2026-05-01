@@ -36,6 +36,7 @@ const sidebar = {
     flightTracker: 'Flight Tracker',
     invoiceManagement: 'Invoice Management',
     caseClosure: 'Case Closure',
+    crewManagement: 'Crew Management',
 
     // IT Team
     systemLogs: 'System Logs',
@@ -97,6 +98,7 @@ const sidebar = {
     flightTracker: 'उड़ान ट्रैकर',
     invoiceManagement: 'बीजक प्रबंधन',
     caseClosure: 'केस बंद करना',
+    crewManagement: 'चालक दल प्रबंधन',
 
     systemLogs: 'सिस्टम लॉग',
     database: 'डेटाबेस',

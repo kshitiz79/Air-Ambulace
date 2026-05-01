@@ -72,70 +72,80 @@ const PatientDetails = ({ formData, handleChange, language, labels, errors }) =>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
           <div className="md:col-span-2">
-            <label className="block text-[10px] font-black text-gray-400 mb-1.5 uppercase tracking-widest italic">{labels[language].patientName}</label>
+            <label className="block text-[10px] font-black text-gray-400 mb-1.5 uppercase tracking-widest italic">
+            {labels[language].patientName} <span className="text-red-500">*</span>
+          </label>
             <input
               type="text"
               name="patient_name"
               value={formData.patient_name}
               onChange={rc}
               {...langProps(language)}
-              className="w-full p-3.5 border-2 border-gray-50 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-50/50 transition-all text-base font-bold text-gray-800 bg-gray-50/30"
+              className={`w-full p-3.5 border-2 rounded-xl focus:ring-2 focus:ring-blue-50/50 transition-all text-base font-bold text-gray-800 bg-gray-50/30 ${errors.patient_name ? 'border-red-300 bg-red-50/30 focus:border-red-400' : 'border-gray-50 focus:border-blue-500'}`}
               placeholder={language === 'hi' ? 'जैसे राहुल शर्मा' : 'e.g. Rahul Sharma'}
             />
-            {errors.patient_name && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.patient_name}</p>}
+            {errors.patient_name && <p className="text-red-500 text-[10px] mt-1 font-bold flex items-center gap-1"><span>⚠</span>{errors.patient_name}</p>}
           </div>
           <div>
-            <label className="block text-[10px] font-black text-gray-400 mb-1.5 uppercase tracking-widest italic">{labels[language].fatherSpouseName}</label>
+            <label className="block text-[10px] font-black text-gray-400 mb-1.5 uppercase tracking-widest italic">
+            {labels[language].fatherSpouseName} <span className="text-red-500">*</span>
+          </label>
             <input
               type="text"
               name="father_spouse_name"
               value={formData.father_spouse_name}
               onChange={rc}
               {...langProps(language)}
-              className="w-full p-3 border-gray-100 border-2 rounded-xl focus:border-blue-500 focus:bg-blue-50/10 transition-all font-semibold text-sm"
+              className={`w-full p-3 border-2 rounded-xl focus:border-blue-500 focus:bg-blue-50/10 transition-all font-semibold text-sm ${errors.father_spouse_name ? 'border-red-300 bg-red-50/30' : 'border-gray-100'}`}
             />
-            {errors.father_spouse_name && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.father_spouse_name}</p>}
+            {errors.father_spouse_name && <p className="text-red-500 text-[10px] mt-1 font-bold flex items-center gap-1"><span>⚠</span>{errors.father_spouse_name}</p>}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-[10px] font-black text-gray-400 mb-1.5 uppercase tracking-widest italic">{labels[language].age}</label>
+              <label className="block text-[10px] font-black text-gray-400 mb-1.5 uppercase tracking-widest italic">
+                {labels[language].age} <span className="text-red-500">*</span>
+              </label>
               <input
                 type="number"
                 name="age"
                 value={formData.age}
                 onChange={handleChange}
-                className="w-full p-3 border-gray-100 border-2 rounded-xl focus:border-blue-500 transition-all font-bold text-sm"
+                className={`w-full p-3 border-2 rounded-xl focus:border-blue-500 transition-all font-bold text-sm ${errors.age ? 'border-red-300 bg-red-50/30' : 'border-gray-100'}`}
               />
-              {errors.age && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.age}</p>}
+              {errors.age && <p className="text-red-500 text-[10px] mt-1 font-bold flex items-center gap-1"><span>⚠</span>{errors.age}</p>}
             </div>
             <div>
-              <label className="block text-[10px] font-black text-gray-400 mb-1.5 uppercase tracking-widest italic">{labels[language].gender}</label>
+              <label className="block text-[10px] font-black text-gray-400 mb-1.5 uppercase tracking-widest italic">
+                {labels[language].gender} <span className="text-red-500">*</span>
+              </label>
               <select
                 name="gender"
                 value={formData.gender}
                 onChange={handleChange}
-                className="w-full p-3 border-gray-100 border-2 rounded-xl focus:border-blue-500 transition-all font-bold bg-white text-sm"
+                className={`w-full p-3 border-2 rounded-xl focus:border-blue-500 transition-all font-bold bg-white text-sm ${errors.gender ? 'border-red-300 bg-red-50/30' : 'border-gray-100'}`}
               >
                 <option value="">{language === 'en' ? 'Choose Gender...' : 'लिंग चुनें...'}</option>
                 <option value="Male">{labels[language].male}</option>
                 <option value="Female">{labels[language].female}</option>
                 <option value="Other">{labels[language].other}</option>
               </select>
-              {errors.gender && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.gender}</p>}
+              {errors.gender && <p className="text-red-500 text-[10px] mt-1 font-bold flex items-center gap-1"><span>⚠</span>{errors.gender}</p>}
             </div>
           </div>
           <div className="md:col-span-2">
-            <label className="block text-[10px] font-black text-gray-400 mb-1.5 uppercase tracking-widest italic">{labels[language].address}</label>
+            <label className="block text-[10px] font-black text-gray-400 mb-1.5 uppercase tracking-widest italic">
+            {labels[language].address} <span className="text-red-500">*</span>
+          </label>
             <textarea
               name="address"
               value={formData.address}
               onChange={rc}
               rows={2}
               {...langProps(language)}
-              className="w-full p-3 border-gray-100 border-2 rounded-xl focus:border-blue-500 transition-all font-medium text-sm"
+              className={`w-full p-3 border-2 rounded-xl focus:border-blue-500 transition-all font-medium text-sm ${errors.address ? 'border-red-300 bg-red-50/30' : 'border-gray-100'}`}
               placeholder={language === 'hi' ? 'पूरा आवासीय पता...' : 'Full residential address...'}
             />
-            {errors.address && <p className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.address}</p>}
+            {errors.address && <p className="text-red-500 text-[10px] mt-1 font-bold flex items-center gap-1"><span>⚠</span>{errors.address}</p>}
           </div>
         </div>
       </div>
@@ -210,7 +220,7 @@ const PatientDetails = ({ formData, handleChange, language, labels, errors }) =>
                       name="ayushman_card_number"
                       value={formData.ayushman_card_number}
                       onChange={handleChange}
-                      placeholder={formData.identity_card_type === 'ABHA' ? '14-digit ABHA ID' : '9-digit PM JAY ID'}
+                      placeholder={formData.identity_card_type === 'ABHA' ? '14-digit ABHA ID' : '9-char PM JAY ID (e.g. AB1234567)'}
                       maxLength={formData.identity_card_type === 'ABHA' ? 14 : 9}
                       className="w-full p-3 border-gray-100 border-2 rounded-xl focus:ring-2 focus:ring-blue-50 focus:border-blue-500 shadow-sm transition-all font-bold text-sm"
                     />

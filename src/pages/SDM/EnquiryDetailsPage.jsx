@@ -14,7 +14,8 @@ import {
   FiArrowLeft,
   FiClock,
   FiMapPin,
-  FiActivity
+  FiActivity,
+  FiEye
 } from 'react-icons/fi';
 import baseUrl from '../../baseUrl/baseUrl';
 
@@ -161,6 +162,32 @@ const EnquiryDetailsPage = () => {
     };
     fetchEnquiry();
   }, [enquiryId]);
+
+  const handleDownload = async (filePath, fileName) => {
+    try {
+      const url = filePath.startsWith('http') ? filePath : `${baseUrl}${filePath.startsWith('/') ? '' : '/'}${filePath}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Network response was not ok');
+      const blob = await response.blob();
+      const objectUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      const getExtension = (path) => {
+        const parts = path.split('.');
+        return parts.length > 1 ? parts.pop().split(/#|\?/)[0] : '';
+      };
+      const ext = getExtension(filePath);
+      link.download = fileName ? `${fileName}${ext ? '.' + ext : ''}` : 'document';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+      console.error('Download failed:', error);
+      const url = filePath.startsWith('http') ? filePath : `${baseUrl}${filePath.startsWith('/') ? '' : '/'}${filePath}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
 
   const handleForward = async () => {
     try {
@@ -364,21 +391,75 @@ const EnquiryDetailsPage = () => {
 
         <Card title={labels[language].documents} icon={FiFileText}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {enquiry.documents?.length > 0 ? enquiry.documents.map((doc) => (
-              <div key={doc.document_id} className="bg-indigo-50 p-4 rounded-xl shadow-sm hover:shadow-md transition">
-                <p className="font-medium text-indigo-700 mb-3">{doc.document_type}</p>
-                <a
-                  href={doc.file_path}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
-                >
-                  <FiDownload className="h-5 w-5" /> {labels[language].download}
-                </a>
-              </div>
-            )) : <p className="text-gray-500">No documents uploaded.</p>}
+            {enquiry.documents?.length > 0 ? enquiry.documents.map((doc) => {
+              const isCloudinary = doc.file_path?.startsWith('http');
+              const urlPath = (doc.file_path || '').split('?')[0].toLowerCase();
+              const isImage = isCloudinary && (
+                /\.(jpg|jpeg|png|gif|webp)$/.test(urlPath) ||
+                (/cloudinary\.com/.test(urlPath) && !/\.pdf$/.test(urlPath) && !/\/raw\//.test(urlPath))
+              );
+              const isPdf = isCloudinary && /\.pdf$/.test(urlPath);
+              const viewUrl = isCloudinary ? doc.file_path : null;
+
+              return (
+                <div key={doc.document_id} className="bg-white border border-indigo-100 rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden">
+                  <div className="bg-indigo-50 px-4 py-3 border-b border-indigo-100">
+                    <p className="font-bold text-indigo-700 text-sm uppercase tracking-wide">{doc.document_type?.replace(/_/g, ' ')}</p>
+                  </div>
+                  <div className="p-3">
+                    {!isCloudinary ? (
+                      <div className="flex flex-col items-center justify-center py-6 text-center bg-amber-50 rounded-xl border border-amber-200">
+                        <span className="text-3xl mb-2">⚠️</span>
+                        <p className="text-xs font-bold text-amber-700 uppercase tracking-wide">Old Upload</p>
+                        <p className="text-xs text-amber-600 mt-1">Please re-upload this document to make it accessible.</p>
+                      </div>
+                    ) : isImage ? (
+                      <a href={viewUrl} target="_blank" rel="noopener noreferrer">
+                        <img
+                          src={viewUrl}
+                          alt={doc.document_type}
+                          className="w-full h-40 object-cover rounded-xl border border-gray-100 hover:opacity-90 transition cursor-zoom-in"
+                          onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
+                        />
+                        <div style={{display:'none'}} className="flex flex-col items-center justify-center h-40 bg-gray-50 rounded-xl border border-gray-200">
+                          <span className="text-3xl">🖼️</span>
+                          <p className="text-xs text-gray-500 mt-1">Preview unavailable</p>
+                        </div>
+                      </a>
+                    ) : isPdf ? (
+                      <a href={viewUrl} target="_blank" rel="noopener noreferrer"
+                        className="flex flex-col items-center justify-center h-40 bg-red-50 rounded-xl border border-red-100 hover:bg-red-100 transition cursor-pointer">
+                        <span className="text-4xl">📄</span>
+                        <p className="text-xs font-bold text-red-700 mt-2">PDF Document</p>
+                        <p className="text-[10px] text-red-500 mt-0.5">Click to open</p>
+                      </a>
+                    ) : (
+                      <a href={viewUrl} target="_blank" rel="noopener noreferrer"
+                        className="flex flex-col items-center justify-center h-40 bg-blue-50 rounded-xl border border-blue-100 hover:bg-blue-100 transition cursor-pointer">
+                        <span className="text-4xl">📎</span>
+                        <p className="text-xs font-bold text-blue-700 mt-2">View Document</p>
+                        <p className="text-[10px] text-blue-500 mt-0.5">Click to open</p>
+                      </a>
+                    )}
+                  </div>
+                  {isCloudinary && (
+                    <div className="px-3 pb-3 flex gap-2">
+                      <a href={viewUrl} target="_blank" rel="noopener noreferrer"
+                        className="flex-1 flex items-center justify-center gap-2 bg-gray-600 text-white px-3 py-2 rounded-xl hover:bg-gray-700 transition text-sm font-medium">
+                        <FiEye className="h-4 w-4" /> View
+                      </a>
+                      <a href={viewUrl} target="_blank" rel="noopener noreferrer" download
+                        className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 text-white px-3 py-2 rounded-xl hover:bg-indigo-700 transition text-sm font-medium">
+                        <FiDownload className="h-4 w-4" /> {labels[language].download}
+                      </a>
+                    </div>
+                  )}
+                </div>
+              );
+            }) : <p className="text-gray-500">No documents uploaded.</p>}
           </div>
         </Card>
+
 
         {/* Professional Action Panel */}
         <div className="mt-8 bg-white rounded-2xl shadow-sm overflow-hidden">

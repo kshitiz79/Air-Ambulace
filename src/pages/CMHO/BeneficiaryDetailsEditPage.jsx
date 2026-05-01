@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   FaSave, FaTimes, FaArrowLeft, FaUser, FaHospital, FaPhone,
-  FaStethoscope, FaAmbulance, FaFileAlt, FaIdCard, FaDownload, FaTrash, FaPlus
+  FaStethoscope, FaAmbulance, FaFileAlt, FaIdCard, FaDownload, FaTrash, FaPlus ,FaEye
 } from 'react-icons/fa';
 import baseUrl from '../../baseUrl/baseUrl';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -148,6 +148,7 @@ const BeneficiaryDetailsEditPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { language, localize, t: globalT } = useLanguage();
+  const userRole = localStorage.getItem('role');
   // Use local labels for this page (already defined above), keyed by global language
   const [rawEnquiry, setRawEnquiry] = useState(null); // stores original DB data with _hi fields
   const [formData, setFormData] = useState({
@@ -389,19 +390,59 @@ const BeneficiaryDetailsEditPage = () => {
   };
 
   // Remove existing document
-  const handleRemoveDocument = (index) => {
-    const updatedDocs = formData.existingDocuments.filter((_, i) => i !== index);
-    setFormData({ ...formData, existingDocuments: updatedDocs });
+  const handleRemoveDocument = async (index) => {
+    const docToDelete = formData.existingDocuments[index];
+    if (window.confirm('Are you sure you want to permanently delete this document?')) {
+      try {
+        const res = await fetch(`${baseUrl}/api/enquiries/${id}/documents/${docToDelete.document_id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        
+        if (!res.ok) throw new Error('Failed to delete document');
+        
+        const updatedDocs = formData.existingDocuments.filter((_, i) => i !== index);
+        setFormData({ ...formData, existingDocuments: updatedDocs });
+      } catch (err) {
+        console.error(err);
+        alert('Failed to delete document: ' + err.message);
+      }
+    }
   };
 
   // Download document
-  const handleDownload = (filePath, fileName) => {
-    const link = document.createElement('a');
-    link.href = `${baseUrl}${filePath}`;
-    link.download = fileName || 'document';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = async (filePath, fileName) => {
+    try {
+      const url = filePath.startsWith('http') ? filePath : `${baseUrl}${filePath.startsWith('/') ? '' : '/'}${filePath}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Network response was not ok');
+      const blob = await response.blob();
+      const objectUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      const getExtension = (path) => {
+        const parts = path.split('.');
+        return parts.length > 1 ? parts.pop().split(/#|\?/)[0] : '';
+      };
+      const ext = getExtension(filePath);
+      link.download = fileName ? `${fileName}${ext ? '.' + ext : ''}` : 'document';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+      console.error('Download failed:', error);
+      // Fallback
+      const url = filePath.startsWith('http') ? filePath : `${baseUrl}${filePath.startsWith('/') ? '' : '/'}${filePath}`;
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName || 'document';
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   // Form validation
@@ -535,9 +576,29 @@ const BeneficiaryDetailsEditPage = () => {
       if (!res.ok) throw new Error(data.message || 'Failed to update enquiry');
 
       setSuccess(labels[language].updateSuccess);
+
+      // Re-fetch the enquiry to get updated documents list
+      try {
+        const refreshRes = await fetch(`${baseUrl}/api/enquiries/${formData.enquiry_id}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        });
+        const refreshData = await refreshRes.json();
+        const refreshed = refreshData.data || refreshData;
+        setFormData(prev => ({
+          ...prev,
+          documents: [],           // clear new doc inputs
+          existingDocuments: refreshed.documents || [],  // show updated docs
+        }));
+      } catch { /* non-fatal — success message already shown */ }
+
+      // Navigate after short delay so user sees the updated docs
       setTimeout(() => {
-        navigate('/cmho-dashboard');
-      }, 2000);
+        if (userRole === 'ADMIN') {
+          navigate('/admin/enquiry-management');
+        } else {
+          navigate('/cmho-dashboard');
+        }
+      }, 3000);
     } catch (err) {
       setError(labels[language].updateError + err.message);
     } finally {
@@ -1003,13 +1064,24 @@ const BeneficiaryDetailsEditPage = () => {
                   <h3 className="text-md font-medium text-gray-700 mb-3">Existing Documents</h3>
                   <div className="space-y-3">
                     {formData.existingDocuments.map((doc, index) => (
-                      <div key={doc.document_id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <FaFileAlt className="text-gray-500" />
-                          <span className="text-sm font-medium">{doc.document_type}</span>
-                          <span className="text-sm text-gray-600">({doc.file_path?.split('/').pop() || 'Document'})</span>
+                      <div key={doc.document_id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg gap-4">
+                        <div className="flex items-center space-x-3 flex-1 min-w-0">
+                          <FaFileAlt className="text-gray-500 flex-shrink-0" />
+                          <div className="min-w-0">
+                            <span className="text-sm font-medium block truncate">{doc.document_type}</span>
+                            <span className="text-sm text-gray-600 block truncate" title={doc.file_path?.split('/').pop() || 'Document'}>({doc.file_path?.split('/').pop() || 'Document'})</span>
+                          </div>
                         </div>
-                        <div className="flex space-x-2">
+                        <div className="flex space-x-2 flex-shrink-0">
+                          <a
+                            href={doc.file_path?.startsWith('http') ? doc.file_path : `${baseUrl}${doc.file_path?.startsWith('/') ? '' : '/'}${doc.file_path}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 transition"
+                          >
+                            <FaEye className="mr-1" />
+                            View
+                          </a>
                           <button
                             type="button"
                             onClick={() => handleDownload(doc.file_path, doc.document_type)}
@@ -1075,7 +1147,13 @@ const BeneficiaryDetailsEditPage = () => {
             <div className="flex justify-end space-x-4">
               <button
                 type="button"
-                onClick={() => navigate('/cmho-dashboard')}
+                onClick={() => {
+                  if (userRole === 'ADMIN') {
+                    navigate('/admin/enquiry-management');
+                  } else {
+                    navigate('/cmho-dashboard');
+                  }
+                }}
                 className="flex items-center px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
               >
                 <FaTimes className="mr-2" />

@@ -223,22 +223,88 @@ const CaseFileViewPage = () => {
 
  
           <Card title={t.documents} icon={FiFileText} className="mt-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {enquiry.documents?.length > 0 ? (
-                enquiry.documents.map((doc) => (
-                  <div key={doc.document_id} className="bg-indigo-50 p-4 rounded-xl shadow-sm hover:shadow-md transition mt-20">
-                    <p className="font-medium text-indigo-700 mb-3">{t[doc.document_type?.toLowerCase()] || doc.document_type}</p>
-                    <a
-                      href={`${baseUrl}${doc.file_path}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
-                      aria-label={`Download ${doc.document_type} document`}
-                    >
-                      <FiDownload className="h-5 w-5" /> {t.download}
-                    </a>
-                  </div>
-                ))
+                enquiry.documents.map((doc) => {
+                  const isCloudinary = doc.file_path?.startsWith('http');
+                  const urlPath = (doc.file_path || '').split('?')[0].toLowerCase();
+                  const isImage = isCloudinary && (
+                    /\.(jpg|jpeg|png|gif|webp)$/.test(urlPath) ||
+                    // Cloudinary auto-resource URLs often have no extension — check for image formats in path
+                    (/cloudinary\.com/.test(urlPath) && !/\.pdf$/.test(urlPath) && !/\/raw\//.test(urlPath))
+                  );
+                  const isPdf = isCloudinary && /\.pdf$/.test(urlPath);
+                  const viewUrl = isCloudinary ? doc.file_path : null;
+
+                  return (
+                    <div key={doc.document_id} className="bg-white border border-indigo-100 rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden">
+                      {/* Document type header */}
+                      <div className="bg-indigo-50 px-4 py-3 border-b border-indigo-100">
+                        <p className="font-bold text-indigo-700 text-sm uppercase tracking-wide">
+                          {t[doc.document_type?.toLowerCase()] || doc.document_type?.replace(/_/g, ' ')}
+                        </p>
+                      </div>
+
+                      {/* Preview area */}
+                      <div className="p-3">
+                        {!isCloudinary ? (
+                          /* Old local path — inaccessible */
+                          <div className="flex flex-col items-center justify-center py-6 text-center bg-amber-50 rounded-xl border border-amber-200">
+                            <span className="text-3xl mb-2">⚠️</span>
+                            <p className="text-xs font-bold text-amber-700 uppercase tracking-wide">Old Upload</p>
+                            <p className="text-xs text-amber-600 mt-1">Please re-upload this document to make it accessible.</p>
+                          </div>
+                        ) : isImage ? (
+                          /* Cloudinary image — show inline preview */
+                          <a href={viewUrl} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={viewUrl}
+                              alt={doc.document_type}
+                              className="w-full h-40 object-cover rounded-xl border border-gray-100 hover:opacity-90 transition cursor-zoom-in"
+                              onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
+                            />
+                            <div style={{display:'none'}} className="flex flex-col items-center justify-center h-40 bg-gray-50 rounded-xl border border-gray-200">
+                              <span className="text-3xl">🖼️</span>
+                              <p className="text-xs text-gray-500 mt-1">Preview unavailable</p>
+                            </div>
+                          </a>
+                        ) : isPdf ? (
+                          /* Cloudinary PDF */
+                          <a href={viewUrl} target="_blank" rel="noopener noreferrer"
+                            className="flex flex-col items-center justify-center h-40 bg-red-50 rounded-xl border border-red-100 hover:bg-red-100 transition cursor-pointer">
+                            <span className="text-4xl">📄</span>
+                            <p className="text-xs font-bold text-red-700 mt-2">PDF Document</p>
+                            <p className="text-[10px] text-red-500 mt-0.5">Click to open</p>
+                          </a>
+                        ) : (
+                          /* Other Cloudinary file type */
+                          <a href={viewUrl} target="_blank" rel="noopener noreferrer"
+                            className="flex flex-col items-center justify-center h-40 bg-blue-50 rounded-xl border border-blue-100 hover:bg-blue-100 transition cursor-pointer">
+                            <span className="text-4xl">📎</span>
+                            <p className="text-xs font-bold text-blue-700 mt-2">View Document</p>
+                            <p className="text-[10px] text-blue-500 mt-0.5">Click to open</p>
+                          </a>
+                        )}
+                      </div>
+
+                      {/* Download button — only for valid Cloudinary URLs */}
+                      {isCloudinary && (
+                        <div className="px-3 pb-3">
+                          <a
+                            href={viewUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download
+                            className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition text-sm font-medium w-full"
+                            aria-label={`Download ${doc.document_type} document`}
+                          >
+                            <FiDownload className="h-4 w-4" /> {t.download || 'Download'}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
               ) : (
                 <p className="text-gray-500">{t.noDocuments}.</p>
               )}

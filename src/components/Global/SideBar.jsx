@@ -11,7 +11,8 @@ const SideBar = ({
   userRole,
   onLogout,
   collapsed = false,
-  onToggleCollapse
+  onToggleCollapse,
+  onLinkClick,
 }) => {
   // Get real user data from localStorage
   const realUserName = userName || localStorage.getItem('full_name') || localStorage.getItem('username') || 'User';
@@ -27,7 +28,7 @@ const SideBar = ({
   };
 
   return (
-    <aside className={`${isCollapsed ? 'w-20' : 'w-72'} shrink-0 flex flex-col shadow-sm transition-all duration-300 ease-in-out relative ${
+    <aside className={`${isCollapsed ? 'w-20' : 'w-72'} h-full shrink-0 flex flex-col shadow-sm transition-all duration-300 ease-in-out relative ${
       isDark 
         ? 'bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white' 
         : 'bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-800 border-r border-slate-200'
@@ -79,6 +80,7 @@ const SideBar = ({
                 <li key={to}>
                   <Link
                     to={to}
+                    onClick={onLinkClick}
                     className={`group flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 relative ${
                       isActive
                         ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-sm shadow-blue-500/25'
